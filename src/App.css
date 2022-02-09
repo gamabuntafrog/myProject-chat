@@ -1,0 +1,121 @@
+* {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+button {
+  cursor: pointer;
+}
+.App {
+  padding: 50px;
+  font-size: 40px;
+  color: whitesmoke;
+  background-color: #282c34;
+  min-height: 100vh;
+  text-align: center;
+  padding-bottom: 100px;
+}
+
+.title {
+  border-radius: 4px;
+  word-break: break-all;
+  font-size: 100px;
+  padding: 30px;
+  background-color: cadetblue;
+}
+
+.entry-field {
+  background-color: #191b20;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px;
+}
+
+.entry-field__form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.entry-field__input,
+.entry-field__button {
+  margin-right: 30px;
+  height: 30px;
+  border: 2px solid rgb(21, 27, 77);
+  border-radius: 5px;
+}
+
+.entry-field__button {
+  width: 100px;
+}
+
+.messages__list {
+  margin-top: 20px;
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.message__item {
+  background-color: cadetblue;
+  padding: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.message__name {
+  display: inline;
+}
+
+.message__date {
+  font-size: 30px;
+  display: inline;
+}
+
+.message__delete {
+  border: none;
+  border-radius: 4px;
+  background-color: #282c34;
+  color: whitesmoke;
+  width: 100px;
+  height: 50px;
+  padding: 10px;
+  margin: 10px;
+}
+
+.message__delete:focus,
+.message__delete:hover {
+  background-color: maroon;
+}
+
+@media screen and (max-width: 700px) {
+  .App {
+    padding: 20px;
+    font-size: 20px;
+  }
+  .title {
+    font-size: 30px;
+  }
+  .message__date {
+    display: inline;
+    font-size: 20px;
+  }
+  .entry-field {
+  }
+
+  .entry-field__form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .entry-field__input {
+    width: 90%;
+    margin-bottom: 20px;
+  }
+}
