@@ -17,10 +17,9 @@ const Search = () => {
     const createChat = async () => {
         const newChatId = shortid.generate()
 
-        const unSub = await addDoc(collection(firestore, `${newChatId}`), {startMessage: 'Начало чата', createdAt: Date.now()})
+        await addDoc(collection(firestore, `${newChatId}`), {startMessage: 'Начало чата', createdAt: Date.now()})
         
         history.push(`/chat/${newChatId}`)
-        return unSub
     }
 
     const findChat = () => {
