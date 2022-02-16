@@ -2,14 +2,10 @@ import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import React, { useContext, useEffect, useState } from 'react';
 import {NavLink, useParams} from 'react-router-dom';
 import { Context } from '../..';
+import {Container, Box, Typography, Button} from "@mui/material";
 import EntryField from '../EntryField';
 import Loader from '../Loader';
 import Messages from '../Messages';
-import {Container} from "@mui/material";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-
 
 
 const Chat = () => {
@@ -31,18 +27,18 @@ const Chat = () => {
     if (!messages) return <Loader />
     //пока setMessages в снапшоте и не вернет пустой или массив с сообщениями будет Loader
     
-    if (messages.length === 0) return <Container sx={{textAlign: 'center'}}>
+    if (messages.length === 0) return(
+    <Container sx={{textAlign: 'center'}}>
         <Typography
-                    variant={'h3'}>Чата по id: {id} не существует
+            variant={'h3'}>Чата по id: {id} не существует
         </Typography>
         <Button size='large' sx={{mt: '35%'}} variant={'outlined'}>
-
-        <NavLink className={'nav-link'} to={'/search'} style={{textDecoration: 'none', color: 'inherit',}}>
+            <NavLink className={'nav-link'} to={'/search'} style={{textDecoration: 'none', color: 'inherit',}}>
                 Поиск
-        </NavLink>
+            </NavLink>
         </Button>
-
     </Container>
+    )
 
     return (
         <Box sx={{backgroundColor: '#0d47a1', py: 3, }}>
@@ -51,7 +47,6 @@ const Chat = () => {
                 {messages.length !== 0 && <EntryField />}
             </Container>
         </Box>
-
 
     );
 }

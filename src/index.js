@@ -5,11 +5,17 @@ import App from './App';
 import { initializeApp } from "firebase/app";
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { createTheme, ThemeProvider,CssBaseline } from '@mui/material';
+import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
 
 
 const firebaseConfig = {
-
+  apiKey: "AIzaSyBvNxoUQWQehZKeaU_uaQ6Rxq4BFpODRxc",
+  authDomain: "gamabunta-chat.firebaseapp.com",
+  projectId: "gamabunta-chat",
+  storageBucket: "gamabunta-chat.appspot.com",
+  messagingSenderId: "348555320114",
+  appId: "1:348555320114:web:c877b2222d8213bcc7d52b",
+  measurementId: "G-3832YNV6K3"
 };
 
 export const Context = createContext(null)
