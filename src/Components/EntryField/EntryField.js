@@ -63,14 +63,13 @@ const EntryField = () => {
                 label="Сообщение"
                 value={message}
                 onChange={(e) => setMessage(e.currentTarget.value)}
-                xs={{}}
                 fullWidth
                 onKeyPress={(e) => {
                     if (e.key === "Enter") return submitPost() //submit
                 }}
             />
             <Button sx={{ml: 1}} variant="outlined" onClick={submitPost}>
-                <SendIcon/>
+                <SendIcon />
             </Button>
         </Box>
 

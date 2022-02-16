@@ -41,10 +41,16 @@ const Navbar = () => {
                 <Drawer
                     anchor="top"
                     open={isOpen}
-                    classes={{test: 'test'}}
+                    sx={{'.MuiPaper-root': {
+                            background: 'rgba(255, 255, 255, 0)',
+                            boxShadow: 0,
+                            marginTop: 5
+                        }}}
                 >
-                    <Container sx={{paddingTop: 5, paddingBottom: 3, }}>
-                        <HeaderMenu toggleModal={toggleModal} user={user} auth={auth} />
+                    <Container>
+                        <Box sx={{paddingTop: 5, paddingBottom: 3, boxShadow: 3, backgroundColor: '#121212'}}>
+                            <HeaderMenu toggleModal={toggleModal} user={user} auth={auth} />
+                        </Box>
                     </Container>
                 </Drawer>
             </Toolbar>
