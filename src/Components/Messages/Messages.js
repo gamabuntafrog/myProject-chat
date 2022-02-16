@@ -1,76 +1,89 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, } from "react";
 import { Context } from "../..";
 import { doc,  deleteDoc } from "firebase/firestore"; 
 import { useAuthState } from "react-firebase-hooks/auth";
+import {Box, Avatar, Typography, Button, List, ListItem} from '@mui/material'
+import DeleteIcon from '@mui/icons-material/Delete';
 
-
-
-
-const Messages = ({messages, firestore}) => {
+const Messages = ({chatId, messages, firestore}) => {
 
     const { auth } = useContext(Context)
-    
     const [user, isLoading, error] = useAuthState(auth)
 
-
-    const chatRef = useRef(null)
-
     useEffect(() => {
-        scrollToBottomInChat()
+        const body = document.querySelector('body')
+
+        scrollToBottom(body)
     }, [messages])
     
     const onDelete = async (message) => {
-        const documentId = message._document.key.path.segments.pop();
+        const segmentsLength = message._document.key.path.segments.length - 1;
+        const documentId = message._document.key.path.segments[segmentsLength];
 
-        await deleteDoc(doc(firestore, 'messages', `${documentId}`))
-            
+        await deleteDoc(doc(firestore, `${chatId}`, `${documentId}`))
     }
 
-    const scrollToBottomInChat = () => {
-        chatRef?.current?.scrollTo({top: chatRef?.current.scrollHeight, behavior: "smooth"})
-        console.log(chatRef?.current?.scrollHeight);
+    const scrollToBottom = (body) => {
+        window.scrollTo({top: body.offsetHeight, behavior: "smooth"})
     }
 
-    if (messages.length === 0) {
-        return <h1>Чат не существует</h1>
-    }
 
     if (messages) {
+
+
         return <>
-        <ul className="messages__list" ref={chatRef}>
+        <List sx={{minHeight: '80vh'}}>
             {messages && messages.map((el, i) => {
-                
+
                 const currentUser = el.data().userId == user.uid;
 
                 switch (currentUser) {
-                    case true: 
-                        return <li className={'message__item-left'} key={el.data().createdAt}>
-                            <div className="message__item-text-wrapper">
-                                <img src={`${el.data().photoURL}`} alt="avatar" className="message__avatar"/>
-                                <h3>{el.data().userName}</h3>
-                            </div>
-                            <p>{el.data().message}</p>
-                            <button onClick={() => onDelete(el)}>Удалить</button>
-                        </li>
-                    
-                    case false: 
-                        if (el.data().startMessage) return <li key={el.data().createdAt}><p>{el.data().startMessage}</p></li> //это просто сообщение "начало чата"
+                    case true:
+                    return (<ListItem sx={{paddingLeft: 0, paddingRight: 0}} key={el.data().createdAt}>
+                        <Box sx={{mr: 3}}>
+                            <Avatar sx={{width: 50, height: 50}} src={`${el.data().photoURL}`} alt="avatar" />
+                        </Box>
+                        <Box sx={{flexGrow: 1}}>
+                            <Typography sx={{color: '#2196f3'}} variant={'subtitle1'}>
+                                {el.data().userName}
+                            </Typography>
+                            <Typography variant={'body1'}>
+                                {el.data().message}
+                            </Typography>
+                        </Box>
+                        <Button color={'error'} onClick={() => onDelete(el)} sx={{minWidth: 30, padding: 0}} >
+                            <DeleteIcon  />
+                        </Button>
 
-                        return <li className={'message__item-right'} key={el.data().createdAt}>
-                            <div className="message__item-text-wrapper">
-                                <h3>{el.data().userName}</h3>
-                                <img src={`${el.data().photoURL}`} alt="avatar" className="message__avatar"/>                            
-                            </div>                            
-                            <p>{el.data().message}</p>
-                        </li>                        
-                    
+                    </ListItem>)
+
+
+                    case false:
+                        if (el.data().startMessage) return <ListItem sx={{justifyContent: 'center'}} key={el.data().createdAt}>
+                            <Typography variant={'subtitle1'}>{el.data().startMessage}</Typography></ListItem> //это просто сообщение "начало чата"
+
+                        return (<ListItem sx={{paddingLeft: 0, paddingRight: 0}} key={el.data().createdAt}>
+                            <Box sx={{mr: 3}}>
+                                <Avatar sx={{width: 50, height: 50}} src={`${el.data().photoURL}`} alt="avatar" />
+                            </Box>
+                            <Box sx={{flexGrow: 1}}>
+                                <Typography variant={'subtitle1'}>
+                                    {el.data().userName}
+                                </Typography>
+                                <Typography variant={'body1'}>
+                                    {el.data().message}
+                                </Typography>
+                            </Box>
+
+                        </ListItem>)
+
                     default:
-                        break    
+                        break
 
                 }
             })}
 
-        </ul>
+        </List>
     </>
     }
     

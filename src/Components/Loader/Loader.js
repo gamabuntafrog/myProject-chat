@@ -2,12 +2,13 @@ import { TailSpin } from 'react-loader-spinner';
 
 
 import React from 'react';
+import { Box, positions } from '@mui/system';
 
 const Loader = () => {
     return (
-        <div className='loader__wrapper'>
+        <Box position='absolute' sx={{top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
             <TailSpin color="#00BFFF" height={200} width={200} />
-        </div>
+        </Box>
     );
 }
 

@@ -11,6 +11,7 @@ import { Context } from '.';
 
 function App() {
 
+
   const { auth } = useContext(Context)
   
   const [user, isLoading, error] = useAuthState(auth)
@@ -18,10 +19,10 @@ function App() {
   if (isLoading) {
    return <Loader/>
   }
-  
+
   return (
     <div className="App">
-      
+
       <BrowserRouter>
         <Navbar />
         <AppRouter/>

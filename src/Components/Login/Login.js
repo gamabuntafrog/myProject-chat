@@ -1,3 +1,4 @@
+import { Box, Button, Typography } from "@mui/material";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth";
 import { useContext } from "react";
 import { Context } from "../..";
@@ -32,10 +33,14 @@ const Login = () => {
     }
 
     return (
-        <div className="login-container">
-            <h1>ВХОД</h1>
-            <button className="login-button" onClick={onAuth}>Войти через Google</button>
-        </div>
+        <Box position='absolute' sx={{top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
+            <Typography variant='h1' fontWeight='600' >
+                ВХОД
+            </Typography>
+            <Button sx={{mx: 'auto', width: '100%', mt: 5}} size='large' variant="contained" onClick={onAuth}>
+                Войти через Google
+            </Button>
+        </Box>
     );
 }
 

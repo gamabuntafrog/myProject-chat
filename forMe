@@ -1,0 +1,4 @@
+    "deploy": "netlify deploy -p"
+
+  "homepage": "https://gamabuntafrog.github.io/myProject-chat",
+    "deploy": "gh-pages -d build"

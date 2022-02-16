@@ -1,10 +1,11 @@
-import { useContext, useState } from "react";
-import { collection } from "firebase/firestore";
-import Loader from "../Loader/Loader";
-import { addDoc } from "firebase/firestore"; 
-import { useAuthState } from "react-firebase-hooks/auth";
+import React, { useContext, useState } from "react";
 import { useParams } from "react-router-dom";
+import { addDoc, collection } from "firebase/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 import { Context } from "../..";
+import Loader from "../Loader/Loader";
+import {TextField, Box, Button, Typography, Snackbar, Alert, AlertTitle} from "@mui/material"
+import SendIcon from '@mui/icons-material/Send';
 
 
 
@@ -21,11 +22,11 @@ const EntryField = () => {
 
 
 
-    const submitPost = async (e) => {
-        e.preventDefault()
+    const submitPost = async () => {
 
         if (message.trim() == '') {
-            alert('Введите сообщение ёпт')
+            setOpen(true)
+            // alert('Введите сообщение ёпт')
             return
         }
 
@@ -40,22 +41,58 @@ const EntryField = () => {
         setMessage('')
     }
 
+    const [open, setOpen] = useState(false);
+
+    const handleClick = () => {
+        setOpen(true);
+    };
+
+    const handleClose = (event, reason) => {
+        if (reason === 'clickaway') { //если кликнул по других элементах
+            return;
+        }
+
+        setOpen(false);
+    };
 
 
     if (isLoading) {
         return <Loader/>
     }
 
-    return <section className="entry-field">
-        <p className="entry-field__chatid">{id}</p>
-        <form className="entry-field__form">
+    return <Box >
+        <Typography sx={{my: 1}} variant={'body1'} >{id}</Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <TextField
+                id="outlined-name"
+                label="Сообщение"
+                value={message}
+                onChange={(e) => setMessage(e.currentTarget.value)}
+                xs={{}}
+                fullWidth
+                onKeyPress={(e) => {
+                    if (e.key === "Enter") return submitPost() //submit
+                }}
+            />
+            <Button sx={{ml: 1}} variant="outlined" onClick={submitPost}>
+                <SendIcon/>
+            </Button>
+        </Box>
 
-            <textarea className="entry-field__input" placeholder='Сообщение' value={message} onChange={(e) => setMessage(e.currentTarget.value)} />
-
-            <button className="entry-field__button" type="submit" onClick={submitPost}>Отправить</button>
-
-        </form>
-    </section>
+        <Snackbar
+            anchorOrigin={{vertical: 'top', horizontal: 'center'}}
+            open={open}
+            autoHideDuration={6000}
+            onClose={() => setOpen(false)}
+        >
+            <Alert sx={{}} variant={'filled'}  severity="error">
+                <AlertTitle sx={{mt: -0.5, flexGrow: 1}}>Введите сообщение </AlertTitle>
+                <Button sx={{ml: 9}} variant={'error'} size="small" onClick={handleClose}>
+                    Закрыть
+                </Button>
+            </Alert>
+        </Snackbar>
+   </Box>
 }
 
 
