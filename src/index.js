@@ -8,13 +8,6 @@ import { getFirestore } from 'firebase/firestore';
 import { createTheme, ThemeProvider,CssBaseline } from '@mui/material';
 
 
-
-
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
 
 };
@@ -23,7 +16,6 @@ export const Context = createContext(null)
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
 const auth = getAuth()
 const firestore = getFirestore()
 
