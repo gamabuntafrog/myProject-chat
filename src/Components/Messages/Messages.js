@@ -87,7 +87,7 @@ const Messages = ({chatId, messages, firestore}) => {
     )
         } else {
             return (
-            <List>
+            <List sx={{minHeight: '80vh'}}>
                 {messages && messages.map((el, i) => {
                     if (el.data().startMessage) return <ListItem sx={{justifyContent: 'center'}} key={el.data().createdAt}>
                         <Typography variant={'subtitle1'}>{el.data().startMessage}</Typography></ListItem> //это просто сообщение "начало чата"

@@ -41,7 +41,7 @@ const Chat = () => {
     )
 
     return (
-        <Box sx={{backgroundColor: '#0d47a1', py: 3, }}>
+        <Box sx={{backgroundColor: '#0d47a1', py: 3 }}>
             <Container  sx={{backgroundColor: '#121212', borderRadius: 1, py: 2, boxShadow: 6}}>
                 <Messages chatId={id} messages={messages} firestore={firestore}/>
                 {messages.length !== 0 && <EntryField />}
