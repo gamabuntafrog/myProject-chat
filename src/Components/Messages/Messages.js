@@ -29,9 +29,9 @@ const Messages = ({chatId, messages, firestore}) => {
 
 
     if (messages) {
+        if (user) {
 
-
-        return <>
+        return (
         <List sx={{minHeight: '80vh'}}>
             {messages && messages.map((el, i) => {
 
@@ -84,7 +84,31 @@ const Messages = ({chatId, messages, firestore}) => {
             })}
 
         </List>
-    </>
+    )
+        } else {
+            return (
+            <List>
+                {messages && messages.map((el, i) => {
+                    if (el.data().startMessage) return <ListItem sx={{justifyContent: 'center'}} key={el.data().createdAt}>
+                        <Typography variant={'subtitle1'}>{el.data().startMessage}</Typography></ListItem> //это просто сообщение "начало чата"
+
+                    return (<ListItem key={el.data().createdAt}>
+                        <Box sx={{mr: 3}}>
+                            <Avatar sx={{width: 50, height: 50}} src={`${el.data().photoURL}`} alt="avatar" />
+                        </Box>
+                        <Box sx={{flexGrow: 1}}>
+                            <Typography variant={'subtitle1'}>
+                                {el.data().userName}
+                            </Typography>
+                            <Typography variant={'body1'}>
+                                {el.data().message}
+                            </Typography>
+                        </Box>
+                    </ListItem>)
+                })}
+            </List>
+            )
+        }
     }
     
   

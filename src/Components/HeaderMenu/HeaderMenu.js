@@ -59,6 +59,13 @@ const HeaderMenu = ({toggleModal , user, auth }) => {
         return (
         <Grid sx={{justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}}  spacing={2} container >
             <Grid item xs={12} >
+                <NavLink className={'nav-link'} to={'/login'} onClick={toggleModal}>
+                    <Typography variant={'h5'}>
+                        Войти
+                    </Typography>
+                </NavLink>
+            </Grid>
+            <Grid item xs={12} >
                 <NavLink className={'nav-link'} to={'/about'} onClick={toggleModal}>
                     <Typography variant={'h5'}>
                         Про сайт
@@ -66,9 +73,9 @@ const HeaderMenu = ({toggleModal , user, auth }) => {
                 </NavLink>
             </Grid>
             <Grid item xs={12} >
-                <NavLink className={'nav-link'} to={'/login'} onClick={toggleModal}>
+                <NavLink onClick={toggleModal} className={'nav-link'} to={'/search'}>
                     <Typography variant={'h5'}>
-                        Войти
+                        Поиск
                     </Typography>
                 </NavLink>
             </Grid>

@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+import shortid from 'shortid';
 import { useParams } from "react-router-dom";
 import { addDoc, collection } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -28,13 +29,25 @@ const EntryField = () => {
             return
         }
 
-        await addDoc(collection(firestore, `${id}`), {
-            userId: user.uid,
-            userName: user.displayName,
-            message,
-            createdAt: Date.now(),
-            photoURL: user.photoURL
-        })
+        if (user) {
+            await addDoc(collection(firestore, `${id}`), {
+                userId: user.uid,
+                userName: user.displayName,
+                message,
+                createdAt: Date.now(),
+                photoURL: user.photoURL
+            })
+        } else {
+            const NewAnonimUserId = () => `${shortid.generate()}${shortid.generate()}`
+
+            await addDoc(collection(firestore, `${id}`), {
+                userId: NewAnonimUserId(),
+                userName: 'Аноним Анонимович',
+                message,
+                createdAt: Date.now(),
+                photoURL: 'https://as1.ftcdn.net/v2/jpg/03/53/11/00/1000_F_353110097_nbpmfn9iHlxef4EDIhXB1tdTD0lcWhG9.jpg'
+            })
+        }
 
         setMessage('')
     }
@@ -55,38 +68,42 @@ const EntryField = () => {
         return <Loader/>
     }
 
-    return <Box >
-        <Typography sx={{my: 1}} variant={'body1'} >{id}</Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <TextField
-                id="outlined-name"
-                label="Сообщение"
-                value={message}
-                onChange={(e) => setMessage(e.currentTarget.value)}
-                fullWidth
-                onKeyPress={(e) => {
-                    if (e.key === "Enter") return submitPost() //submit
-                }}
-            />
-            <Button sx={{ml: 1}} variant="outlined" onClick={submitPost}>
-                <SendIcon />
-            </Button>
+        return <Box >
+            <Typography sx={{my: 1}} variant={'body1'} >{id}</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <TextField
+                    id="outlined-name"
+                    label="Сообщение"
+                    value={message}
+                    onChange={(e) => setMessage(e.currentTarget.value)}
+                    fullWidth
+                    onKeyPress={(e) => {
+                        if (e.key === "Enter") return submitPost() //submit
+                    }}
+                />
+                <Button sx={{ml: 1}} variant="outlined" onClick={submitPost}>
+                    <SendIcon />
+                </Button>
+            </Box>
+
+            <Snackbar
+                anchorOrigin={{vertical: 'top', horizontal: 'center'}}
+                open={open}
+                autoHideDuration={6000}
+                onClose={() => setOpen(false)}
+            >
+                <Alert sx={{}} variant={'filled'}  severity="error">
+                    <AlertTitle sx={{mt: -0.5, flexGrow: 1}}>Введите сообщение </AlertTitle>
+                    <Button sx={{ml: 9}} variant={'error'} size="small" onClick={handleClose}>
+                        Закрыть
+                    </Button>
+                </Alert>
+            </Snackbar>
         </Box>
 
-        <Snackbar
-            anchorOrigin={{vertical: 'top', horizontal: 'center'}}
-            open={open}
-            autoHideDuration={6000}
-            onClose={() => setOpen(false)}
-        >
-            <Alert sx={{}} variant={'filled'}  severity="error">
-                <AlertTitle sx={{mt: -0.5, flexGrow: 1}}>Введите сообщение </AlertTitle>
-                <Button sx={{ml: 9}} variant={'error'} size="small" onClick={handleClose}>
-                    Закрыть
-                </Button>
-            </Alert>
-        </Snackbar>
-   </Box>
+
+
+
 }
 
 

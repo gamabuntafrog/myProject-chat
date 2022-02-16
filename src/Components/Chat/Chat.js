@@ -27,7 +27,7 @@ const Chat = () => {
     if (!messages) return <Loader />
     //пока setMessages в снапшоте и не вернет пустой или массив с сообщениями будет Loader
     
-    if (messages.length === 0) return(
+    if (messages.length === 0) return (
     <Container sx={{textAlign: 'center'}}>
         <Typography
             variant={'h3'}>Чата по id: {id} не существует

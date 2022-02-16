@@ -8,6 +8,14 @@ import About from "./About/About";
 
 export const publicRoutes = [
     {
+        path: '/chat/:id',
+        Component: Chat
+    },
+    {
+        path: '/search',
+        Component: Search
+    },
+    {
         path: '/login',
         Component: Login
     },

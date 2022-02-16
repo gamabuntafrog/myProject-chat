@@ -1,5 +1,3 @@
-
-
 import { Container, Grid, Typography } from '@mui/material';
 import React from 'react';
 
@@ -20,6 +18,12 @@ const About = () => {
                 <Grid xs={8} item>
                     <Typography variant='body1'>
                         Можно создать свой чат или присоединиться 
+                    </Typography>
+                </Grid>
+                <Grid xs={8} item>
+                    <Typography variant='body1'>
+                        Если вы не войдете в приложение через Google то у вас будет стандартное имя и фото, как и у всех других
+                        невошедших в аккаунт, а так же вы не сможете удалять свои сообщения
                     </Typography>
                 </Grid>
                 <Grid xs={8} item>
