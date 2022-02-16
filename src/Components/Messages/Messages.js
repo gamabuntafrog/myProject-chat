@@ -1,14 +1,14 @@
 import { useContext, useEffect, } from "react";
 import { Context } from "../..";
-import { doc,  deleteDoc } from "firebase/firestore"; 
+import { doc, deleteDoc } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
-import {Box, Avatar, Typography, Button, List, ListItem} from '@mui/material'
+import { Box, Avatar, Typography, Button, List, ListItem} from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const Messages = ({chatId, messages, firestore}) => {
 
     const { auth } = useContext(Context)
-    const [user, isLoading, error] = useAuthState(auth)
+    const [user] = useAuthState(auth)
 
     useEffect(() => {
         const body = document.querySelector('body')
@@ -35,7 +35,7 @@ const Messages = ({chatId, messages, firestore}) => {
         <List sx={{minHeight: '80vh'}}>
             {messages && messages.map((el, i) => {
 
-                const currentUser = el.data().userId == user.uid;
+                const currentUser = el.data().userId === user.uid;
 
                 switch (currentUser) {
                     case true:

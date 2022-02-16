@@ -1,8 +1,8 @@
 import { signOut } from 'firebase/auth';
 import { NavLink } from 'react-router-dom';
+import { Typography, Grid, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
-import { Typography, Grid, Button } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
 
 
@@ -18,7 +18,7 @@ const HeaderMenu = ({toggleModal , user, auth }) => {
 
     if (user) {
         return (
-        <Grid sx={{justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}} container spacing={2}>
+        <Grid sx={{justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}} spacing={2} container >
             <Grid item xs={12}  sx={{display: 'flex', alignItems: 'center', flexDirection: 'row'}} >
                 <Avatar sx={{width: 80, height: 80, mr: 2}} src={`${user.photoURL}`} alt="avatar" />
                 <Typography sx={{fontWeight: 500}} variant='h5'>
@@ -50,7 +50,6 @@ const HeaderMenu = ({toggleModal , user, auth }) => {
                 <IconButton color={'error'} onClick={toggleModal} >
                     <CloseIcon />
                 </IconButton>
-                
             </Grid>      
         </Grid >
         )
@@ -58,7 +57,7 @@ const HeaderMenu = ({toggleModal , user, auth }) => {
 
     if (!user) {
         return (
-        <Grid container justifyContent="center" alignItems="center" flexDirection="column" spacing={2}>
+        <Grid sx={{justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}}  spacing={2} container >
             <Grid item xs={12} >
                 <NavLink className={'nav-link'} to={'/about'} onClick={toggleModal}>
                     <Typography variant={'h5'}>

@@ -2,7 +2,7 @@ import { TailSpin } from 'react-loader-spinner';
 
 
 import React from 'react';
-import { Box, positions } from '@mui/system';
+import { Box } from '@mui/system';
 
 const Loader = () => {
     return (

@@ -1,19 +1,9 @@
-import { NavLink } from "react-router-dom";
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { Hearts } from "react-loader-spinner";
-import {useContext, useEffect, useState} from "react";
+import {useContext, useState} from "react";
 import { Context } from "../..";
 import HeaderMenu from "../HeaderMenu";
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
-import { Drawer } from "@mui/material";
-import Container from '@mui/material/Container';
-import {color} from "@mui/system";
+import {AppBar, Box, Toolbar, Typography, IconButton, Drawer, Container} from '@mui/material';
 
 
 
@@ -22,7 +12,7 @@ const Navbar = () => {
 
     const {auth} = useContext(Context)
 
-    const [user, isLoading, error] = useAuthState(auth)
+    const [user] = useAuthState(auth)
 
     const [isOpen, setIsOpen] = useState(false);
 

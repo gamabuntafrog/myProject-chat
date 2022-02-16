@@ -10,7 +10,7 @@ import { privateRoutes, publicRoutes } from '../routes';
 const AppRouter = () => {
     const {auth} = useContext(Context)
 
-    const [user, isLoading, error] = useAuthState(auth)
+    const [user] = useAuthState(auth)
     
     return user ? (
         <Switch>

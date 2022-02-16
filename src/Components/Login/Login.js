@@ -1,18 +1,14 @@
 import { Box, Button, Typography } from "@mui/material";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth";
-import { useContext } from "react";
-import { Context } from "../..";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
 
 
 const Login = () => {
 
-    const context = useContext(Context)
-    console.log(context);
     const onAuth = () => {
         const provider = new GoogleAuthProvider();
-
         const auth = getAuth();
+
         signInWithPopup(auth, provider)
         .then((result) => {
             // This gives you a Google Access Token. You can use it to access the Google API.
@@ -20,7 +16,6 @@ const Login = () => {
             const token = credential.accessToken;
             // The signed-in user info.
             const user = result.user;
-            console.log(user);
             // ...
         }).catch((error) => {
             const errorCode = error.code;
