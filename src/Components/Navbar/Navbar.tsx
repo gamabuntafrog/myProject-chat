@@ -1,33 +1,35 @@
-import { useAuthState } from 'react-firebase-hooks/auth';
-import {useContext, useState} from "react";
+import React, {FC, useContext, useState} from "react";
 import { Context } from "../..";
 import HeaderMenu from "../HeaderMenu";
 import MenuIcon from '@mui/icons-material/Menu';
 import {AppBar, Box, Toolbar, Typography, IconButton, Drawer, Container} from '@mui/material';
+import {useCollection, useDocumentData} from "react-firebase-hooks/firestore";
+import {collection, orderBy, query, doc, getDoc} from "firebase/firestore";
 
 
 
-const Navbar = () => {
+const Navbar: FC = () => {
 
 
-    const {auth} = useContext(Context)
-
-    const [user] = useAuthState(auth)
-
+    const {user, firestore} = useContext(Context)!
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleModal = () => {
         return setIsOpen(!isOpen)
     }
-
+    const test = async () => {
+        const getUser = await getDoc(doc(firestore, 'users', `tUrctpZmpMc1QAlvEvkompEITHu1`))
+        console.log(getUser.exists())
+    }
+    // @ts-ignore
     return (
         <AppBar enableColorOnDark sx={{flexGrow: 1, background: '#0d47a1', boxShadow: 3}} position="static">
             <Box sx={{boxShadow: 3}}>
             <Toolbar>
                 <Typography variant="h5" sx={{ flexGrow: 1, fontWeight: 600, mr: 1}}>
                     Чат
-                </Typography>     
-                {user && <Typography variant="h6" sx={{ fontWeight: 600, mr: 3, textAlign: 'center'}}>{user.displayName}</Typography>}
+                </Typography>
+                {user && <Typography variant="h6" sx={{ fontWeight: 600, mr: 3, textAlign: 'center'}}>{user.nickname}</Typography>}
                 <IconButton
                 onClick={toggleModal}
                 size="large"
@@ -49,7 +51,7 @@ const Navbar = () => {
                 >
                     <Container>
                         <Box sx={{paddingTop: 5, paddingBottom: 3, boxShadow: 3, backgroundColor: '#121212'}}>
-                            <HeaderMenu toggleModal={toggleModal} user={user} auth={auth} />
+                            <HeaderMenu toggleModal={toggleModal} />
                         </Box>
                     </Container>
                 </Drawer>

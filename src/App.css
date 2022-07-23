@@ -29,3 +29,9 @@ p {
 .active {
     color: dodgerblue;
 }
+
+.typography:hover {
+    background-color: RGBA(255,255,255,0.31);
+    border-radius: 10px;
+    cursor: default;
+}

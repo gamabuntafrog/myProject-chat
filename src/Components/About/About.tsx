@@ -1,18 +1,19 @@
 import { Container, Grid, Typography } from '@mui/material';
-import React from 'react';
+import React, {FC} from 'react';
 
-const About = () => {
+const About: FC = () => {
     return (
         <Container sx={{}}>
             <Grid  container pt={5} pb={5} sx={{textAlign: 'center', flexDirection: 'column', alignItems: 'center'}}>
                 <Grid xs={8} item>
                     <Typography variant='h4'>
-                        Про чат
+                        Про проект
                     </Typography>
                 </Grid>
                 <Grid xs={8} item>
                     <Typography variant='subtitle1'>
-                        Ну... это чат
+                        Веб-сайт представляет из себя приложение, которое позволяет
+                        создавать беседы и общатся в них между людьми в реальном времени
                     </Typography>
                 </Grid>
                 <Grid xs={8} item>
