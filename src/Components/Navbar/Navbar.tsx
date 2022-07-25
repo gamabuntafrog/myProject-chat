@@ -23,7 +23,7 @@ const Navbar: FC = () => {
     }
     // @ts-ignore
     return (
-        <AppBar enableColorOnDark sx={{flexGrow: 1, background: '#0d47a1', boxShadow: 3}} position="static">
+        <AppBar enableColorOnDark sx={{flexGrow: 1, background: '#0d47a1', boxShadow: 3}} >
             <Box sx={{boxShadow: 3}}>
             <Toolbar>
                 <Typography variant="h5" sx={{ flexGrow: 1, fontWeight: 600, mr: 1}}>

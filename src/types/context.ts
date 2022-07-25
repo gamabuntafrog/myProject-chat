@@ -7,6 +7,7 @@ type user = {
     nickname: string,
     photoURL: string,
     userId: string,
+    subscribedChats: string[]
 }
 
 type context = {auth: Auth, app: FirebaseApp, firestore: Firestore, user: DocumentData | undefined, isUserLoading: boolean}

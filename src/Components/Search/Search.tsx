@@ -1,6 +1,6 @@
 import shortid from 'shortid';
 import React, {FC, useContext, useState} from 'react';
-import {addDoc, collection, doc, orderBy, query, setDoc, where} from 'firebase/firestore';
+import {addDoc, arrayUnion, collection, doc, orderBy, query, setDoc, updateDoc, where} from 'firebase/firestore';
 import {NavLink, useHistory} from 'react-router-dom';
 import {Context} from '../..';
 import {
@@ -45,6 +45,9 @@ const Search: FC = () => {
         console.log(newChatData)
         const {newChatName, newChatDescription, newChatImage} = newChatData
         if (user) {
+            await updateDoc(doc(firestore, 'users', `${user.userId}`), {
+                subscribedChats: arrayUnion(newChatId)
+            })
             await setDoc(doc(firestore, 'chats', `${newChatId}`), {
                 createdAt: Date.now(),
                 messages: [{startMessage: 'Начало чата', createdAt: Date.now()}],

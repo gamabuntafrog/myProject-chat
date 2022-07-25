@@ -3,11 +3,25 @@ import shortid from 'shortid';
 import {NavLink, useParams} from "react-router-dom";
 import {addDoc, collection, setDoc, doc, arrayUnion, updateDoc} from "firebase/firestore";
 import {Context} from "../..";
-import {TextField, Box, Button, Typography, Snackbar, Alert, AlertTitle, Avatar, List, ListItem} from "@mui/material"
+import {
+    TextField,
+    Box,
+    Button,
+    Typography,
+    Snackbar,
+    Alert,
+    AlertTitle,
+    Avatar,
+    List,
+    ListItem,
+    Grid,
+    Container
+} from "@mui/material"
 import SendIcon from '@mui/icons-material/Send';
 import Modal from "../Modal";
 import UserModalInfo from "../UserModalInfo";
 import '../../App.css';
+import ChatInfo from "../ChatInfo";
 
 type EntryFieldPT = {
     chatName: string,
@@ -24,10 +38,20 @@ const EntryField: FC<EntryFieldPT> = ({chatName, users, chatId, chatDescription,
 
     const [message, setMessage] = useState('');
     const [open, setOpen] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [usersArray, setUsersArray] = useState<any | null>(users ? Object.entries(users) : null);
-    const [userModalInfo, setUserModalInfo] = useState<null | any>(null);
-    const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+
+
+    // console.log(users[user?.userId])
+
+    const subscribeUser = async () => {
+        await updateDoc(doc(firestore, 'chats', `${id}`), {
+            users: arrayUnion({
+                userId: user?.userId
+            })
+        })
+        await updateDoc(doc(firestore, 'users', `${user?.userId}`), {
+            subscribedChats: arrayUnion(chatId)
+        })
+    }
 
     const submitPost = async () => {
 
@@ -37,14 +61,6 @@ const EntryField: FC<EntryFieldPT> = ({chatName, users, chatId, chatDescription,
         }
 
         if (user) {
-            if (!users[user.userId]) {
-                console.log(user.userId)
-                await updateDoc(doc(firestore, 'chats', `${id}`), {
-                    users: arrayUnion({
-                        userId: user.userId
-                    })
-                })
-            }
             await updateDoc(doc(firestore, 'chats', `${id}`), {
                 messages: arrayUnion({
                     userId: user.userId,
@@ -77,20 +93,15 @@ const EntryField: FC<EntryFieldPT> = ({chatName, users, chatId, chatDescription,
         setOpen(false);
     };
 
+    if (!users[user?.userId]) {
+        return <Container sx={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+            <Button size={'large'} variant={'contained'} sx={{width: '90%'}} onClick={subscribeUser}>Присоединится</Button>
+        </Container>
+    }
+
     return <Box>
-        {isUserModalOpen &&
-            <Modal isModalOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)}>
-	            <Avatar sx={{width: 200, height: 200}} src={`${userModalInfo.photoURL}`} alt="avatar"/>
-                <NavLink style={{color: 'white'}} to={`/user/${userModalInfo.userId}`}>
-		            <Typography sx={{mt: 1}} variant={'h5'}>{userModalInfo.nickname}</Typography>
-	            </NavLink>
-	            <Typography  variant={'subtitle1'}>{userModalInfo.bio}</Typography>
-            </Modal>
-        }
-        <Box sx={{my: 1, mx: 1, display: 'flex'}} >
-            <Typography sx={{my: 1, mx: 1}} variant={'body1'}>{id} | {chatName}</Typography>
-            <Button onClick={() => setIsModalOpen(true)} sx={{ml: 1}}>Информация</Button>
-        </Box>
+
+        <ChatInfo id={id} chatName={chatName} users={users} chatImage={chatImage} chatDescription={chatDescription} />
         <Box sx={{display: 'flex', justifyContent: 'center'}}>
             <TextField
                 id="outlined-name"
@@ -121,31 +132,7 @@ const EntryField: FC<EntryFieldPT> = ({chatName, users, chatId, chatDescription,
                 </Button>
             </Alert>
         </Snackbar>
-        {isModalOpen &&
-            <Modal isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-	            <Avatar sx={{width: '200px', height: '200px', mb: 3}} src={chatImage}/>
-                <Typography variant={'h2'} sx={{fontWeight: '800'}}>{chatName}</Typography>
-                <Typography variant={'subtitle1'} sx={{my: 3}}>{chatDescription}</Typography>
-	            <Typography variant='h5'>Пользователи ({usersArray.length}):</Typography>
-                <List sx={{width: '100%'}}>
-                    {usersArray?.map((el: any, i: number) => {
-                        const user = el[1]
-                        const {bio, userId, nickname, photoURL} = user
 
-                        return <ListItem className={'typography'} onClick={() => {
-                            setUserModalInfo(user)
-                            setIsUserModalOpen(true)
-                        }} sx={{display: 'flex',  justifyContent: 'center'}} key={i}>
-                            <Avatar sx={{width: '50px', height: '50px'}} src={user.photoURL}/>
-                            <Typography sx={{ml: 1}} >
-                                {nickname}
-                            </Typography>
-
-                        </ListItem>
-                    })}
-                </List>
-            </Modal>
-        }
     </Box>
 
 

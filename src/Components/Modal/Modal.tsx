@@ -17,13 +17,16 @@ const Modal: FC<ModalPT> = ({isModalOpen, children, onClose}) => {
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'
         }}
                   >
-            <Box width='50%' sx={{
+            <Box sx={{
+                my: 2,
                 backgroundColor: '#121212',
                 display: 'flex',
                 alignItems: 'center',
                 flexDirection: 'column',
                 padding: '50px 30px',
-                borderRadius: '10px'
+                borderRadius: '10px',
+                overflowY: 'auto',
+                minWidth: '50%'
             }}>
                 <Button sx={{marginLeft: 'auto'}} onClick={onClose}>
                     Закрыть

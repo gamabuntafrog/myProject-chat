@@ -1,6 +1,32 @@
+.App {
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: dimgray;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #0d47a1;
+}
+
+@media screen and (max-width: 320px) {
+
+}
 
 body {
-    min-height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto;
 }
 
 ul {

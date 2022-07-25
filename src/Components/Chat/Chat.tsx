@@ -7,6 +7,7 @@ import EntryField from '../EntryField';
 import Messages from '../Messages';
 import {useCollection, useDocumentData} from "react-firebase-hooks/firestore";
 import { messagesType } from '../../types/messages';
+import MyChat from "../MyChats";
 
 
 
@@ -14,27 +15,29 @@ const Chat: FC = () => {
 
     const {id} = useParams<{ id: string }>()
 
-    const {firestore} = useContext(Context)!
+    const {firestore, user} = useContext(Context)!
 
     const [messages, setMessages] = useState<messagesType | null>(null);
-    const [users, setUsers] = useState<any>(null);
+    const [users, setUsers] = useState<null | any>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isChatListOpen, setIsChatListOpen] = useState(false);
+    // console.log(user)
+    console.log(users)
 
-    // const [value] = useCollection(query(collection(firestore, 'chat', 'public', `${id}`), orderBy('createdAt', 'asc')))
     const [documentValue] = useDocumentData(doc(firestore, 'chats',  `${id}`))
 
     useEffect(() => {
-        console.log(documentValue)
+        // console.log(documentValue)
         if (documentValue) {
             setMessages(documentValue.messages)
+            // console.log(documentValue.users)
+            getUsers(documentValue.users)
         }
-    }, [documentValue]);
+    }, [documentValue, id]);
 
 
-    const getUsers = async (arr: (any | string)[]) => {
-        console.log(arr)
+    const getUsers = async (arr: {userId: string}[]) => {
         const promiseArray = arr.map( async (el) => {
-
             return await getDoc(doc(firestore, 'users',`${el.userId}`))
         })
 
@@ -48,21 +51,14 @@ const Chat: FC = () => {
         setUsers(usersData)
         setIsLoading(false)
 
-        console.log(usersData)
+        // console.log(usersData)
     }
-
-    useEffect(() => {
-        if (documentValue) {
-            console.log()
-            getUsers(documentValue.users)
-        }
-    }, [documentValue]);
 
 
     if (isLoading) return (
-        <Box sx={{backgroundColor: '#0d47a1', py: 3}}>
+        <Box sx={{backgroundColor: '#0d47a1', py: 3,  height: '100vh', pt: '56px'}}>
             <Container sx={{backgroundColor: '#121212', borderRadius: 1, py: 2, boxShadow: 6}}>
-                <Messages users={users} chatId={id} messages={messages} firestore={firestore}/>
+                <Messages getUsers={getUsers}  subscribedUsers={users} chatId={id} messages={messages} firestore={firestore}/>
             </Container>
         </Box>
     )
@@ -83,9 +79,10 @@ const Chat: FC = () => {
 
 
     return (
-        <Box sx={{backgroundColor: '#0d47a1', py: 3}}>
-            <Container sx={{backgroundColor: '#121212', borderRadius: 1, py: 2, boxShadow: 6}}>
-                <Messages chatId={id} users={users} messages={messages} firestore={firestore}/>
+        <Box sx={{backgroundColor: '#0d47a1', overflowY: 'none', pt: '56px', minHeight: '100vh', display: 'flex'}}>
+            <MyChat isChatListOpen={isChatListOpen} users={users} />
+            <Container sx={{backgroundColor: '#121212', borderRadius: 1, py: 2, boxShadow: 6, maxWidth: '100% !important', margin: 0, zIndex: '100'}}>
+                <Messages getUsers={getUsers} chatId={id} subscribedUsers={users} messages={messages} firestore={firestore}/>
                 <EntryField
                     users={users}
                     chatName={documentValue?.chatName}

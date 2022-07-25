@@ -22,7 +22,7 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
 
     if (user) {
         return (
-        <Grid sx={{justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}} spacing={2} container >
+        <Grid sx={{justifyContent: 'center', alignItems: 'center', flexDirection: 'column', wordBreak: 'break-word'}} spacing={2} container >
             <Grid item xs={12}  sx={{display: 'flex', alignItems: 'center', flexDirection: 'row'}} >
                 <Avatar sx={{width: 80, height: 80, mr: 2}} src={`${user.photoURL}`} alt="avatar" />
                 <Typography sx={{fontWeight: 500}} variant='h5'>
@@ -47,6 +47,13 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
                 <NavLink onClick={toggleModal} className={'nav-link'} to={'/about'}>
                     <Typography variant='h5'>
                         Про сайт
+                    </Typography>
+                </NavLink>
+            </Grid>
+            <Grid item xs={12} >
+                <NavLink onClick={toggleModal} className={'nav-link'} to={`/chat/${user.subscribedChats[0]}`}>
+                    <Typography variant={'h5'}>
+                        Мои чаты
                     </Typography>
                 </NavLink>
             </Grid>
@@ -78,13 +85,6 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
                     <NavLink className={'nav-link'} to={'/about'} onClick={toggleModal}>
                         <Typography variant={'h5'}>
                             Про сайт
-                        </Typography>
-                    </NavLink>
-                </Grid>
-                <Grid item xs={12} >
-                    <NavLink onClick={toggleModal} className={'nav-link'} to={'/search'}>
-                        <Typography variant={'h5'}>
-                            Поиск
                         </Typography>
                     </NavLink>
                 </Grid>

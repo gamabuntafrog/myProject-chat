@@ -1,0 +1,26 @@
+
+.myChats {
+
+}
+
+.chatLink {
+    border-radius: 20px;
+}
+
+.chatLink:hover {
+    background-color: #121229;
+}
+
+.activeChat {
+    border-radius: 10px;
+    background-color: #121212;
+}
+
+@media screen and (max-width: 768px) {
+    .myChats {
+        display: none;
+    }
+    .myChatsOpen {
+
+    }
+}

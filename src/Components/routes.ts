@@ -4,19 +4,12 @@ import Search from "./Search";
 import About from "./About/About";
 import Me from "./Me";
 import User from "./User";
+import MyChats from "./MyChats";
 
 
 
 
 export const publicRoutes = [
-    {
-        path: '/chat/:id',
-        Component: Chat
-    },
-    {
-        path: '/search',
-        Component: Search
-    },
     {
         path: '/login',
         Component: Login
@@ -29,7 +22,6 @@ export const publicRoutes = [
         path: '/user/:id',
         Component: User
     }
-
 ]
 
 export const privateRoutes = [
@@ -52,6 +44,10 @@ export const privateRoutes = [
     {
         path: '/user/:id',
         Component: User
+    },
+    {
+        path: '/myChats',
+        Component: MyChats
     }
     
 ]
