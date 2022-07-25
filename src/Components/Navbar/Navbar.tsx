@@ -2,9 +2,10 @@ import React, {FC, useContext, useState} from "react";
 import { Context } from "../..";
 import HeaderMenu from "../HeaderMenu";
 import MenuIcon from '@mui/icons-material/Menu';
-import {AppBar, Box, Toolbar, Typography, IconButton, Drawer, Container} from '@mui/material';
+import {AppBar, Box, Toolbar, Typography, IconButton, Drawer, Container, Grid} from '@mui/material';
 import {useCollection, useDocumentData} from "react-firebase-hooks/firestore";
 import {collection, orderBy, query, doc, getDoc} from "firebase/firestore";
+import Avatar from "@mui/material/Avatar";
 
 
 
@@ -29,7 +30,8 @@ const Navbar: FC = () => {
                 <Typography variant="h5" sx={{ flexGrow: 1, fontWeight: 600, mr: 1}}>
                     Чат
                 </Typography>
-                {user && <Typography variant="h6" sx={{ fontWeight: 600, mr: 3, textAlign: 'center'}}>{user.nickname}</Typography>}
+                {/*{user && <Typography variant="h6" sx={{ fontWeight: 600, mr: 3, textAlign: 'center'}}>{user.nickname}</Typography>}*/}
+                {user && <Avatar sx={{width: 40, height: 40, mr: 2}} src={`${user.photoURL}`} alt="avatar" />}
                 <IconButton
                 onClick={toggleModal}
                 size="large"

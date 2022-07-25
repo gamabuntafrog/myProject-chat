@@ -1,0 +1,13 @@
+.open-chat-button {
+    display: none !important;
+
+}
+
+
+@media screen and (max-width: 768px) {
+
+    .open-chat-button {
+        display: block !important;
+    }
+
+}

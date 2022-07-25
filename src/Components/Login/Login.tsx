@@ -32,7 +32,8 @@ const Login: FC = () => {
                     userId: user.uid,
                     email: user.email,
                     createdAt: user.metadata.creationTime,
-                    phoneNumber: user.phoneNumber ? user.phoneNumber : null
+                    phoneNumber: user.phoneNumber ? user.phoneNumber : null,
+                    subscribedChats: []
                 })
             }
 

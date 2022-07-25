@@ -34,35 +34,37 @@ const ChatInfo: FC<{id: string, chatName: string, chatImage: string, chatDescrip
     }
 
     return (
-        <Box>
+        <Box >
             <Box sx={{my: 1, mx: 1, display: 'flex'}} >
                 <Typography sx={{my: 1, mx: 1}} variant={'body1'}>{id} | {chatName}</Typography>
                 <Button onClick={() => setIsModalOpen(true)} sx={{ml: 1}}>Информация</Button>
             </Box>
             {isModalOpen &&
 		        <Modal isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-			        <Avatar sx={{width: '200px', height: '200px', mb: 3}} src={chatImage}/>
-			        <Typography variant={'h2'} sx={{fontWeight: '800'}}>{chatName}</Typography>
-			        <Typography variant={'subtitle1'} sx={{my: 3}}>{chatDescription}</Typography>
-                    <Button onClick={unsubscribeFromChat} color={'error'}>Выйти с чата</Button>
-			        <Typography variant='h5'>Пользователи ({usersArray.length}):</Typography>
-			        <List sx={{width: '100%'}}>
-                  {usersArray?.map((el: any, i: number) => {
-                      const user = el[1]
-                      const {bio, userId, nickname, photoURL} = user
+			        <Box sx={{textAlign: 'center'}}>
+                            <Avatar sx={{width: '200px', height: '200px', mb: 3, mx: 'auto'}} src={chatImage}/>
+                            <Typography variant={'h2'} sx={{fontWeight: '800'}}>{chatName}</Typography>
+                            <Typography variant={'subtitle1'} sx={{my: 3}}>{chatDescription}</Typography>
+                            <Button onClick={unsubscribeFromChat} color={'error'}>Выйти с чата</Button>
+                            <Typography variant='h5'>Пользователи ({usersArray.length}):</Typography>
+                            <List sx={{width: '100%'}}>
+                          {usersArray?.map((el: any, i: number) => {
+                              const user = el[1]
+                              const {bio, userId, nickname, photoURL} = user
 
-                      return <ListItem className={'typography'} onClick={() => {
-                          setUserModalInfo(user)
-                          setIsUserModalOpen(true)
-                      }} sx={{display: 'flex',  justifyContent: 'center'}} key={i}>
-                          <Avatar sx={{width: '50px', height: '50px'}} src={user.photoURL}/>
-                          <Typography sx={{ml: 1}} >
-                              {nickname}
-                          </Typography>
+                              return <ListItem className={'typography'} onClick={() => {
+                                  setUserModalInfo(user)
+                                  setIsUserModalOpen(true)
+                              }} sx={{display: 'flex',  justifyContent: 'center'}} key={i}>
+                                  <Avatar sx={{width: '50px', height: '50px'}} src={user.photoURL}/>
+                                  <Typography sx={{ml: 1}} >
+                                      {nickname}
+                                  </Typography>
 
-                      </ListItem>
-                  })}
-			        </List>
+                              </ListItem>
+                          })}
+							        </List>
+                    </Box>
 		        </Modal>
             }
             {isUserModalOpen &&

@@ -50,13 +50,16 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
                     </Typography>
                 </NavLink>
             </Grid>
-            <Grid item xs={12} >
-                <NavLink onClick={toggleModal} className={'nav-link'} to={`/chat/${user.subscribedChats[0]}`}>
-                    <Typography variant={'h5'}>
-                        Мои чаты
-                    </Typography>
-                </NavLink>
-            </Grid>
+            {user.subscribedChats[0] &&
+                <Grid item xs={12} >
+                    <NavLink onClick={toggleModal} className={'nav-link'} to={`/chat/${user.subscribedChats[0]}`}>
+                        <Typography variant={'h5'}>
+                            Мои чаты
+                        </Typography>
+                    </NavLink>
+                </Grid>
+            }
+
             <Grid item xs={12} >
                 <NavLink onClick={toggleModal} className={'nav-link'} to={'/search'}>
                     <Typography variant={'h5'}>

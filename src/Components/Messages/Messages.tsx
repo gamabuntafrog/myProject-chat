@@ -60,7 +60,6 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, firestore, subscribe
 
     return (
         <>
-            <Button variant={'contained'} sx={{position: 'fixed', zIndex: '101'}}>Чаты</Button>
             {isUserModalOpen && <UserModalInfo modalInfo={userModalInfo}/>}
         <List ref={boxRef} sx={{minHeight: '80vh', zIndex: '100'}}>
             {subscribedUsers && messages?.map((el: any, i: any) => {

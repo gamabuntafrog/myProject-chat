@@ -77,7 +77,7 @@ const Search: FC = () => {
     }
 
     return (
-        <Box display='flex' flexDirection='column' alignItems='center' justifyContent='center' sx={{}}>
+        <Box display='flex' flexDirection='column' alignItems='center' justifyContent='center' >
             <Box width='50%' display='flex' textAlign='center' flexDirection='column' justifyContent='center'
                 sx={{mt: 30}}>
                 <Typography sx={{mb: 5, color: '#1976d2'}} variant={'subtitle1'}>Например: o76iyZ1tU</Typography>
@@ -101,14 +101,14 @@ const Search: FC = () => {
                                 const {chatId, chatName, chatDescription} = data;
 
                                 return (
-                                    <ListItem sx={{justifyContent: 'center'}} key={i}>
+                                    <ListItem sx={{justifyContent: 'center', display: 'flex', flexDirection: 'column'}} key={i}>
                                         <NavLink style={{color: 'white'}} to={`/chat/${chatId}`}>
                                             <Typography sx={{color: 'white'}} variant={'subtitle1'}>
                                                 {chatName}
                                             </Typography>
                                         </NavLink>
                                         {chatDescription &&
-		                                    <Typography sx={{color: 'white', ml: 1}} variant={'subtitle1'}>
+		                                    <Typography  sx={{color: 'white', ml: 1, wordBreak: 'break-word'}} variant={'subtitle1'}>
                                                 {chatDescription}
 		                                    </Typography>
                                         }

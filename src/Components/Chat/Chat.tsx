@@ -7,8 +7,8 @@ import EntryField from '../EntryField';
 import Messages from '../Messages';
 import {useCollection, useDocumentData} from "react-firebase-hooks/firestore";
 import { messagesType } from '../../types/messages';
-import MyChat from "../MyChats";
-
+import MyChats from "../MyChats";
+import './Chat.css';
 
 
 const Chat: FC = () => {
@@ -80,7 +80,10 @@ const Chat: FC = () => {
 
     return (
         <Box sx={{backgroundColor: '#0d47a1', overflowY: 'none', pt: '56px', minHeight: '100vh', display: 'flex'}}>
-            <MyChat isChatListOpen={isChatListOpen} users={users} />
+            <MyChats messages={messages} setIsChatListOpen={setIsChatListOpen} isChatListOpen={isChatListOpen} users={users} />
+            {!isChatListOpen &&
+                <Button className={'open-chat-button'}  onClick={() => setIsChatListOpen(true)} variant={'contained'} sx={{position: 'fixed', zIndex: '101', top: '80px', left: '10px'}}>Чаты</Button>
+            }
             <Container sx={{backgroundColor: '#121212', borderRadius: 1, py: 2, boxShadow: 6, maxWidth: '100% !important', margin: 0, zIndex: '100'}}>
                 <Messages getUsers={getUsers} chatId={id} subscribedUsers={users} messages={messages} firestore={firestore}/>
                 <EntryField

@@ -1,10 +1,21 @@
 
 .myChats {
+    margin-top: 24px;
+    width: 25%;
+}
+
+.myChatsOpen {
+    width: 25%;
+}
+
+.chatList {
+    height: 100vh;
+    width: 20%;
 
 }
 
 .chatLink {
-    border-radius: 20px;
+    border-radius: 10px;
 }
 
 .chatLink:hover {
@@ -19,8 +30,22 @@
 @media screen and (max-width: 768px) {
     .myChats {
         display: none;
+        margin: 0;
+        width: 0;
+
+    }
+    .chatList {
+        height: 100vh;
+        width: 100%;
     }
     .myChatsOpen {
+        z-index: 200;
+        background-color: #121212;
+        margin: 0;
+        width: 0;
+    }
+    .myChatsOpen > ul {
+        background-color: #121212;
 
     }
 }
