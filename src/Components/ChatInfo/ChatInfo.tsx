@@ -1,8 +1,8 @@
 import React, {useState, useEffect, FC, useContext} from "react"
-import {Avatar, Box, Button, List, ListItem, Typography, useMediaQuery} from "@mui/material";
+import {Avatar, Box, Button, List, ListItem, TextField, Typography, useMediaQuery} from "@mui/material";
 import Modal from "../Modal";
 import {NavLink, useHistory} from "react-router-dom";
-import {arrayRemove, arrayUnion, doc, updateDoc} from "firebase/firestore";
+import {arrayRemove, arrayUnion, doc, setDoc, updateDoc} from "firebase/firestore";
 import {Context} from "../../index";
 import { entryFieldInfo } from "./chatInfoStyles";
 
@@ -22,6 +22,9 @@ const ChatInfo: FC<ChatInfoPT> = ({id, chatName, users, chatImage, chatDescripti
     const [userModalInfo, setUserModalInfo] = useState<null | any>(null);
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [isMeAdmin, setIsMeAdmin] = useState<boolean>(false);
+    const [isChangingChatInfo, setIsChangingChatInfo] = useState(false);
+    const [newChatInfo, setNewChatInfo] = useState({chatName, chatImage, chatDescription});
+
     const history = useHistory()
 
     useEffect(() => {
@@ -69,6 +72,17 @@ const ChatInfo: FC<ChatInfoPT> = ({id, chatName, users, chatImage, chatDescripti
         })
     }
 
+    const submitChatInfo = async () => {
+        console.log(newChatInfo)
+        const {chatImage, chatName, chatDescription} = newChatInfo
+        await updateDoc(doc(firestore, 'chats', `${id}`), {
+            chatName,
+            chatDescription,
+            chatImage
+        })
+        setIsChangingChatInfo(false)
+    }
+
 
     return (
         <Box>
@@ -79,12 +93,43 @@ const ChatInfo: FC<ChatInfoPT> = ({id, chatName, users, chatImage, chatDescripti
             {isModalOpen &&
 		        <Modal isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
 			        <Box sx={{textAlign: 'center'}}>
-                            <Avatar sx={{width: '300px', height: '300px', mb: 3, mx: 'auto'}} src={chatImage}/>
-                            <Typography variant={'h2'} sx={{fontWeight: '800'}}>{chatName}</Typography>
-                            <Typography variant={'subtitle1'} sx={{my: 3}}>{chatDescription}</Typography>
-                            <Button onClick={unsubscribeFromChat} color={'error'}>Выйти с чата</Button>
-                            <Typography variant='h5'>Пользователи ({usersArray.length}):</Typography>
-                            <List sx={{width: '100%'}}>
+                        {isChangingChatInfo ?
+                            <Box sx={{display: 'flex',flexDirection: 'column', my: 1 }}>
+                                <TextField onChange={(e) => {
+                                    setNewChatInfo(prev => {
+                                        return {...prev, chatName: e.target.value}
+                                    })
+                                }} placeholder={'Название чата'} />
+                                <TextField onChange={(e) => {
+                                    setNewChatInfo(prev => {
+                                        return {...prev, chatDescription: e.target.value}
+                                    })
+                                }} sx={{my: 2}} multiline placeholder={'Описание'} />
+                                <TextField onChange={(e) => {
+                                    setNewChatInfo(prev => {
+                                        return {...prev, chatImage: e.target.value}
+                                    })
+                                }} placeholder={'Ссылка на картинку'} />
+                                <Button sx={{mt: 1}} onClick={submitChatInfo} >Изменить</Button>
+                                <Button sx={{mt: 1}} onClick={() => setIsChangingChatInfo(false)}>Отменить</Button>
+                            </Box>
+                            :
+                            <>
+                                <Avatar sx={{width: '300px', height: '300px', mb: 3, mx: 'auto'}} src={chatImage}/>
+                                <Typography variant={'h2'} sx={{fontWeight: '800'}}>{chatName}</Typography>
+                                <Typography variant={'subtitle1'} sx={{my: 3}}>{chatDescription}</Typography>
+                            </>
+                        }
+                        <Box sx={{display: 'flex', flexDirection: 'column', my: 1}}>
+                            {(users[user?.userId].isAdmin && !isChangingChatInfo) &&
+		                        <Button onClick={() => setIsChangingChatInfo(true)}>
+			                        Изменить информацию
+		                        </Button>
+                            }
+	                        <Button onClick={unsubscribeFromChat} color={'error'}>Выйти с чата</Button>
+                        </Box>
+                        <Typography variant='h5'>Пользователи ({usersArray.length}):</Typography>
+                        <List sx={{width: '100%'}}>
                           {usersArray?.map((el: any, i: number) => {
                               // const user = el[1]
                               const [docId, user] = el
@@ -101,7 +146,7 @@ const ChatInfo: FC<ChatInfoPT> = ({id, chatName, users, chatImage, chatDescripti
 
                               </ListItem>
                           })}
-							        </List>
+                        </List>
                     </Box>
 		        </Modal>
             }

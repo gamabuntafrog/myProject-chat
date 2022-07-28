@@ -131,7 +131,7 @@ const Chat: FC = () => {
                 <Button className={'open-chat-button'}  onClick={() => setIsChatListOpen(true)} variant={'contained'} sx={{position: 'fixed', zIndex: '101', top: '80px', left: '10px'}}>Чаты</Button>
             }
             {/*<Button onClick={() => testDelete()}>Кнопка</Button>*/}
-            <Container className={'chat__container'} sx={{backgroundColor: '#121212', py: 2, boxShadow: 6, maxWidth: '100% !important', zIndex: '100'}}>
+            <Container className={'chat__container'} sx={{backgroundColor: '#121212', py: 2, pb: 0, boxShadow: 6, maxWidth: '100% !important', zIndex: '100'}}>
                 <Messages
                     chatId={id}
                     subscribedUsers={users}

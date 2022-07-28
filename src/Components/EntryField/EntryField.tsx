@@ -153,6 +153,7 @@ const EntryField: FC<EntryFieldPT> = ({
                     onChange={(e) => setMessage(e.currentTarget.value)}
                     fullWidth
                     multiline
+                    sx={{fieldset: {borderRadius: '30px 0 0 30px'}}}
                     onKeyPress={(e) => {
                         if (e.key === "Enter") return submitPost() //submit
                     }}
