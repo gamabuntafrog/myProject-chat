@@ -15,7 +15,7 @@ type UserModalInfoPT = {
             userId: string,
         }
         pageY: number,
-        pageX: number
+        pageX: number,
     },
 }
 

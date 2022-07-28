@@ -20,7 +20,7 @@ const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
 
     const [googleUser, isUserLoading] = useAuthState(auth)
     const [user, isLoading] = useDocumentData(doc(firestore, 'users', `${googleUser?.uid}`))
-    console.log(googleUser)
+    // console.log(googleUser)
     if (isLoading) {
         return <Loader/>
     }

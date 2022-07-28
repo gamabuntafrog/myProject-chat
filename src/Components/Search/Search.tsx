@@ -22,6 +22,14 @@ import {useCollection, useCollectionData, useDocumentData} from "react-firebase-
 import Modal from '../Modal';
 import {DocumentData} from 'firebase/firestore'
 
+export enum messagesExemplar {
+    startMessage,
+    message,
+    dateMessage,
+    replyMessage,
+    forwardMessages
+}
+
 const Search: FC = () => {
 
     const {firestore, user} = useContext(Context)!;
@@ -50,14 +58,17 @@ const Search: FC = () => {
             })
             await setDoc(doc(firestore, 'chats', `${newChatId}`), {
                 createdAt: Date.now(),
-                messages: [{startMessage: 'Начало чата', createdAt: Date.now()}],
-                users: user ? [
-                    {userId: user.userId}
-                ] : [],
+                messages: [{startMessage: 'Начало чата', createdAt: Date.now(), messageType: messagesExemplar.startMessage}],
+                users: [
+                    {
+                        userId: user.userId,
+                        isAdmin: true
+                    }
+                ],
                 chatName: newChatName,
                 chatDescription: newChatDescription,
                 chatImage: newChatImage,
-                chatId: newChatId
+                chatId: newChatId,
             })
             history.push(`/chat/${newChatId}`)
 
