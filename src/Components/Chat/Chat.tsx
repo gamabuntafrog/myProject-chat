@@ -34,10 +34,14 @@ const Chat: FC = () => {
     useEffect(() => {
         // console.log(documentValue)
         if (documentValue) {
-            setMessages(documentValue.messages)
-            console.log(documentValue.messages.sort((a:any, b: any) => {
+            const optionMessages = documentValue.messages.map((message: messagesType) => {
+                return {...message, isChanging: false}
+            }).sort((a:any, b: any) => {
                 return a.createdAt - b.createdAt
-            }))
+            })
+
+            setMessages(optionMessages)
+            console.log(optionMessages)
             getUsers(documentValue.users)
         }
     }, [documentValue, id]);
@@ -95,7 +99,8 @@ const Chat: FC = () => {
                     firestore={firestore}
                     setIsReplying={setIsReplying}
                     setReplyMessageInfo={setReplyMessageInfo}
-                />            </Container>
+                />
+            </Container>
         </Box>
     )
 

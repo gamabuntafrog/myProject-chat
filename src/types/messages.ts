@@ -10,7 +10,8 @@ export type messageType = {
     message: string,
     photoURL: string,
     userId: string,
-    userName: string
+    userName: string,
+    isChanging?: boolean
 }
 
 export type messagesType = (messageType | startMessageType)[]
