@@ -8,13 +8,20 @@ import {FC, useContext} from "react";
 import {Context} from "../../index";
 import React from 'react';
 import {HeaderMenuPropTypes} from "../../types/HeaderMenuPT";
+import {headerMenuContainer, navLink, userInfo, userInfoAvatar} from "./HeaderMenuStyles";
+import LogoutIcon from '@mui/icons-material/Logout';
+import PersonIcon from '@mui/icons-material/Person';
+import InfoIcon from '@mui/icons-material/Info';
+import TelegramIcon from '@mui/icons-material/Telegram';
+import SearchIcon from '@mui/icons-material/Search';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
+
 
 
 
 const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
 
     const {user, auth} = useContext(Context)!
-    console.log(user)
     const outFromAccount = () => {
         signOut(auth).then(res => res)
         toggleModal()
@@ -22,29 +29,31 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
 
     if (user) {
         return (
-        <Grid sx={{justifyContent: 'center', alignItems: 'center', flexDirection: 'column', wordBreak: 'break-word'}} spacing={2} container >
-            <Grid item xs={12}  sx={{display: 'flex', alignItems: 'center', flexDirection: 'row'}} >
-                <Avatar sx={{width: 80, height: 80, mr: 2}} src={`${user.photoURL}`} alt="avatar" />
-                <Typography sx={{fontWeight: 500}} variant='h5'>
+        <Grid sx={headerMenuContainer} spacing={2} container >
+            <Grid item xs={12} sx={userInfo} >
+                <Avatar sx={userInfoAvatar} src={user.photoURL} alt="avatar" />
+                <Typography sx={{fontWeight: 600}} variant='h5'>
                     {user.nickname}
                 </Typography>
             </Grid>
             <Grid item xs={12} >
                 <NavLink onClick={outFromAccount} className={'nav-link'} to={'/login'}>
-                    <Button size='large' color={'error'} variant={'outlined'}>
+                    <Button startIcon={<LogoutIcon/>} size='large' color={'error'} variant={'outlined'}>
                         Выйти с аккаунта
                     </Button>
                 </NavLink>
             </Grid>
             <Grid item xs={12} >
-                <NavLink onClick={toggleModal} className={'nav-link'} to={'/me'}>
+                <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={'/me'}>
+                    <PersonIcon sx={{mr: 1}}/>
                     <Typography variant='h5'>
                         Мой аккаунт
                     </Typography>
                 </NavLink>
             </Grid>
             <Grid item xs={12} >
-                <NavLink onClick={toggleModal} className={'nav-link'} to={'/about'}>
+                <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={'/about'}>
+                    <InfoIcon sx={{mr: 1}}/>
                     <Typography variant='h5'>
                         Про сайт
                     </Typography>
@@ -52,16 +61,17 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
             </Grid>
             {user.subscribedChats[0] &&
                 <Grid item xs={12} >
-                    <NavLink onClick={toggleModal} className={'nav-link'} to={`/chat/${user.subscribedChats[0]}`}>
+                    <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={`/chat/${user.subscribedChats[0]}`}>
+                        <TelegramIcon sx={{mr: 1}}/>
                         <Typography variant={'h5'}>
                             Мои чаты
                         </Typography>
                     </NavLink>
                 </Grid>
             }
-
             <Grid item xs={12} >
-                <NavLink onClick={toggleModal} className={'nav-link'} to={'/search'}>
+                <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={'/search'}>
+                    <SearchIcon sx={{mr: 1}}/>
                     <Typography variant={'h5'}>
                         Поиск
                     </Typography>
@@ -69,31 +79,33 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
             </Grid>
             <Grid item xs={12} >
                 <IconButton color={'error'} onClick={toggleModal} >
-                    <CloseIcon />
+                    <CloseIcon fontSize={'large'} />
                 </IconButton>
             </Grid>
         </Grid >
         )
     } else {
         return (
-            <Grid sx={{justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}}  spacing={2} container >
+            <Grid sx={headerMenuContainer} spacing={2} container >
                 <Grid item xs={12} >
-                    <NavLink className={'nav-link'} to={'/login'} onClick={toggleModal}>
+                    <NavLink style={navLink} className={'nav-link'} to={'/login'} onClick={toggleModal}>
+                        <VpnKeyIcon sx={{mr: 1}}/>
                         <Typography variant={'h5'}>
                             Войти
                         </Typography>
                     </NavLink>
                 </Grid>
                 <Grid item xs={12} >
-                    <NavLink className={'nav-link'} to={'/about'} onClick={toggleModal}>
-                        <Typography variant={'h5'}>
+                    <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={'/about'}>
+                        <InfoIcon sx={{mr: 1}}/>
+                        <Typography variant='h5'>
                             Про сайт
                         </Typography>
                     </NavLink>
                 </Grid>
                 <Grid item xs={12} >
                     <IconButton color={'error'} onClick={toggleModal} >
-                        <CloseIcon />
+                        <CloseIcon fontSize={'large'} />
                     </IconButton>
                 </Grid>
             </Grid >

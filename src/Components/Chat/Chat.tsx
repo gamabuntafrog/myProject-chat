@@ -101,7 +101,7 @@ const Chat: FC = () => {
 
     if (users && messages) {
         return (
-            <Box className={'chat'} sx={{backgroundColor: '#0d47a1', overflowY: 'none', minHeight: '100vh', display: 'flex'}}>
+            <Box className={'chat'} sx={{ overflowY: 'none', minHeight: '100vh', display: 'flex', backgroundColor: '#0d47a1', pt: '64px'}}>
                 <MyChats setIsChatListOpen={setIsChatListOpen} isChatListOpen={isChatListOpen} />
                 {!isChatListOpen &&
 						    <Button className={'open-chat-button'}  onClick={() => setIsChatListOpen(true)} variant={'contained'} sx={{position: 'fixed', zIndex: '101', top: '80px', left: '10px'}}>Чаты</Button>

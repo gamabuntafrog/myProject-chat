@@ -7,6 +7,7 @@ import {useCollectionData} from "react-firebase-hooks/firestore";
 import {chatDescriptionStyle, chatLink} from "./RecomendedChatListStyles";
 import {chatType} from "../../types/chatType";
 import {FirestoreError} from 'firebase/firestore'
+import { TailSpin } from  'react-loader-spinner'
 
 const RecomendedChatList: FC<{firestore: any}> = ({firestore}) => {
 
@@ -14,9 +15,9 @@ const RecomendedChatList: FC<{firestore: any}> = ({firestore}) => {
 
     if (isLoading) {
         return (
-            <Typography>
-                Загрузка списка чатов......
-            </Typography>
+            <Box sx={{mt: 5}}>
+                <TailSpin color="#00BFFF" height={100} width={100}/>
+            </Box>
         )
     }
 

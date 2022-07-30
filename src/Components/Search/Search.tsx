@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import Modal from '../Modal';
 import {messagesExemplar} from '../../types/messages';
-import {createChatInput, searchContainer, searchExample, searchSection} from "./SearchStyles";
+import {createChatInput, createChatLabel, searchContainer, searchExample, searchSection} from "./SearchStyles";
 import RecomendedChatList from "../RecomendedChatList";
 import {justifyColumnCenter} from "../GeneralStyles";
 
@@ -38,11 +38,16 @@ const Search: FC = () => {
 
     // console.log(value)
     const createChat = async () => {
+        const {newChatName, newChatDescription, newChatImage} = newChatData
+
+        if (newChatName.length < 3) {
+            console.log('слишком короткое название')
+            return
+        }
         try {
             if (user) {
                 const newChatId = `${shortid.generate()}${shortid.generate()}$${Date.now()}`
 
-                const {newChatName, newChatDescription, newChatImage} = newChatData
 
                 await updateDoc(doc(firestore, 'users', `${user.userId}`), {
                     subscribedChats: arrayUnion(newChatId)
@@ -114,16 +119,23 @@ const Search: FC = () => {
             </Box>
             <Modal isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
                 <FormControl fullWidth sx={{...justifyColumnCenter, alignItems: 'center'}}>
-                    <TextField onChange={(e) => setNewChatData(prev => {
+                    <FormLabel htmlFor={'input1'} sx={createChatLabel}>Название беседы</FormLabel>
+                    <TextField id={'input1'} onChange={(e) => setNewChatData(prev => {
                         return {...prev, newChatName: e.target.value}
-                    })} sx={createChatInput(5)} placeholder={'Название беседы'}/>
-                    <TextField onChange={(e) => setNewChatData(prev => {
+                    })} sx={createChatInput} placeholder={'Например: Очень крутой чат'}/>
+
+                    <FormLabel htmlFor={'input2'} sx={createChatLabel}>Описание (необязательно)</FormLabel>
+                    <TextField id={'input2'} multiline onChange={(e) => setNewChatData(prev => {
                         return {...prev, newChatDescription: e.target.value}
-                    })} sx={createChatInput(2)} placeholder={'Описание (необязательно)'}/>
-                    <TextField onChange={(e) => setNewChatData(prev => {
+                    })} sx={createChatInput} placeholder={'(необязательно)'}/>
+
+                    <FormLabel htmlFor={'input3'} sx={createChatLabel}>Картинка беседы</FormLabel>
+                    <TextField id={'input3'} onChange={(e) => setNewChatData(prev => {
                         return {...prev, newChatImage: e.target.value}
-                    })} sx={createChatInput(2)} placeholder={'Картинка беседы (необязательно)'}/>
-                    <Button onClick={createChat} sx={{mt: 5}}>Создать чат</Button>
+                    })} sx={createChatInput} placeholder={'(необязательно)'}/>
+
+                    <Typography sx={{mt: 2}} variant={'subtitle1'}>В дальнейшем вы сможете всё отредактировать</Typography>
+                    <Button variant={'contained'} fullWidth size={'large'} onClick={createChat} sx={{mt: 3, borderRadius: '20px'}}>Создать чат</Button>
                 </FormControl>
             </Modal>
         </Box>

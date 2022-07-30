@@ -36,14 +36,15 @@ type chatType = {
 
 
 const TestItem: FC<{chatId: string, chatNames: any, filterValue: string}> = ({chatId, chatNames, filterValue}) => {
-    const {user: me, firestore} = useContext(Context)!
 
+    const {user: me, firestore} = useContext(Context)!
     const [user, setUser] = useState<null | any>(null);
     const [chat, isLoading] = useDocumentData(doc(firestore, 'chats',`${chatId}`))
     const [messages, isMessagesLoading] = useCollectionData(query(collection(firestore, 'chats',`${chatId}`, 'messages'),
         orderBy('createdAt', 'desc'), limit(1)
     ))
     const [isUserLoading, setIsUserLoading] = useState(true);
+
     const getUser = async (userId: string) => {
         try {
             const userData = await getDoc(doc(firestore, 'users', userId))
@@ -201,7 +202,7 @@ const MyChats: FC<{isChatListOpen: any, setIsChatListOpen: any}> = ({isChatListO
     if (user?.subscribedChats) {
         return (
             <Box className={isChatListOpen ? 'myChatsOpen' : 'myChats'} sx={{ position: 'relative'}}>
-                <Box className={'chatListWrapper'} sx={{px: 1,position: 'fixed', top: '56px', left: 0, pt: 2}}>
+                <Box className={'chatListWrapper'} sx={{px: 1,position: 'fixed', top: '0', left: 0,paddingTop: '56px', backgroundColor: '#0d47a1'}}>
                     {isChatListOpen &&
 						        <Button className={'open-chat-button'}  onClick={() => setIsChatListOpen(false)} variant={'contained'} color={'error'} sx={{mt: 1, ml: 1}}>Закрыть</Button>
                     }

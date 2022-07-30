@@ -20,10 +20,15 @@ export const searchExample = {
     color: '#1976d2'
 }
 
-export const createChatInput = (mt: number) => {
-    return {
-        width: '70%',
-        input: {textAlign: 'center'},
-        mt
-    }
+export const createChatInput = {
+    width: '100%',
+    input: {textAlign: 'center'},
+    textarea: {textAlign: 'center'},
+    fieldset: {borderRadius: '20px'}
+}
+
+export const createChatLabel = {
+    color: '#1976d2',
+    mt: 2,
+    mb: 1
 }

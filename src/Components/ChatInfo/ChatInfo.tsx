@@ -74,7 +74,7 @@ const ChatInfo: FC<ChatInfoPT> = ({id, chatName, users, chatImage, chatDescripti
     return (
         <Box>
             <Box sx={entryFieldInfo} >
-                <Typography variant={'body1'}>{id} | {chatName}</Typography>
+                <Typography variant={'body1'}>{chatName}</Typography>
                 <Button onClick={() => setIsModalOpen(true)} sx={{ml: 1}}>Информация</Button>
             </Box>
             {isModalOpen &&
