@@ -2,7 +2,6 @@ import {Box, Grid, Link, Typography} from "@mui/material"
 import React, {useState, useEffect, FC} from "react"
 import Avatar from "@mui/material/Avatar";
 import {NavLink} from "react-router-dom";
-import {reflow} from "@mui/material/transitions/utils";
 
 type UserModalInfoPT = {
     modalInfo: {

@@ -1,14 +1,13 @@
 import React, {useState, useEffect, FC} from "react"
-import {createPortal} from "react-dom";
 import {Box, Button, Modal as MUIModal} from "@mui/material";
-
-const modalRoot = document.querySelector('#modal-root')!;
+import CloseIcon from '@mui/icons-material/Close'
 
 type ModalPT = {
     isModalOpen: boolean,
     children: any,
     onClose: any
 }
+
 
 const Modal: FC<ModalPT> = ({isModalOpen, children, onClose}) => {
 
@@ -28,8 +27,8 @@ const Modal: FC<ModalPT> = ({isModalOpen, children, onClose}) => {
                 overflowY: 'auto',
                 minWidth: '50%'
             }}>
-                <Button sx={{marginLeft: 'auto'}} onClick={onClose}>
-                    Закрыть
+                <Button color={'error'} sx={{marginLeft: 'auto'}} onClick={onClose}>
+                    <CloseIcon />
                 </Button>
                 {children}
             </Box>

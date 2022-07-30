@@ -1,13 +1,13 @@
 import React, {FC, useContext, useEffect, useRef, useState,} from "react";
 import {Context} from "../..";
-import {arrayRemove, arrayUnion, doc, updateDoc} from "firebase/firestore";
+import {arrayRemove, arrayUnion, doc, setDoc, updateDoc} from "firebase/firestore";
 import {Avatar, Box, Button, Input, List, ListItem, TextField, Typography} from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete';
 import Loader from "../Loader";
 import {MessagesPropTypes} from "../../types/MessagesPT";
 import UserModalInfo from "../UserModalInfo";
 import './Messages.css';
-import {messagesExemplar} from "../Search/Search";
+import { messagesExemplar } from '../../types/messages';
 import MessageContextMenu from "../MessageContextMenu";
 // @ts-ignore
 import EllipsisText from "react-ellipsis-text";
@@ -35,15 +35,6 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, firestore, subscribe
         scrollToBottom(body)
     }, [messages])
 
-    const onDelete = async (message: any) => {
-        console.log(message)
-        // await deleteDoc(doc(firestore, 'chat', 'public', `${chatId}`, `${message.docId}`))
-        const {createdAt} = message
-        await updateDoc(doc(firestore, 'chats', `${chatId}`), {
-            messages: arrayRemove(message)
-        })
-    }
-
     const scrollToBottom = (body: any) => {
         window.scrollTo({top: body.offsetHeight, behavior: "smooth"})
     }
@@ -70,19 +61,6 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, firestore, subscribe
             setIsContextMenuOpen(false)
         })
     }, [isUserModalOpen, isContextMenuOpen]);
-
-    useEffect(() => {
-        if (listRef.current) {
-            //
-            // console.log(listRef.current.children[0].getBoundingClientRect())
-            // const child = listRef.current.children[0].getBoundingClientRect()
-            // setTimeout(() => {
-            //     window.scrollTo({top: child.height, behavior: "smooth"})
-            // }, 3000)
-
-        }
-
-    }, [listRef]);
 
     if (!messages && !subscribedUsers) {
         return <List sx={{minHeight: '90vh'}}>
@@ -120,23 +98,36 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, firestore, subscribe
         }
 
         const newMessage = {...el, message: changeMessageInputValue, changedAt: Date.now()}
-        const oldMessage = el
-
-        console.log(oldMessage)
         console.log(newMessage)
 
         try {
-            await updateDoc(doc(firestore, 'chats', `${chatId}`), {
-                messages: arrayRemove(oldMessage)
-            })
-            await updateDoc(doc(firestore, 'chats', `${chatId}`), {
-                messages: arrayUnion(newMessage)
-            })
+            // await setDoc(doc(firestore, 'chats', `${chatId}`, 'messages', `${el.messageId}`), {
+            //     messageType: messagesExemplar.replyMessage,
+            //     userId: me?.userId,
+            //     message: 'Начало чата',
+            //     createdAt: Date.now(),
+            //     messageId: el.messageId
+            // })
+            await setDoc(doc(firestore, 'chats', `${chatId}`, 'messages', `${el.messageId}`), newMessage)
+
         } catch (e) {
             console.log(e)
         } finally {
             setIsLoading(false)
         }
+    }
+
+    const showRepliedMessage = (el: any) => {
+        const indexOfReplyerMessage = messages?.findIndex((message: any, i) => {
+            return el.replyer.createdAt === message.createdAt
+        })
+        console.log(indexOfReplyerMessage)
+        if (indexOfReplyerMessage) {
+            const child = listRef.current!.children[indexOfReplyerMessage].getBoundingClientRect()
+            window.scrollTo({top: child.top + window.pageYOffset - (window.innerHeight / 2), behavior: "smooth"})
+
+        }
+
     }
 
     return (
@@ -154,7 +145,7 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, firestore, subscribe
         <List className={'messagesList'} ref={listRef} sx={{minHeight: '80vh', zIndex: '100'}}>
             {subscribedUsers && messages?.map((el: any, i: any) => {
                 if (el.messageType === messagesExemplar.startMessage) return <ListItem sx={{justifyContent: 'center'}} key={el.createdAt}>
-                    <Typography variant={'subtitle1'}>{el.startMessage}</Typography></ListItem> //это просто сообщение "начало чата"
+                    <Typography variant={'subtitle1'}>{el.message}</Typography></ListItem> //это просто сообщение "начало чата"
                 // console.log(el)
                 const id = el.userId
                 const subscribedUser = subscribedUsers[id]
@@ -187,38 +178,18 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, firestore, subscribe
                                                     }
                                                 </Box>
                                                 <Box sx={{display: 'flex', wordBreak: 'break-all'}}>
-                                                    <Box sx={{height: '45px', width: '2px', backgroundColor: 'white', mr: 1}}></Box>
-                                                    <Box>
-                                                        <Typography onClick={(e) => showUserInfo(e, replyer)} sx={{color: replyer?.userId === me?.userId ? '#2196f3' : '', cursor: 'pointer' }}>{replyer?.nickname}</Typography>
-                                                        <EllipsisText sx={{wordBreak: 'break-all'}} text={el.replyer.message} length={30}/>
+                                                    <Box sx={{height: '45px', width: '2px', backgroundColor: 'white', mr: 1}} />
+                                                    <Box onClick={() => showRepliedMessage(el)} sx={{cursor: 'pointer'}}>
+                                                        <Typography sx={{color: replyer?.userId === me?.userId ? '#2196f3' : '', cursor: 'pointer' }}>{replyer?.nickname}</Typography>
+                                                        <EllipsisText sx={{wordBreak: 'break-all', }} text={el.replyer.message} length={30}/>
                                                     </Box>
-                                                    <Button onClick={() => {
-                                                        console.log()
-                                                        const indexOfReplyerMessage = messages?.findIndex((message: any, i) => {
-                                                            return el.replyer.createdAt === message.createdAt
-
-                                                        })
-                                                        console.log(el)
-                                                        console.log(messages?.filter((message: any, i) => {
-                                                                console.log(message)
-                                                                return el.replyer.createdAt === message.createdAt
-
-                                                        }))
-                                                        console.log(indexOfReplyerMessage)
-                                                        const list = listRef.current!.getBoundingClientRect()
-                                                        // console.log(list)
-                                                        const child = listRef.current!.children[indexOfReplyerMessage].getBoundingClientRect()
-                                                        console.log(child)
-                                                        window.scrollTo({top: child.top + window.pageYOffset - 64, behavior: "smooth"})
-                                                        console.log(window.outerHeight)
-                                                    }}>Ссылка</Button>
                                                 </Box>
                                                 <Typography>{el.message}</Typography>
                                             </>
                                         :
                                             <Box>
                                                 <Box sx={{display: 'flex', wordBreak: 'break-all'}}>
-                                                    <Box sx={{height: '45px', width: '2px', backgroundColor: 'white', mr: 1}}></Box>
+                                                    <Box sx={{height: '45px', width: '2px', backgroundColor: 'white', mr: 1}}/>
                                                     <Box>
                                                         <Typography onClick={(e) => showUserInfo(e, replyer)} sx={{color: replyer?.userId === me?.userId ? '#2196f3' : '', cursor: 'pointer' }}>{replyer?.nickname}</Typography>
                                                         <EllipsisText sx={{wordBreak: 'break-all'}} text={el.replyer.message} length={30}/>
@@ -269,9 +240,9 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, firestore, subscribe
                                     </Box>
                                     <Box sx={{display: 'flex',}}>
                                         <Box sx={{height: '45px', width: '2px', backgroundColor: 'white', mr: 1}}></Box>
-                                        <Box sx={{wordBreak: 'break-all'}}>
-                                            <Typography>{replyer.nickname}</Typography>
-                                            <EllipsisText sx={{wordBreak: 'break-all'}} text={el.replyer.message} length={30}/>
+                                        <Box onClick={() => showRepliedMessage(el)} sx={{cursor: 'pointer'}}>
+                                            <Typography sx={{color: replyer?.userId === me?.userId ? '#2196f3' : '', cursor: 'pointer' }}>{replyer?.nickname}</Typography>
+                                            <EllipsisText sx={{wordBreak: 'break-all', }} text={el.replyer.message} length={30}/>
                                         </Box>
                                     </Box>
                                     <Typography>{el.message}</Typography>

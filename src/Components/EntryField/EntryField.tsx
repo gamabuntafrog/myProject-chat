@@ -23,7 +23,7 @@ import Modal from "../Modal";
 import UserModalInfo from "../UserModalInfo";
 import '../../App.css';
 import ChatInfo from "../ChatInfo";
-import {messagesExemplar} from "../Search/Search";
+import { messagesExemplar } from '../../types/messages';
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 // @ts-ignore
@@ -50,7 +50,7 @@ const EntryField: FC<EntryFieldPT> = ({
         replyMessageInfo,
         setIsReplying
     }) => {
-
+    console.log(users)
     const { firestore, user, isUserLoading} = useContext(Context)!
 
     const {id} = useParams<{ id: string }>()
@@ -61,11 +61,9 @@ const EntryField: FC<EntryFieldPT> = ({
     console.log(isReplying, replyMessageInfo)
 
     const subscribeUser = async () => {
-        await updateDoc(doc(firestore, 'chats', `${id}`), {
-            users: arrayUnion({
-                userId: user?.userId,
-                isAdmin: false
-            })
+        await setDoc(doc(firestore, 'chats', `${id}`, 'users', `${user?.userId}`), {
+            userId: user?.userId,
+            isAdmin: false
         })
         await updateDoc(doc(firestore, 'users', `${user?.userId}`), {
             subscribedChats: arrayUnion(chatId)
@@ -80,33 +78,40 @@ const EntryField: FC<EntryFieldPT> = ({
         }
 
         if (user) {
-            if (isReplying) {
-                const {userId} = user
-                console.log({
-                    userId,
-                    message,
-                    replier: replyMessageInfo
+            const newMessageId = `${user.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
 
-                })
-                await updateDoc(doc(firestore, 'chats', `${id}`), {
-                    messages: arrayUnion({
-                        messageType: messagesExemplar.replyMessage,
-                        userId: user.userId,
-                        message,
-                        createdAt: Date.now(),
-                        replyer: replyMessageInfo
-                    })
+            if (isReplying) {
+                // const {userId} = user
+                // console.log({
+                //     userId,
+                //     message,
+                //     replier: replyMessageInfo
+                //
+                // })
+
+                const docRef = await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), {
+                    messageType: messagesExemplar.replyMessage,
+                    userId: user.userId,
+                    message,
+                    createdAt: Date.now(),
+                    replyer: replyMessageInfo,
+                    messageId: newMessageId,
+                    chatId: id
+
                 })
                 setIsReplying(false)
             } else {
-                await updateDoc(doc(firestore, 'chats', `${id}`), {
-                    messages: arrayUnion({
-                        messageType: messagesExemplar.message,
-                        userId: user.userId,
-                        message,
-                        createdAt: Date.now(),
-                    })
+                const docRef = await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), {
+                    messageType: messagesExemplar.message,
+                    userId: user?.userId,
+                    message,
+                    createdAt: Date.now(),
+                    messageId: newMessageId,
+                    chatId: id
                 })
+
+                // console.log(docRef)
+
             }
         }
 

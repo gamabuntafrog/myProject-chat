@@ -2,7 +2,7 @@ import React, {useState, useEffect, FC, useContext} from "react"
 import {Avatar, Box, Button, List, ListItem, TextField, Typography, useMediaQuery} from "@mui/material";
 import Modal from "../Modal";
 import {NavLink, useHistory} from "react-router-dom";
-import {arrayRemove, arrayUnion, doc, setDoc, updateDoc} from "firebase/firestore";
+import {arrayRemove, arrayUnion, deleteDoc, doc, setDoc, updateDoc} from "firebase/firestore";
 import {Context} from "../../index";
 import { entryFieldInfo } from "./chatInfoStyles";
 
@@ -31,56 +31,43 @@ const ChatInfo: FC<ChatInfoPT> = ({id, chatName, users, chatImage, chatDescripti
         if (users) {
             setIsMeAdmin(users[user?.userId].isAdmin)
             setUsersArray(Object.entries(users))
-            // console.log((isMeAdmin && userModalInfo.isAdmin))
         }
-
     }, [users]);
 
     const unsubscribeFromChat = async () => {
         await updateDoc(doc(firestore, 'users', `${user?.userId}`), {
             subscribedChats: arrayRemove(id)
         })
-        console.log(user?.userId, user?.isAdmin)
-        await updateDoc(doc(firestore, 'chats', `${id}`), {
-            users: arrayRemove({
-                userId: user?.userId,
-                isAdmin: isMeAdmin
-            })
-        })
+        await deleteDoc(doc(firestore, 'chats', `${id}`, 'users', `${user?.userId}`))
         history.push('/search')
     }
 
     const removeAdmin = async (userId: string) => {
-        await updateDoc(doc(firestore, 'chats', `${id}`), {
-            users: arrayRemove({userId: userId, isAdmin: true})
-        })
-        await updateDoc(doc(firestore, 'chats', `${id}`), {
-            users: arrayUnion({userId: userId, isAdmin: false})
-        })
+        await setDoc(doc(firestore, 'chats', `${id}`, 'users', `${userId}`), {
+            isAdmin: false
+        }, {merge: true})
         setIsUserModalOpen(false)
 
     }
 
     const addAdmin = async (userId: string) => {
+        await setDoc(doc(firestore, 'chats', `${id}`, 'users', `${userId}`), {
+            isAdmin: true
+        }, {merge: true})
         setIsUserModalOpen(false)
-        console.log(userId)
-        await updateDoc(doc(firestore, 'chats', `${id}`), {
-            users: arrayRemove({userId: userId, isAdmin: false})
-        })
-        await updateDoc(doc(firestore, 'chats', `${id}`), {
-            users: arrayUnion({userId: userId, isAdmin: true})
-        })
+
     }
 
     const submitChatInfo = async () => {
         console.log(newChatInfo)
         const {chatImage, chatName, chatDescription} = newChatInfo
-        await updateDoc(doc(firestore, 'chats', `${id}`), {
-            chatName,
+        await setDoc(doc(firestore, 'chats', `${id}`), {
+            chatName: chatName,
             chatDescription,
             chatImage
-        })
+        }, {merge: true})
         setIsChangingChatInfo(false)
+
     }
 
 

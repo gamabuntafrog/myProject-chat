@@ -1,4 +1,10 @@
+
+body {
+    min-height: 100vh;
+}
 .App {
+    min-height: 100vh;
+
 }
 
 ::-webkit-scrollbar {
@@ -25,7 +31,6 @@
 }
 
 body {
-    /*max-height: 100vh;*/
     overflow-y: auto;
 }
 

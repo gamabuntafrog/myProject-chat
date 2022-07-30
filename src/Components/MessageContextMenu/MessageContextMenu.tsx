@@ -1,7 +1,7 @@
 import React, {useState, useEffect, FC, useContext} from "react"
 import {Box, Button, ListItem, Typography} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import {arrayRemove, doc, updateDoc} from "firebase/firestore";
+import {addDoc, arrayRemove, collection, deleteDoc, doc, setDoc, updateDoc} from "firebase/firestore";
 import {Context} from "../../index";
 import ReplyIcon from "@mui/icons-material/Reply";
 import EditIcon from '@mui/icons-material/Edit';
@@ -41,15 +41,9 @@ const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, 
 
     const {firestore} = useContext(Context)!;
 
-    console.log(modalInfo)
 
-    const onDelete = async (message: any) => {
-        delete message.isChanging
-        console.log(message)
-        const {createdAt} = message
-        await updateDoc(doc(firestore, 'chats', `${chatId}`), {
-            messages: arrayRemove(message)
-        })
+    const onDelete = async (messageId: string) => {
+        await deleteDoc(doc(firestore, 'chats', `${chatId}`, 'messages', `${messageId}`))
         setIsContextMenuOpen(false)
     }
 
@@ -72,7 +66,7 @@ const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, 
                 </Button>
             }
             {modalInfo.isMe &&
-		        <Button color={'error'}  onClick={() => onDelete(modalInfo.data)} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
+		        <Button color={'error'}  onClick={() => onDelete(modalInfo.data.messageId)} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
                     <Typography>Удалить</Typography>
                 </Button>
             }

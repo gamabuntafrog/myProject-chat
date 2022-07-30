@@ -5,7 +5,7 @@ export type startMessageType = {
 }
 
 export type messageType = {
-    docId: string,
+    messageId: string,
     createdAt: number,
     message: string,
     photoURL: string,
@@ -15,3 +15,12 @@ export type messageType = {
 }
 
 export type messagesType = (messageType | startMessageType)[]
+
+
+export enum messagesExemplar {
+    startMessage,
+    message,
+    dateMessage,
+    replyMessage,
+    forwardMessages
+}

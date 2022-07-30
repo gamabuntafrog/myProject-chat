@@ -1,11 +1,10 @@
 import shortid from 'shortid';
 import React, {FC, useContext, useState} from 'react';
-import {addDoc, arrayUnion, collection, doc, orderBy, query, setDoc, updateDoc, where} from 'firebase/firestore';
-import {NavLink, useHistory} from 'react-router-dom';
+import {arrayUnion,  doc, setDoc, updateDoc} from 'firebase/firestore';
+import {useHistory} from 'react-router-dom';
 import {Context} from '../..';
 import {
     Box,
-    Input,
     Button,
     FormControl,
     FormLabel,
@@ -13,22 +12,14 @@ import {
     Snackbar,
     Alert,
     AlertTitle,
-    List,
-    ListItem,
     TextField,
-
 } from '@mui/material';
-import {useCollection, useCollectionData, useDocumentData} from "react-firebase-hooks/firestore";
 import Modal from '../Modal';
-import {DocumentData} from 'firebase/firestore'
+import {messagesExemplar} from '../../types/messages';
+import {createChatInput, searchContainer, searchExample, searchSection} from "./SearchStyles";
+import RecomendedChatList from "../RecomendedChatList";
+import {justifyColumnCenter} from "../GeneralStyles";
 
-export enum messagesExemplar {
-    startMessage,
-    message,
-    dateMessage,
-    replyMessage,
-    forwardMessages
-}
 
 const Search: FC = () => {
 
@@ -36,7 +27,7 @@ const Search: FC = () => {
 
     const [text, setText] = useState<string>('');
     const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [newChatData, setNewChatData] = useState({
         newChatName: '',
         newChatDescription: '',
@@ -44,57 +35,71 @@ const Search: FC = () => {
     });
     const history = useHistory();
 
-    const [value, isLoading] = useCollectionData(query(collection(firestore, 'chats')))
-    // const [value, isLoading] = useDocumentData(doc(firestore, 'chat', `chatList`))
 
-    console.log(value)
+    // console.log(value)
     const createChat = async () => {
-        const newChatId = shortid.generate()
-        console.log(newChatData)
-        const {newChatName, newChatDescription, newChatImage} = newChatData
-        if (user) {
-            await updateDoc(doc(firestore, 'users', `${user.userId}`), {
-                subscribedChats: arrayUnion(newChatId)
-            })
-            await setDoc(doc(firestore, 'chats', `${newChatId}`), {
-                createdAt: Date.now(),
-                messages: [{startMessage: 'Начало чата', createdAt: Date.now(), messageType: messagesExemplar.startMessage}],
-                users: [
-                    {
-                        userId: user.userId,
-                        isAdmin: true
-                    }
-                ],
-                chatName: newChatName,
-                chatDescription: newChatDescription,
-                chatImage: newChatImage,
-                chatId: newChatId,
-            })
-            history.push(`/chat/${newChatId}`)
+        try {
+            if (user) {
+                const newChatId = `${shortid.generate()}${shortid.generate()}$${Date.now()}`
 
+                const {newChatName, newChatDescription, newChatImage} = newChatData
+
+                await updateDoc(doc(firestore, 'users', `${user.userId}`), {
+                    subscribedChats: arrayUnion(newChatId)
+                })
+                await setDoc(doc(firestore, 'chats', `${newChatId}`), {
+                    createdAt: Date.now(),
+                    users: [
+                        {
+                            userId: user.userId,
+                            isAdmin: true
+                        }
+                    ],
+                    chatName: newChatName,
+                    chatDescription: newChatDescription,
+                    chatImage: newChatImage,
+                    chatId: newChatId,
+                })
+
+                const newMessageId = `${user.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
+
+                await setDoc(doc(firestore, 'chats', `${newChatId}`, 'messages', `${newMessageId}`), {
+                    messageType: messagesExemplar.startMessage,
+                    userId: user?.userId,
+                    message: 'Начало чата',
+                    createdAt: Date.now(),
+                    messageId: newMessageId,
+                    chatId: newChatId
+                })
+                await setDoc(doc(firestore, 'chats', `${newChatId}`, 'users', `${user.userId}`), {
+                    userId: user?.userId,
+                    isAdmin: true
+                })
+
+                history.push(`/chat/${newChatId}`)
+
+            }
+
+        } catch (e) {
+            console.log(e)
+            console.log('ошибка')
         }
-
 
     }
 
     const findChat = () => {
-        if (text.trim().length < 9) {
-            setIsAlertOpen(true)
-            return
+        if (text.trim() !== '') {
+            history.push(`/chat/${text}`)
         }
-        if (text.trim().length > 9) return setIsAlertOpen(true)
-
-        history.push(`/chat/${text}`)
     }
 
     return (
-        <Box display='flex' flexDirection='column' alignItems='center' justifyContent='center' >
-            <Box width='50%' display='flex' textAlign='center' flexDirection='column' justifyContent='center'
-                sx={{mt: 30}}>
-                <Typography sx={{mb: 5, color: '#1976d2'}} variant={'subtitle1'}>Например: o76iyZ1tU</Typography>
-                <FormControl>
+        <Box component={'section'} sx={searchSection}>
+            <Box width='50%' sx={searchContainer}>
+                <Typography sx={searchExample} variant={'subtitle1'}>Например: o76iyZ1tU</Typography>
+                <FormControl fullWidth>
                     <FormLabel>
-                        <Input sx={{width: '100%'}} value={text} onKeyPress={(e) => {
+                        <TextField variant={'standard'} fullWidth value={text} onKeyPress={(e) => {
                             if (e.key === "Enter") return findChat() //submit
                         }} onChange={(e) => setText(e.currentTarget.value)} placeholder='поиск'/>
                     </FormLabel>
@@ -103,61 +108,26 @@ const Search: FC = () => {
                 <Typography variant='h6'>
                     или
                 </Typography>
-                <Button size='large' onClick={() => setIsModalOpen(true)
+                <Button size='large' sx={{mb: 1}} onClick={() => setIsModalOpen(true)
                 }>Создать чат</Button>
-                {value && <>
-                    <Typography variant={'h6'}>Список чатов:</Typography>
-                        <List >
-                            {value.map((data: DocumentData, i: number) => {
-                                const {chatId, chatName, chatDescription} = data;
-
-                                return (
-                                    <ListItem sx={{justifyContent: 'center', display: 'flex', flexDirection: 'column'}} key={i}>
-                                        <NavLink style={{color: 'white'}} to={`/chat/${chatId}`}>
-                                            <Typography sx={{color: 'white'}} variant={'subtitle1'}>
-                                                {chatName}
-                                            </Typography>
-                                        </NavLink>
-                                        {chatDescription &&
-		                                    <Typography  sx={{color: 'white', ml: 1, wordBreak: 'break-word'}} variant={'subtitle1'}>
-                                                {chatDescription}
-		                                    </Typography>
-                                        }
-                                    </ListItem>
-                                )
-                            })}
-                        </List>
-                </>}
-
+                <RecomendedChatList firestore={firestore} />
             </Box>
-            <Snackbar
-                anchorOrigin={{vertical: 'top', horizontal: 'center'}}
-                open={isAlertOpen}
-                autoHideDuration={6000}
-                onClose={() => setIsAlertOpen(false)}
-            >
-                <Alert sx={{}} variant={'filled'} severity="error">
-                    <AlertTitle sx={{mt: -0.5, flexGrow: 1}}>ID всегда длиною в 9 символов</AlertTitle>
-                    {/* @ts-ignore */}
-                    <Button sx={{ml: 9}} variant={'error'} size="small" onClick={() => setIsAlertOpen(false)}>
-                        Закрыть
-                    </Button>
-                </Alert>
-            </Snackbar>
             <Modal isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-	            <TextField onChange={(e) => setNewChatData(prev => {
-	                return {...prev, newChatName: e.target.value}
-                })} sx={{width: '70%', input: {textAlign: 'center'}, mt: 5}} placeholder={'Название беседы'}/>
-                <TextField onChange={(e) => setNewChatData(prev => {
-                    return {...prev, newChatDescription: e.target.value}
-                })} sx={{width: '70%', input: {textAlign: 'center'}, mt: 2}} placeholder={'Описание (необязательно)'}/>
-                <TextField onChange={(e) => setNewChatData(prev => {
-                    return {...prev, newChatImage: e.target.value}
-                })} sx={{width: '70%', input: {textAlign: 'center'}, mt: 2}} placeholder={'Картинка беседы (необязательно)'}/>
-                <Button onClick={createChat} sx={{mt: 5}}>Создать чат</Button>
+                <FormControl fullWidth sx={{...justifyColumnCenter, alignItems: 'center'}}>
+                    <TextField onChange={(e) => setNewChatData(prev => {
+                        return {...prev, newChatName: e.target.value}
+                    })} sx={createChatInput(5)} placeholder={'Название беседы'}/>
+                    <TextField onChange={(e) => setNewChatData(prev => {
+                        return {...prev, newChatDescription: e.target.value}
+                    })} sx={createChatInput(2)} placeholder={'Описание (необязательно)'}/>
+                    <TextField onChange={(e) => setNewChatData(prev => {
+                        return {...prev, newChatImage: e.target.value}
+                    })} sx={createChatInput(2)} placeholder={'Картинка беседы (необязательно)'}/>
+                    <Button onClick={createChat} sx={{mt: 5}}>Создать чат</Button>
+                </FormControl>
             </Modal>
-
-        </Box>);
+        </Box>
+    );
 }
 
 export default Search;
