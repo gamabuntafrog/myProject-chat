@@ -1,14 +1,14 @@
 import React, {FC, useContext, useState} from "react";
-import { Context } from "../..";
+import {Context} from "../..";
 import HeaderMenu from "../HeaderMenu";
 import MenuIcon from '@mui/icons-material/Menu';
-import {AppBar, Box, Toolbar, Typography, IconButton, Drawer, Container, Grid} from '@mui/material';
+import {AppBar, Box, Container, Drawer, IconButton, Toolbar, Typography} from '@mui/material';
 import Avatar from "@mui/material/Avatar";
-import {useGetTypeOfScreen, screenTypes} from "../../hooks/useGetTypeOfScreen";
+import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 // @ts-ignore
 import EllipsisText from "react-ellipsis-text";
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import {appBar, headerMenuWrapper, logo, slideMenu} from "./NavbarStyles";
+import {appBar, headerMenuWrapper, linkToUserInfo, logo, slideMenu, userAvatar, userNickname} from "./NavbarStyles";
 import {NavLink} from "react-router-dom";
 
 const Navbar: FC = () => {
@@ -31,21 +31,23 @@ const Navbar: FC = () => {
                     </Typography>
                 </NavLink>
                 {user &&
-	                    <Box sx={{mx: 'auto'}}>
-                            <NavLink style={{color: 'white', textDecoration: 'none', display: 'flex', alignItems: 'center', padding: '0 20px'}} to={`/user/${user.userId}`}>
-                                <Avatar sx={{width: 40, height: 40, mr: 2}} src={`${user.photoURL}`} alt="avatar" />
-                                <Typography variant="h6" sx={{ fontWeight: 600, mr: 1, textAlign: 'center'}}>
-                                    <EllipsisText text={user.nickname} length={type === screenTypes.smallType ? 10 : 30}/>
+                    <Box sx={{mx: 'auto'}}>
+                        <NavLink style={linkToUserInfo} to={`/me`}>
+                            <Avatar sx={userAvatar} src={`${user.photoURL}`} alt="avatar" />
+                            {type !== screenTypes.smallType &&
+                                <Typography variant="h6" sx={userNickname}>
+                                    <EllipsisText text={user.nickname} length={30}/>
                                 </Typography>
-                            </NavLink>
-                        </Box>
+                            }
+                        </NavLink>
+                    </Box>
                 }
                 <IconButton
                     onClick={toggleModal}
                     edge="start"
                     color="inherit"
                     aria-label="menu"
-                    sx={{padding: 1, ml: user ? 0 : 1}}
+                    sx={{padding: 1, ml: user ? 0 : 'auto'}}
                 >
                     <MenuIcon fontSize={'large'} />
                 </IconButton>

@@ -1,3 +1,4 @@
+import {screenTypes} from "../../hooks/useGetTypeOfScreen";
 
 
 export const searchSection = {
@@ -8,11 +9,16 @@ export const searchSection = {
     height: '100vh'
 }
 
-export const searchContainer = {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center'
+export const searchContainer = (type: screenTypes) => {
+
+
+    return ({
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: type === screenTypes.smallType ? '90%' : '50%',
+    })
 }
 
 export const searchExample = {

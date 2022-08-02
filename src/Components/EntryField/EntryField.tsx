@@ -28,6 +28,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 // @ts-ignore
 import EllipsisText from "react-ellipsis-text";
+import InfoIcon from "@mui/icons-material/Info";
 
 type EntryFieldPT = {
     chatName: string,
@@ -37,7 +38,9 @@ type EntryFieldPT = {
     users: any,
     isReplying: boolean,
     setIsReplying: React.Dispatch<React.SetStateAction<boolean>>
-    replyMessageInfo: any
+    replyMessageInfo: any,
+    setIsChatListOpen: React.Dispatch<React.SetStateAction<boolean>>,
+    isChatListOpen: boolean
 }
 
 const EntryField: FC<EntryFieldPT> = ({
@@ -48,7 +51,9 @@ const EntryField: FC<EntryFieldPT> = ({
         chatImage,
         isReplying,
         replyMessageInfo,
-        setIsReplying
+        setIsReplying,
+        setIsChatListOpen,
+        isChatListOpen
     }) => {
     console.log(users)
     const { firestore, user, isUserLoading} = useContext(Context)!
@@ -126,15 +131,22 @@ const EntryField: FC<EntryFieldPT> = ({
         setOpen(false);
     };
 
-    if (!users[user?.userId]) {
-        return <Container sx={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+    if (user && !users[user.userId]) {
+        return <Container sx={{display: 'flex', alignItems: 'center', justifyContent: 'center', pb: 3}}>
             <Button size={'large'} variant={'contained'} sx={{width: '90%'}} onClick={subscribeUser}>Присоединится</Button>
         </Container>
     }
 
-    return <Box sx={{position: 'sticky', bottom: '0px', pt: 1, pb: 2,  backgroundColor: '#121212', zIndex: 100, }}>
+    return <Box sx={{position: 'sticky', bottom: '0px', pt: 1, pb: 2, px: 2, backgroundColor: '#121212', zIndex: 100, }}>
         <Box>
-            <ChatInfo id={id} chatName={chatName} users={users} chatImage={chatImage} chatDescription={chatDescription} />
+            <ChatInfo
+                id={id}
+                chatName={chatName}
+                users={users}
+                chatImage={chatImage}
+                chatDescription={chatDescription}
+                setIsChatListOpen={setIsChatListOpen}
+            />
             {isReplying &&
 		        <Box sx={{display: 'flex', mb: 1, alignItems: 'center'}}>
 			        <ReplyIcon sx={{width: '30px', height: '30px', mr: 1}}/>
@@ -159,6 +171,7 @@ const EntryField: FC<EntryFieldPT> = ({
                     fullWidth
                     multiline
                     sx={{fieldset: {borderRadius: '30px 0 0 30px'}}}
+                    maxRows={10}
                     onKeyPress={(e) => {
                         if (e.key === "Enter") return submitPost() //submit
                     }}
@@ -178,7 +191,7 @@ const EntryField: FC<EntryFieldPT> = ({
             <Alert variant={'filled'} severity="error">
                 <AlertTitle sx={{mt: -0.5, flexGrow: 1}}>Введите сообщение </AlertTitle>
                 {/* @ts-ignore */}
-                <Button sx={{ml: 9}} variant={'error'} size="small" onClick={handleClose}>
+                <Button sx={{ml: 9}} color={'error'} size="small" onClick={handleClose}>
                     Закрыть
                 </Button>
             </Alert>

@@ -18,10 +18,6 @@ export const publicRoutes = [
         path: '/about',
         Component: About
     },
-    {
-        path: '/user/:id',
-        Component: User
-    }
 ]
 
 export const privateRoutes = [

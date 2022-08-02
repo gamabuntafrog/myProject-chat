@@ -11,6 +11,7 @@ import {Auth} from "firebase/auth";
 import {FirebaseApp} from "firebase/app";
 import {doc, Firestore} from "firebase/firestore";
 import {useDocumentData} from "react-firebase-hooks/firestore";
+import {user} from "./types/user";
 
 type AppPropTypes = {
     auth: Auth, app: FirebaseApp, firestore: Firestore
@@ -19,8 +20,8 @@ type AppPropTypes = {
 const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
 
     const [googleUser, isUserLoading] = useAuthState(auth)
-    const [user, isLoading] = useDocumentData(doc(firestore, 'users', `${googleUser?.uid}`))
-    // console.log(googleUser)
+    const [user, isLoading] = useDocumentData<any>(doc(firestore, 'users', `${googleUser?.uid}`))
+    console.log(user)
     if (isLoading) {
         return <Loader/>
     }

@@ -1,18 +1,4 @@
 
-.myChats {
-    margin-top: 24px;
-    width: 25%;
-}
-
-.myChatsOpen {
-    width: 25%;
-}
-
-.chatListWrapper {
-    height: 100vh;
-    width: 20%;
-
-}
 
 .chatLink {
     border-radius: 10px;
@@ -27,26 +13,3 @@
     background-color: #121212;
 }
 
-@media screen and (max-width: 1280px) {
-    .myChats {
-        display: none;
-        margin: 0;
-        width: 0;
-
-    }
-    .chatListWrapper {
-        height: 100vh;
-        width: 100%;
-        background-color: #121212;
-    }
-    .myChatsOpen {
-        z-index: 200;
-        background-color: #121212;
-        margin: 0;
-        width: 0;
-    }
-    .myChatsOpen > ul {
-        background-color: #121212;
-
-    }
-}

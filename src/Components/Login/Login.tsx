@@ -1,9 +1,10 @@
+import React, {useContext} from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { setDoc , doc, getDoc} from "firebase/firestore";
-import React, {useContext} from "react";
 import {FC} from "react";
 import {Context} from "../../index";
+import {loginContainer, loginWithGoogleButton} from "./LoginStyles";
 
 
 
@@ -42,17 +43,18 @@ const Login: FC = () => {
             const errorCode = error.code;
             const errorMessage = error.message;
             const email = error.email;
+            console.log(error)
             const credential = GoogleAuthProvider.credentialFromError(error);
         });
 
     }
 
     return (
-        <Box position='absolute' sx={{top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
+        <Box position='absolute' sx={loginContainer}>
             <Typography variant='h1' fontWeight='600' >
                 ВХОД
             </Typography>
-            <Button sx={{mx: 'auto', width: '100%', mt: 5}} size='large' variant="contained" onClick={onAuth}>
+            <Button sx={loginWithGoogleButton} size='large' variant="contained" onClick={onAuth}>
                 Войти через Google
             </Button>
         </Box>

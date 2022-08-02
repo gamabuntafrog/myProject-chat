@@ -36,7 +36,7 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, firestore, subscribe
     }, [messages])
 
     const scrollToBottom = (body: any) => {
-        window.scrollTo({top: body.offsetHeight, behavior: "smooth"})
+        window.scrollTo({top: body.offsetHeight})
     }
     console.log()
 
@@ -62,11 +62,7 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, firestore, subscribe
         })
     }, [isUserModalOpen, isContextMenuOpen]);
 
-    if (!messages && !subscribedUsers) {
-        return <List sx={{minHeight: '90vh'}}>
-            <Loader/>
-        </List>
-    }
+
 
     const openContextMenu = (event: React.MouseEvent<HTMLButtonElement>, data: any, subscribedUser: any) => {
         const {pageX, pageY} = event
@@ -101,13 +97,7 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, firestore, subscribe
         console.log(newMessage)
 
         try {
-            // await setDoc(doc(firestore, 'chats', `${chatId}`, 'messages', `${el.messageId}`), {
-            //     messageType: messagesExemplar.replyMessage,
-            //     userId: me?.userId,
-            //     message: 'Начало чата',
-            //     createdAt: Date.now(),
-            //     messageId: el.messageId
-            // })
+
             await setDoc(doc(firestore, 'chats', `${chatId}`, 'messages', `${el.messageId}`), newMessage)
 
         } catch (e) {
@@ -130,19 +120,25 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, firestore, subscribe
 
     }
 
+    if (!messages && !subscribedUsers && !me) {
+        return <List sx={{minHeight: '90vh'}}>
+            <Loader/>
+        </List>
+    }
+
     return (
         <>
             {isLoading && <Loader/>}
-            {isContextMenuOpen && <MessageContextMenu
+            {(me && isContextMenuOpen) && <MessageContextMenu
               modalInfo={contextMenuInfo}
               setReplyMessageInfo={setReplyMessageInfo}
               setIsReplying={setIsReplying}
               chatId={chatId}
               setIsContextMenuOpen={setIsContextMenuOpen}
-              myId={me?.userId}
+              myId={me.userId}
             />}
             {isUserModalOpen && <UserModalInfo modalInfo={userModalInfo}/>}
-        <List className={'messagesList'} ref={listRef} sx={{minHeight: '80vh', zIndex: '100'}}>
+        <List className={''} ref={listRef} sx={{px: 2}}>
             {subscribedUsers && messages?.map((el: any, i: any) => {
                 if (el.messageType === messagesExemplar.startMessage) return <ListItem sx={{justifyContent: 'center'}} key={el.createdAt}>
                     <Typography variant={'subtitle1'}>{el.message}</Typography></ListItem> //это просто сообщение "начало чата"

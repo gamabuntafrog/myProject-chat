@@ -2,14 +2,15 @@ import {Button, Container, Grid, Typography} from '@mui/material';
 import React, {FC, useContext} from 'react';
 import {NavLink} from "react-router-dom";
 import {Context} from "../../index";
+import {aboutContainer, aboutSecton} from "./AboutStyles";
 
 const About: FC = () => {
 
     const {user} = useContext(Context)!
 
     return (
-        <Container sx={{mt: '64px', maxWidth: '90%'}}>
-            <Grid  container pt={5} pb={5} sx={{ flexDirection: 'column', alignItems: 'center'}}>
+        <Container component={'section'} sx={aboutSecton}>
+            <Grid container sx={aboutContainer}>
                 <Grid xs={12} item>
                     <Typography variant='h4'>
                         Про проект

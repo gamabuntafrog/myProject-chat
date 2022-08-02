@@ -7,6 +7,8 @@ import {privateRoutes, publicRoutes} from '../routes';
 const AppRouter: FC = () => {
     const {user} = useContext(Context)!
 
+
+
     return user ? (
             <Switch>
                 {privateRoutes.map(({path, Component}, i) => {
@@ -21,7 +23,7 @@ const AppRouter: FC = () => {
                 {publicRoutes.map(({path, Component}, i) => {
                     return <Route key={i} path={path} component={Component} exact/>
                 })}
-                <Redirect to={'/search'}/>
+                <Redirect to={'/login'}/>
             </Switch>
         )
 }

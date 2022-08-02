@@ -19,6 +19,7 @@ import {messagesExemplar} from '../../types/messages';
 import {createChatInput, createChatLabel, searchContainer, searchExample, searchSection} from "./SearchStyles";
 import RecomendedChatList from "../RecomendedChatList";
 import {justifyColumnCenter} from "../GeneralStyles";
+import {useGetTypeOfScreen, screenTypes} from "../../hooks/useGetTypeOfScreen";
 
 
 const Search: FC = () => {
@@ -34,7 +35,7 @@ const Search: FC = () => {
         newChatImage: ''
     });
     const history = useHistory();
-
+    const type = useGetTypeOfScreen()
 
     // console.log(value)
     const createChat = async () => {
@@ -100,7 +101,7 @@ const Search: FC = () => {
 
     return (
         <Box component={'section'} sx={searchSection}>
-            <Box width='50%' sx={searchContainer}>
+            <Box sx={searchContainer(type)}>
                 <Typography sx={searchExample} variant={'subtitle1'}>Например: o76iyZ1tU</Typography>
                 <FormControl fullWidth>
                     <FormLabel>

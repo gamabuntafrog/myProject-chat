@@ -66,3 +66,7 @@ p {
     border-radius: 10px;
     cursor: default;
 }
+
+a {
+    text-decoration: none;
+}

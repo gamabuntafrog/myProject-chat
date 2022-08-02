@@ -10,6 +10,8 @@ import { messagesType } from '../../types/messages';
 
 import MyChats from "../MyChats";
 import './Chat.css';
+import {chatContainer} from "./ChatStyles";
+import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 
 
 const Chat: FC = () => {
@@ -26,6 +28,8 @@ const Chat: FC = () => {
     const [isReplying, setIsReplying] = useState(false);
     // console.log(user)
     // console.log(users)
+    const type = useGetTypeOfScreen()
+    const mediumOrSmallType = (type === screenTypes.mediumType || type === screenTypes.smallType);
 
     const [documentValue] = useDocumentData(doc(firestore, 'chats',  `${id}`))
     const [messagesCollection] = useCollectionData(query(collection(firestore, 'chats',  `${id}`, 'messages'), orderBy('createdAt')))
@@ -85,7 +89,7 @@ const Chat: FC = () => {
 
 
     if (isLoading) return (
-        <Box sx={{backgroundColor: '#0d47a1', py: 3,  height: '100vh', pt: '56px'}}>
+        <Box sx={{ overflowY: 'hidden', height: '100vh', display: 'flex', justifyContent: 'space-between', backgroundColor: '#0d47a1', pt: '64px'}}>
             <Container sx={{backgroundColor: '#121212', borderRadius: 1, py: 2, boxShadow: 6}}>
                 <Messages
                     chatId={id}
@@ -101,12 +105,9 @@ const Chat: FC = () => {
 
     if (users && messages) {
         return (
-            <Box className={'chat'} sx={{ overflowY: 'none', minHeight: '100vh', display: 'flex', backgroundColor: '#0d47a1', pt: '64px'}}>
+            <Box className={''} sx={{ overflowY: 'hidden', height: '100vh', display: 'flex', justifyContent: 'space-between', backgroundColor: '#0d47a1', pt: '64px'}}>
                 <MyChats setIsChatListOpen={setIsChatListOpen} isChatListOpen={isChatListOpen} />
-                {!isChatListOpen &&
-						    <Button className={'open-chat-button'}  onClick={() => setIsChatListOpen(true)} variant={'contained'} sx={{position: 'fixed', zIndex: '101', top: '80px', left: '10px'}}>Чаты</Button>
-                }
-                <Container className={'chat__container'} sx={{backgroundColor: '#121212', py: 2, pb: 0, boxShadow: 6, maxWidth: '100% !important', zIndex: '100'}}>
+                <Box className={''} sx={chatContainer(mediumOrSmallType)}>
                     <Messages
                         chatId={id}
                         subscribedUsers={users}
@@ -124,8 +125,10 @@ const Chat: FC = () => {
                         isReplying={isReplying}
                         setIsReplying={setIsReplying}
                         replyMessageInfo={replyMessageInfo}
+                        setIsChatListOpen={setIsChatListOpen}
+                        isChatListOpen={isChatListOpen}
                     />
-                </Container>
+                </Box>
             </Box>
 
         );

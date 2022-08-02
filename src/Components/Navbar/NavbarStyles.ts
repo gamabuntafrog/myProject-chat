@@ -40,3 +40,22 @@ export const headerMenuWrapper = {
     borderRadius: 1,
     maxWidth: '90%'
 }
+
+export const linkToUserInfo = {
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 20px'
+}
+
+export const userAvatar = {
+    width: 40,
+    height: 40,
+    mr: 2
+}
+
+export const userNickname = {
+    fontWeight: 600,
+    mr: 1,
+    textAlign: 'center'
+}
