@@ -1,34 +1,18 @@
 import React, {FC, useContext, useState} from "react";
 import shortid from 'shortid';
-import {NavLink, useParams} from "react-router-dom";
-import {addDoc, collection, setDoc, doc, arrayUnion, updateDoc} from "firebase/firestore";
+import {useParams} from "react-router-dom";
+import {arrayUnion, doc, setDoc, updateDoc} from "firebase/firestore";
 import {Context} from "../..";
-import {
-    TextField,
-    Box,
-    Button,
-    Typography,
-    Snackbar,
-    Alert,
-    AlertTitle,
-    Avatar,
-    List,
-    ListItem,
-    Grid,
-    Container
-} from "@mui/material"
+import {Alert, AlertTitle, Box, Button, Container, Snackbar, TextField, Typography} from "@mui/material"
 import ReplyIcon from '@mui/icons-material/Reply';
 import SendIcon from '@mui/icons-material/Send';
-import Modal from "../Modal";
-import UserModalInfo from "../UserModalInfo";
 import '../../App.css';
 import ChatInfo from "../ChatInfo";
-import { messagesExemplar } from '../../types/messages';
+import {messagesExemplar} from '../../types/messages';
 import CloseIcon from "@mui/icons-material/Close";
-import IconButton from "@mui/material/IconButton";
 // @ts-ignore
 import EllipsisText from "react-ellipsis-text";
-import InfoIcon from "@mui/icons-material/Info";
+import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 
 type EntryFieldPT = {
     chatName: string,
@@ -62,6 +46,8 @@ const EntryField: FC<EntryFieldPT> = ({
 
     const [message, setMessage] = useState('');
     const [open, setOpen] = useState(false);
+
+    const type = useGetTypeOfScreen()
 
     console.log(isReplying, replyMessageInfo)
 
@@ -170,13 +156,13 @@ const EntryField: FC<EntryFieldPT> = ({
                     onChange={(e) => setMessage(e.currentTarget.value)}
                     fullWidth
                     multiline
-                    sx={{fieldset: {borderRadius: '30px 0 0 30px'}}}
+                    sx={{fieldset: {borderRadius: type === screenTypes.largeType ? '30px 0 0 30px' : '50px'}}}
                     maxRows={10}
                     onKeyPress={(e) => {
                         if (e.key === "Enter") return submitPost() //submit
                     }}
                 />
-                <Button sx={{ml: 1}} variant="outlined" onClick={submitPost}>
+                <Button sx={{ml: 1, borderRadius: type === screenTypes.largeType ? '4px' : '50px'}} variant="outlined" onClick={submitPost}>
                     <SendIcon/>
                 </Button>
             </Box>

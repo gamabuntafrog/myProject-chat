@@ -1,11 +1,12 @@
-import React, {useState, useEffect, FC, useContext} from "react"
-import {Avatar, Box, Button, IconButton, List, ListItem, TextField, Typography, useMediaQuery} from "@mui/material";
+import React, {FC, useContext, useEffect, useState} from "react"
+import {Avatar, Box, Button, IconButton, List, ListItem, TextField, Typography} from "@mui/material";
 import Modal from "../Modal";
 import {NavLink, useHistory} from "react-router-dom";
-import {arrayRemove, arrayUnion, deleteDoc, doc, setDoc, updateDoc} from "firebase/firestore";
+import {arrayRemove, deleteDoc, doc, setDoc, updateDoc} from "firebase/firestore";
 import {Context} from "../../index";
-import { entryFieldInfo } from "./chatInfoStyles";
+import {entryFieldInfo} from "./chatInfoStyles";
 import InfoIcon from "@mui/icons-material/Info";
+import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 
 type ChatInfoPT = {
     id: string,
@@ -15,7 +16,7 @@ type ChatInfoPT = {
     users: any,
     setIsChatListOpen: React.Dispatch<React.SetStateAction<boolean>>,
 }
-console.log('a')
+
 const ChatInfo: FC<ChatInfoPT> = ({
         id,
         chatName,
@@ -33,6 +34,8 @@ const ChatInfo: FC<ChatInfoPT> = ({
     const [isMeAdmin, setIsMeAdmin] = useState<boolean>(false);
     const [isChangingChatInfo, setIsChangingChatInfo] = useState(false);
     const [newChatInfo, setNewChatInfo] = useState({chatName, chatImage, chatDescription});
+
+    const type = useGetTypeOfScreen()
 
     const history = useHistory()
 
@@ -86,9 +89,11 @@ const ChatInfo: FC<ChatInfoPT> = ({
     return (
         <Box>
             <Box sx={entryFieldInfo} >
-                <Button sx={{mr: 2}} onClick={() => setIsChatListOpen(true)}>
-                    Ваши чаты
-                </Button>
+                {type !== screenTypes.largeType &&
+                    <Button sx={{mr: 2}} onClick={() => setIsChatListOpen(true)}>
+                        Ваши чаты
+                    </Button>
+                }
                 <Typography variant={'body1'}>{chatName}</Typography>
                 <IconButton sx={{ml: 1}}  color="primary" onClick={() => setIsModalOpen(true)}>
                     <InfoIcon/>

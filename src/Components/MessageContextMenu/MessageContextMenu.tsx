@@ -6,19 +6,11 @@ import {Context} from "../../index";
 import ReplyIcon from "@mui/icons-material/Reply";
 import EditIcon from '@mui/icons-material/Edit';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import {messagesType} from "../../types/messages";
 
 type MessageContextMenuPT = {
     modalInfo: {
-        data: any
-        //     {
-        //     bio: string,
-        //     createdAt: string,
-        //     email: string,
-        //     nickname: string,
-        //     phoneNumber: string | null,
-        //     photoURL: string,
-        //     userId: string,
-        // }
+        message: messagesType,
         pageY: number,
         pageX: number,
         isMe: boolean,
@@ -27,9 +19,10 @@ type MessageContextMenuPT = {
     setReplyMessageInfo: any,
     chatId: string,
     setIsContextMenuOpen: React.Dispatch<React.SetStateAction<boolean>>,
-    myId: string
+    myId: string,
+    setChangingMessageId: React.Dispatch<React.SetStateAction<string>>
 }
-const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, setReplyMessageInfo, chatId, setIsContextMenuOpen, myId}) => {
+const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, setReplyMessageInfo, chatId, setIsContextMenuOpen, myId,setChangingMessageId}) => {
 
 
     const copyText = (text: string) => {
@@ -50,27 +43,34 @@ const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, 
     return (
         <Box display='flex' textAlign='center' flexDirection='column' justifyContent='center'
              position='absolute' sx={{top: `${modalInfo.pageY + 30}px`, left: `${modalInfo.pageX + - 180}px`, padding: '10px', backgroundColor: '#0d47a1', zIndex: 101, borderRadius: '5px', wordBreak: 'normal'}}>
+            <Button color={'error'} onClick={() => {
+                setIsContextMenuOpen(false)
+            }}>
+                Закрыть
+            </Button>
             <Button onClick={() => {
                 setIsReplying(true)
-                setReplyMessageInfo(modalInfo.data)
+                setReplyMessageInfo(modalInfo.message)
                 setIsContextMenuOpen(false)
             }} startIcon={<ReplyIcon/>} sx={{color:'white'}} >
                 <Typography>Ответить</Typography>
             </Button>
             {modalInfo.isMe &&
                 <Button startIcon={<EditIcon/>} sx={{color:'white', my: 1}} onClick={() => {
-                    modalInfo.data.isChanging = true
+                    // modalInfo.data.isChanging = true
+                    console.log(modalInfo)
+                    setChangingMessageId(modalInfo.message.messageId)
                     setIsContextMenuOpen(false)
                 }}>
                     <Typography>Редактировать</Typography>
                 </Button>
             }
             {modalInfo.isMe &&
-		        <Button color={'error'}  onClick={() => onDelete(modalInfo.data.messageId)} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
+		        <Button color={'error'}  onClick={() => onDelete(modalInfo.message.messageId)} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
                     <Typography>Удалить</Typography>
                 </Button>
             }
-            <Button startIcon={<ContentCopyIcon/>} sx={{color: 'white'}} onClick={() => copyText(modalInfo.data.message)}>
+            <Button startIcon={<ContentCopyIcon/>} sx={{color: 'white'}} onClick={() => copyText(modalInfo.message.message)}>
                 Копировать текст
             </Button>
         </Box>

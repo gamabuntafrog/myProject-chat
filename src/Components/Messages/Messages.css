@@ -1,5 +1,20 @@
 
 
-.messagesList {
-    /*margin: 20px;*/
+.messageItem {
+    background-color: #121212;
+    position: relative;
+}
+.myMessage:hover {
+
+}
+
+.miniContextmenu {
+    display: none !important;
+}
+
+.messageItem:hover .miniContextmenu {
+    display: flex !important;
+    position: absolute;
+    top: 0;
+    right: 0;
 }

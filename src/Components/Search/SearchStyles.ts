@@ -6,7 +6,8 @@ export const searchSection = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    height: '100vh'
+    height: '100vh',
+    pt: 100
 }
 
 export const searchContainer = (type: screenTypes) => {

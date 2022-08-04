@@ -7,7 +7,6 @@ import Avatar from '@mui/material/Avatar';
 import {FC, useContext} from "react";
 import {Context} from "../../index";
 import React from 'react';
-import {HeaderMenuPropTypes} from "../../types/HeaderMenuPT";
 import {headerMenuContainer, navLink, userInfo, userInfoAvatar} from "./HeaderMenuStyles";
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
@@ -17,7 +16,9 @@ import SearchIcon from '@mui/icons-material/Search';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 
 
-
+type HeaderMenuPropTypes = {
+    toggleModal: () => void
+}
 
 const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
 

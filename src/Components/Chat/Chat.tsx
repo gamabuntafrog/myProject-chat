@@ -1,77 +1,74 @@
-import {collection, getDoc, onSnapshot, orderBy, query, doc, updateDoc, arrayRemove} from 'firebase/firestore';
-import React, {FC, useContext, useEffect, useMemo, useState} from 'react';
+import {collection, getDoc,orderBy, query, doc, } from 'firebase/firestore';
+import React, {FC, useContext, useEffect, useState} from 'react';
 import {NavLink, useParams} from 'react-router-dom';
 import {Context} from '../..';
 import {Container, Box, Typography, Button} from "@mui/material";
 import EntryField from '../EntryField';
 import Messages from '../Messages';
-import {useCollection, useCollectionData, useDocumentData} from "react-firebase-hooks/firestore";
+import {useCollectionData, useDocumentData} from "react-firebase-hooks/firestore";
 import { messagesType } from '../../types/messages';
-
 import MyChats from "../MyChats";
 import './Chat.css';
-import {chatContainer} from "./ChatStyles";
+import {chatContainer, chatSection} from "./ChatStyles";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
+import Loader from "../Loader";
 
 
 const Chat: FC = () => {
 
     const {id} = useParams<{ id: string }>()
 
-    const {firestore, user} = useContext(Context)!
+    const {firestore} = useContext(Context)!
 
-    const [messages, setMessages] = useState<messagesType | null>(null);
+    const [messages, setMessages] = useState<messagesType[] | null>(null);
     const [users, setUsers] = useState<null | any>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isChatListOpen, setIsChatListOpen] = useState(false);
     const [replyMessageInfo, setReplyMessageInfo] = useState(null);
     const [isReplying, setIsReplying] = useState(false);
-    // console.log(user)
-    // console.log(users)
+
     const type = useGetTypeOfScreen()
     const mediumOrSmallType = (type === screenTypes.mediumType || type === screenTypes.smallType);
 
-    const [documentValue] = useDocumentData(doc(firestore, 'chats',  `${id}`))
-    const [messagesCollection] = useCollectionData(query(collection(firestore, 'chats',  `${id}`, 'messages'), orderBy('createdAt')))
-    const [subscribedUsersCollection] = useCollectionData(collection(firestore, 'chats',  `${id}`, 'users'))
+    const chatRef = doc(firestore, 'chats',  `${id}`)
+    const [chatData] = useDocumentData(chatRef)
 
-    // console.log(documentValue)
-    // console.log(messagesCollection)
-    // console.log(subscribedUsersCollection)
+    const messagesRef = collection(firestore, 'chats',  `${id}`, 'messages')
+    const [messagesCollection] = useCollectionData<any>(query(messagesRef, orderBy('createdAt')))
+
+    const usersRef = collection(firestore, 'chats',  `${id}`, 'users')
+    const [subscribedUsersCollection] = useCollectionData<any>(usersRef)
+
     useEffect(() => {
-        if (messagesCollection && documentValue) {
+        if (messagesCollection && chatData) {
             try {
-                // @ts-ignore
                 setMessages(messagesCollection)
-                // console.log(optionMessages)
-
             } catch (e) {
                 console.log(e)
                 setIsLoading(false)
             }
         }
-    }, [documentValue, id, messagesCollection]);
+    }, [chatData, id, messagesCollection]);
 
     useEffect(() => {
         if (subscribedUsersCollection) {
-            // @ts-ignore
             getUsers(subscribedUsersCollection)
         }
 
     }, [subscribedUsersCollection]);
 
 
-    const getUsers = async (arr: {userId: string, isAdmin: boolean}[]) => {
-        console.log(arr)
+    const getUsers = async (subscribedUsersList: {userId: string, isAdmin: boolean}[]) => {
+        console.log(subscribedUsersList)
 
-        const promiseArray = arr.map( async ({userId, isAdmin}) => {
+        const fetchedUsers = subscribedUsersList.map( async ({userId, isAdmin}) => {
             const document = await getDoc(doc(firestore, 'users',`${userId}`))
             return {document, isAdmin}
         })
 
         const usersData: any = {}
-        await Promise.all(promiseArray).then((el) => {
-            el.forEach(({document, isAdmin}) => {
+        const users = await Promise.all(fetchedUsers).then((documents) => {
+            documents.forEach(({document, isAdmin}) => {
                 console.log(document)
                 usersData[document.id] = {
                     ...document.data(),
@@ -80,48 +77,36 @@ const Chat: FC = () => {
             })
         })
 
-
-        // console.log(usersData)
-            setUsers(usersData)
-            setIsLoading(false)
+        setUsers(usersData)
+        setIsLoading(false)
 
     }
 
 
     if (isLoading) return (
-        <Box sx={{ overflowY: 'hidden', height: '100vh', display: 'flex', justifyContent: 'space-between', backgroundColor: '#0d47a1', pt: '64px'}}>
-            <Container sx={{backgroundColor: '#121212', borderRadius: 1, py: 2, boxShadow: 6}}>
-                <Messages
-                    chatId={id}
-                    subscribedUsers={users}
-                    messages={messages}
-                    firestore={firestore}
-                    setIsReplying={setIsReplying}
-                    setReplyMessageInfo={setReplyMessageInfo}
-                />
-            </Container>
+        <Box sx={chatSection(type)}>
+            <Loader/>
         </Box>
     )
 
     if (users && messages) {
         return (
-            <Box className={''} sx={{ overflowY: 'hidden', height: '100vh', display: 'flex', justifyContent: 'space-between', backgroundColor: '#0d47a1', pt: '64px'}}>
+            <Box sx={chatSection(type)}>
                 <MyChats setIsChatListOpen={setIsChatListOpen} isChatListOpen={isChatListOpen} />
-                <Box className={''} sx={chatContainer(mediumOrSmallType)}>
+                <Box sx={chatContainer(mediumOrSmallType)}>
                     <Messages
                         chatId={id}
                         subscribedUsers={users}
                         messages={messages}
-                        firestore={firestore}
                         setIsReplying={setIsReplying}
                         setReplyMessageInfo={setReplyMessageInfo}
                     />
                     <EntryField
                         users={users}
-                        chatName={documentValue?.chatName}
-                        chatDescription={documentValue?.chatDescription}
+                        chatName={chatData?.chatName}
+                        chatDescription={chatData?.chatDescription}
                         chatId={id}
-                        chatImage={documentValue?.chatImage}
+                        chatImage={chatData?.chatImage}
                         isReplying={isReplying}
                         setIsReplying={setIsReplying}
                         replyMessageInfo={replyMessageInfo}

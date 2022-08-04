@@ -4,23 +4,36 @@ import {useCollectionData, useDocumentData} from "react-firebase-hooks/firestore
 import {arrayRemove, collection, doc, getDoc, limit, orderBy, query, updateDoc} from "firebase/firestore";
 import {Avatar, Box, Button, ListItem, Typography} from "@mui/material";
 import {NavLink} from "react-router-dom";
-// @ts-ignore
-import EllipsisText from "react-ellipsis-text";
 import { TailSpin } from 'react-loader-spinner';
+import EllipsisText from "react-ellipsis-text";
+import {item, itemMessagesWrapper, itemWrapper, listIfNoContent} from "./MyChatsItemStyles";
+import '../../App.css';
+import './MyChatsItem.css';
 
-const MyChatsItem: FC<{chatId: string, filterValue: string, setIsChatListOpen: any}> = ({chatId, filterValue,setIsChatListOpen}) => {
+type MyChatsItemPT = {
+    chatId: string,
+    filterValue: string,
+    setIsChatListOpen: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+const MyChatsItem: FC<MyChatsItemPT> = ({chatId, filterValue, setIsChatListOpen}) => {
 
     const {user: me, firestore} = useContext(Context)!
     const [user, setUser] = useState<null | any>(null);
-    const [chat, isLoading] = useDocumentData(doc(firestore, 'chats',`${chatId}`))
-    const [messages, isMessagesLoading] = useCollectionData(query(collection(firestore, 'chats',`${chatId}`, 'messages'),
+    const [isUserLoading, setIsUserLoading] = useState(true);
+
+    const chatRef = doc(firestore, 'chats',`${chatId}`)
+    const [chat, isLoading] = useDocumentData(chatRef)
+
+    const messagesRef = collection(firestore, 'chats',`${chatId}`, 'messages')
+    const [messages, isMessagesLoading] = useCollectionData(query(messagesRef,
         orderBy('createdAt', 'desc'), limit(1)
     ))
-    const [isUserLoading, setIsUserLoading] = useState(true);
 
     const getUser = async (userId: string) => {
         try {
-            const userData = await getDoc(doc(firestore, 'users', userId))
+            const userRef = doc(firestore, 'users', userId)
+            const userData = await getDoc(userRef)
             if (userData) {
                 setUser(userData.data())
             }
@@ -30,8 +43,6 @@ const MyChatsItem: FC<{chatId: string, filterValue: string, setIsChatListOpen: a
             setIsUserLoading(false)
         }
     }
-
-
 
     const isFilteredSuccess = chat?.chatName.toLowerCase().includes(filterValue.toLowerCase())
 
@@ -53,7 +64,7 @@ const MyChatsItem: FC<{chatId: string, filterValue: string, setIsChatListOpen: a
         }
     }, [messages]);
 
-    if  (isUserLoading && isMessagesLoading && isLoading) {
+    if (isUserLoading && isMessagesLoading && isLoading) {
         return (
             <ListItem>
                 <TailSpin color="#00BFFF" height={50} width={50} />
@@ -69,21 +80,19 @@ const MyChatsItem: FC<{chatId: string, filterValue: string, setIsChatListOpen: a
         // console.log(user)
         // console.log(messages)
         return (
-            <NavLink className={isActive => isActive ? 'activeChat' : 'chatLink'} style={{
-                color: 'white',
-                padding: '0 10px',
-                marginBottom: '5px',
-                display: 'flex',
-                alignItems: 'center',
-                textDecoration: 'none'
-            }} onClick={() => setIsChatListOpen(false)} to={`/chat/${chat.chatId}`} key={chat.chatId} >
-                <ListItem sx={{justifyContent: 'start', px: 0}} >
+            <NavLink
+                className={isActive => isActive ? 'activeChat' : 'chatLink'}
+                style={itemWrapper} onClick={() => setIsChatListOpen(false)}
+                to={`/chat/${chat.chatId}`}
+                key={chat.chatId}
+            >
+                <ListItem sx={item} >
                     <Avatar sx={{mr: 2}} src={chat.chatImage ? chat.chatImage : blackBackground}/>
                     <Box sx={{overflow: 'hidden'}}>
                         <Typography sx={{fontWeight: '800'}}>
                             {chat.chatName}
                         </Typography>
-                        <Box display={'flex'} alignItems={'baseline'} sx={{whiteSpace: 'nowrap'}}>
+                        <Box sx={itemMessagesWrapper}>
                             <Typography variant={'subtitle2'} sx={{mr: 1}}>
                                 <EllipsisText text={`${user.nickname}:`} length={30}/>
                             </Typography>
@@ -97,13 +106,11 @@ const MyChatsItem: FC<{chatId: string, filterValue: string, setIsChatListOpen: a
         )
     } else if (chat && messages && user) {
         return (
-            <ListItem sx={{display: 'none'}}>
-
-            </ListItem>
+            <ListItem sx={{display: 'none'}} />
         )
     } else {
         return (
-            <ListItem sx={{justifyContent: 'center', display: 'flex', flexDirection: 'column'}} >
+            <ListItem sx={listIfNoContent} >
                 <Typography >
                     Ошибка
                 </Typography>

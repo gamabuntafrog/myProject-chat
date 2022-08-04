@@ -11,7 +11,6 @@ import {Auth} from "firebase/auth";
 import {FirebaseApp} from "firebase/app";
 import {doc, Firestore} from "firebase/firestore";
 import {useDocumentData} from "react-firebase-hooks/firestore";
-import {user} from "./types/user";
 
 type AppPropTypes = {
     auth: Auth, app: FirebaseApp, firestore: Firestore

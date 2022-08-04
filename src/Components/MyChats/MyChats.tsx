@@ -6,15 +6,19 @@ import MyChatsItem from "../MyChatsItem";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import {chatList, closeButton, myChatBar, myChatBarChats, myChatBarInput, myChatsSection} from "./MyChatsStyles";
 
+type MyChatsPT = {
+    isChatListOpen: boolean,
+    setIsChatListOpen: React.Dispatch<React.SetStateAction<boolean>>
+}
 
-const MyChats: FC<{isChatListOpen: boolean, setIsChatListOpen: any}> = ({isChatListOpen, setIsChatListOpen}) => {
+const MyChats: FC<MyChatsPT> = ({isChatListOpen, setIsChatListOpen}) => {
 
     const {user, isUserLoading} = useContext(Context)!
     const [filterValue, setFilterValue] = useState('');
     const type = useGetTypeOfScreen()
     const mediumOfSmallType = (type === screenTypes.mediumType || type === screenTypes.smallType);
 
-    if (isUserLoading && !user) {
+    if (isUserLoading && user) {
         return (
             <Box sx={{...myChatsSection(mediumOfSmallType, isChatListOpen)}}>
                 <List sx={chatList}>
