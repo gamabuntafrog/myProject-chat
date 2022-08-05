@@ -4,6 +4,7 @@
     background-color: #121212;
     position: relative;
 }
+
 .myMessage:hover {
 
 }
@@ -17,4 +18,8 @@
     position: absolute;
     top: 0;
     right: 0;
+}
+
+.focus {
+    background-color: #474747;
 }

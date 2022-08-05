@@ -160,11 +160,30 @@ const Messages: FC<MessagesPropTypes> = ({
             return repliedMessage.replyer.messageId === message.messageId
         })
         if (indexOfReplyerMessage >= 0) {
-            const child = listRef.current!.children[indexOfReplyerMessage].getBoundingClientRect()
-            listRef.current!.scrollTo({top: child.top + window.pageYOffset - (window.innerHeight / 2), behavior: "smooth"})
+            const child = listRef.current!.children[indexOfReplyerMessage]
+            child.scrollIntoView({block: 'center', behavior: "smooth"})
+            const focusMessage = () => {
+                if (isInViewport(child)) {
+                    child.classList.add('focus')
 
+                    setTimeout(() => {
+                        child.classList.remove('focus')
+                        listRef.current!.removeEventListener('scroll', focusMessage)
+                    }, 1000)
+                }
+            }
+            focusMessage()
+            listRef.current!.addEventListener('scroll', focusMessage)
         }
-
+        function isInViewport(element: any) {
+            const rect = element.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
+        }
     }
 
     if (!messages && !subscribedUsers && !me) {

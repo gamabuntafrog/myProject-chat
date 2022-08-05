@@ -25,15 +25,27 @@ const UserModalInfo: FC<UserModalInfoPT> = ({modalInfo, setIsUserModalOpen}) => 
     return (
         <Box display='flex' textAlign='center' flexDirection='column' justifyContent='center'
              position='fixed'
-             sx={{
-                top: isMobileScreen ? 0 : modalInfo.pageY > 580 ? '580px' : `${modalInfo.pageY + 20}px`,
-                left: isMobileScreen ? 0 : `${modalInfo.pageX + 20}px`,
-                padding: '20px',
-                backgroundColor: modalInfo.user?.nicknameColor || '#121212',
-                zIndex: 101,
-                borderRadius: isMobileScreen ? '40px 40px 0px 0px' : '5px'
+             sx={isMobileScreen ?
+                 {
+                     bottom: 0,
+                     left: 0,
+                     width: '100%',
+                     padding: '20px',
+                     backgroundColor: modalInfo.user?.nicknameColor || '#121212',
+                     zIndex: 101,
+                     borderRadius: isMobileScreen ? '40px 40px 0px 0px' : '5px'
 
-             }}>
+                 }
+                 :
+                 {
+                     top: modalInfo.pageY > 580 ? '580px' : `${modalInfo.pageY + 20}px`,
+                     left: `${modalInfo.pageX + 20}px`,
+                     padding: '20px',
+                     backgroundColor: modalInfo.user?.nicknameColor || '#121212',
+                     zIndex: 101,
+                     borderRadius: '5px'
+                 }
+             }>
             <IconButton onClick={() => setIsUserModalOpen(false)} color={'error'} sx={{ml: 'auto'}}>
                 <CloseIcon/>
             </IconButton>
