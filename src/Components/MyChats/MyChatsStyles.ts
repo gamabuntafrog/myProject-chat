@@ -1,4 +1,4 @@
-export const myChatsSection = (mediumOfSmallType: boolean, isChatListOpen: boolean): any => {
+export const myChatsSection = (mediumOfSmallType: boolean, isChatListOpen: boolean, color: string | undefined): any => {
 
     if (mediumOfSmallType) {
         if (isChatListOpen) {
@@ -6,7 +6,7 @@ export const myChatsSection = (mediumOfSmallType: boolean, isChatListOpen: boole
                 position: 'absolute',
                 width: '100%',
                 zIndex: 1000,
-                backgroundColor: '#0d47a1',
+                backgroundColor: '#121212',
                 overflowY: 'auto'
             }
         } else {
@@ -19,9 +19,9 @@ export const myChatsSection = (mediumOfSmallType: boolean, isChatListOpen: boole
             position: 'relative',
             width: '25%',
             zIndex: 1000,
-            backgroundColor: '#0d47a1',
-            overflowY: 'auto'
-
+            backgroundColor: '#121212',
+            overflowY: 'auto',
+            pt: 3
         }
     }
 }

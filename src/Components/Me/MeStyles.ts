@@ -22,10 +22,20 @@ export const form = (type: screenTypes) => {
     }
 }
 
-export const formInput = {
-    fontWeight: 500,
-    mt: 5
+export const formInput = (color?: string) => {
+
+
+    return ({
+        fontWeight: 500,
+        mt: 4,
+        mb: 1,
+        input: {
+            color: color ? color : ''
+        }
+    })
 }
+
+
 
 export const userInfoWrapper = {
     my: 1,

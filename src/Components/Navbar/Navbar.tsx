@@ -5,7 +5,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import {AppBar, Box, Container, Drawer, IconButton, Toolbar, Typography} from '@mui/material';
 import Avatar from "@mui/material/Avatar";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
-// @ts-ignore
 import EllipsisText from "react-ellipsis-text";
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import {appBar, headerMenuWrapper, linkToUserInfo, logo, slideMenu, userAvatar, userNickname} from "./NavbarStyles";
@@ -22,7 +21,7 @@ const Navbar: FC = () => {
     }
 
     return (
-        <AppBar sx={appBar(type)} >
+        <AppBar sx={appBar(type, user?.nicknameColor)} >
             <Toolbar>
                 <NavLink style={logo} to={'/search'}>
                     <Typography variant="h4" sx={logo}>

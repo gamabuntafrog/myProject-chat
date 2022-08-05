@@ -26,24 +26,14 @@ const auth = getAuth()
 const firestore = getFirestore()
 
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#1976d2',
-    },
-  },
-});
+
 
 export const Context = createContext<context | null>(null)
 
 ReactDOM.render(
   <React.StrictMode>
 
-      <ThemeProvider theme={darkTheme}>
-        <CssBaseline />
         <App auth={auth} app={app} firestore={firestore} />
-      </ThemeProvider>
 
   </React.StrictMode>,
   document.getElementById('root')

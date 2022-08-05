@@ -6,6 +6,7 @@ import {Box, Button, FormControl, Grid, TextField, Typography} from "@mui/materi
 import Loader from "../Loader";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import {avatar, form, formInput, meContainer, userInfoWrapper} from "./MeStyles";
+import {ColorChangeHandler, SliderPicker } from 'react-color';
 
 const Me: FC = () => {
 
@@ -13,7 +14,7 @@ const Me: FC = () => {
 
     const [isClicked, setIsClicked] = useState(false);
     const [newUserInfo, setNewUserInfo] = useState(user!);
-
+    const [color, setColor] = useState('');
     const type = useGetTypeOfScreen()
 
     const changeInfo = async () => {
@@ -22,26 +23,37 @@ const Me: FC = () => {
         await setDoc(doc(firestore, 'users', `${user!.userId}`), newUserInfo)
     }
 
+    const handleColor: ColorChangeHandler = (color, event) => {
+        console.log(color)
+        console.log(event)
+        setColor(color.hex)
+        setNewUserInfo(prev => {
+            return {...prev, nicknameColor: color.hex}
+        })
+    }
+
     if (isUserLoading) {
         return <Loader/>
     }
 
     if (user) {
         return (<Grid sx={meContainer} spacing={2} container component={'section'}>
+            <Box sx={{width: '50vw'}}>
+            </Box>
             <Avatar sx={avatar} src={user.photoURL} alt="avatar"/>
             {isClicked ?
                 <FormControl fullWidth sx={form(type)} >
                     <TextField variant={'standard'} value={newUserInfo.nickname} onChange={(e) => setNewUserInfo(prev => {
                         return {...prev, nickname: e.target.value}
-                    })} placeholder={'Никнейм'} sx={formInput}/>
-
+                    })} placeholder={'Никнейм'} sx={formInput(color)}/>
+                    <SliderPicker color={color} onChange={handleColor} onChangeComplete={handleColor}/>
                     <TextField value={newUserInfo.bio} onChange={(e) => setNewUserInfo(prev => {
                         return {...prev, bio: e.target.value}
-                    })} placeholder={'Био'} sx={formInput}/>
+                    })} placeholder={'Био'} sx={formInput()}/>
 
                     <TextField onChange={(e) => setNewUserInfo(prev => {
                         return {...prev, photoURL: e.target.value}
-                    })} placeholder={'Ссылка картинки'} sx={formInput}/>
+                    })} placeholder={'Ссылка картинки'} sx={formInput()}/>
                     <Box sx={{mt: 2}}>
                         <Button sx={{mr: 1}} onClick={changeInfo}>Зберегти</Button>
                         <Button color={'error'} onClick={() => setIsClicked(false)}>Закрити</Button>

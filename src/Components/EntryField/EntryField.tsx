@@ -1,4 +1,4 @@
-import React, {FC, useContext, useState} from "react";
+import React, {FC, useContext, useEffect, useState} from "react";
 import shortid from 'shortid';
 import {useParams} from "react-router-dom";
 import {arrayUnion, doc, setDoc, updateDoc} from "firebase/firestore";
@@ -39,7 +39,7 @@ const EntryField: FC<EntryFieldPT> = ({
         setIsChatListOpen,
         isChatListOpen
     }) => {
-    console.log(users)
+
     const { firestore, user, isUserLoading} = useContext(Context)!
 
     const {id} = useParams<{ id: string }>()
@@ -49,7 +49,11 @@ const EntryField: FC<EntryFieldPT> = ({
 
     const type = useGetTypeOfScreen()
 
-    console.log(isReplying, replyMessageInfo)
+    useEffect(() => {
+        setIsReplying(false)
+        setMessage('')
+    }, [id]);
+
 
     const subscribeUser = async () => {
         await setDoc(doc(firestore, 'chats', `${id}`, 'users', `${user?.userId}`), {
@@ -72,14 +76,6 @@ const EntryField: FC<EntryFieldPT> = ({
             const newMessageId = `${user.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
 
             if (isReplying) {
-                // const {userId} = user
-                // console.log({
-                //     userId,
-                //     message,
-                //     replier: replyMessageInfo
-                //
-                // })
-
                 const docRef = await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), {
                     messageType: messagesExemplar.replyMessage,
                     userId: user.userId,

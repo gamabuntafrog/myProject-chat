@@ -4,10 +4,9 @@ import {doc, setDoc} from "firebase/firestore";
 import {Avatar, Box, Button, IconButton, List, ListItem, TextField, Typography} from '@mui/material'
 import Loader from "../Loader";
 import UserModalInfo from "../UserModalInfo";
-import {messagesExemplar, messagesType} from '../../types/messages';
+import {messagesExemplar, messagesType, replyMessageType} from '../../types/messages';
 import MessageContextMenu from "../MessageContextMenu";
 import EllipsisText from "react-ellipsis-text";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DoneIcon from '@mui/icons-material/Done';
 import CloseIcon from '@mui/icons-material/Close';
 import {user} from "../../types/user";
@@ -23,16 +22,25 @@ import {
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import './Messages.css';
 import ReplyIcon from "@mui/icons-material/Reply";
+import {useHistory} from "react-router-dom";
 
 type MessagesPropTypes = {
     chatId: string,
     messages: messagesType[],
     subscribedUsers: any,
     setIsReplying: React.Dispatch<React.SetStateAction<boolean>>
-    setReplyMessageInfo: React.Dispatch<React.SetStateAction<any>>
+    setReplyMessageInfo: React.Dispatch<React.SetStateAction<any>>,
+    isChatChanging: boolean
 }
 
-const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, setReplyMessageInfo, setIsReplying}) => {
+const Messages: FC<MessagesPropTypes> = ({
+    chatId,
+    messages,
+    subscribedUsers,
+    setReplyMessageInfo,
+    setIsReplying,
+    isChatChanging
+}) => {
 
     const {user: me, firestore} = useContext(Context)!
     const [userModalInfo, setUserModalInfo] = useState<null | any>(null);
@@ -43,14 +51,17 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
     const [changeMessageInputValue, setChangeMessageInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [changingMessageId, setChangingMessageId] = useState('');
+    const [replyMessages, setReplyMessages] = useState(null);
 
     const type = useGetTypeOfScreen()
+
+    const history = useHistory()
 
     useEffect(() => {
         if (listRef.current) {
             scrollToBottom()
         }
-    }, [messages, listRef])
+    }, [messages, replyMessages, listRef])
 
     const scrollToBottom = () => {
         listRef.current!.scrollTo({top: listRef.current!.scrollHeight})
@@ -76,9 +87,12 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
     }, [isUserModalOpen, isContextMenuOpen]);
 
     useEffect(() => {
-        console.log(changingMessageId)
-
-    }, [changingMessageId]);
+        const messagesObj: any = {}
+        const messagesList = messages.forEach((message: messagesType) => {
+                messagesObj[message.messageId] = message
+        })
+        setReplyMessages(messagesObj)
+    }, [messages]);
 
 
 
@@ -141,14 +155,13 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
         }
     }
 
-    const showRepliedMessage = (el: any) => {
-        const indexOfReplyerMessage = messages?.findIndex((message: any, i) => {
-            return el.replyer.createdAt === message.createdAt
+    const showRepliedMessage = (repliedMessage: replyMessageType) => {
+        const indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
+            return repliedMessage.replyer.messageId === message.messageId
         })
-        console.log(indexOfReplyerMessage)
-        if (indexOfReplyerMessage) {
+        if (indexOfReplyerMessage >= 0) {
             const child = listRef.current!.children[indexOfReplyerMessage].getBoundingClientRect()
-            window.scrollTo({top: child.top + window.pageYOffset - (window.innerHeight / 2), behavior: "smooth"})
+            listRef.current!.scrollTo({top: child.top + window.pageYOffset - (window.innerHeight / 2), behavior: "smooth"})
 
         }
 
@@ -166,7 +179,7 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
 
     return (
         <>
-            {isLoading && <Loader/>}
+            {isChatChanging && <Loader spinColor={me?.nicknameColor}/>}
             {(me && isContextMenuOpen) && <MessageContextMenu
               modalInfo={contextMenuInfo}
               setReplyMessageInfo={setReplyMessageInfo}
@@ -176,9 +189,12 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
               myId={me.userId}
               setChangingMessageId={setChangingMessageId}
             />}
-            {isUserModalOpen && <UserModalInfo modalInfo={userModalInfo}/>}
+            {isUserModalOpen && <UserModalInfo
+              modalInfo={userModalInfo}
+              setIsUserModalOpen={setIsUserModalOpen}
+            />}
         <List ref={listRef} sx={messagesList}>
-            {subscribedUsers && messages?.map((message: messagesType, i: number) => {
+            {subscribedUsers && replyMessages && messages?.map((message: messagesType, i: number) => {
                 if (message.messageType === messagesExemplar.startMessage) {
                     return (
                         <ListItem sx={{justifyContent: 'center'}} key={message.createdAt}>
@@ -193,14 +209,15 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
 
                 if (messageType === messagesExemplar.replyMessage) {
                     const subscribedReplyerUser = subscribedUsers[message.replyer.userId]
-
+                    // console.log(replyMessages[messageId])
+                    const replyMessage: replyMessageType = (replyMessages[message.replyer.messageId])
+                    console.log(replyMessage)
                     if (isMyMessage) {
                         const isMessageChanging = messageId === changingMessageId
 
                         return (
                             <ListItem
                                 className={'messageItem'}
-                                onClick={(e) => onOpenContextMenu(e, message, subscribedUser)}
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
                                 sx={{px: 0, width: '100%'}}
                                 key={messageId}
@@ -212,7 +229,7 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
                                     {!isMessageChanging ?
                                             <>
                                                 <Box sx={userWrapper}>
-                                                    <Typography onClick={(e) => showUserInfo(e, subscribedUser)} sx={activeUsername} variant='subtitle1'>
+                                                    <Typography onClick={(e) => showUserInfo(e, subscribedUser)} sx={activeUsername(me!.nicknameColor)} variant='subtitle1'>
                                                         {subscribedUser ? subscribedUser.nickname : userId}
                                                     </Typography>
                                                     {subscribedUser?.isAdmin &&
@@ -223,16 +240,19 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
                                                     <IconButton className='miniContextmenu' onClick={() => {
                                                         setIsReplying(true)
                                                         setReplyMessageInfo(message)
-                                                    }}>
+                                                    }} sx={{color: subscribedUser.nicknameColor || ''}}>
                                                         <ReplyIcon/>
                                                     </IconButton>
                                                 </Box>
                                                 <Box sx={messageContainer}>
                                                     <Box sx={{height: '45px', width: '2px', backgroundColor: 'white', mr: 1}} />
                                                     <Box onClick={() => showRepliedMessage(message)} sx={{cursor: 'pointer'}}>
-                                                        <Typography sx={{color: subscribedReplyerUser?.userId === me?.userId ? '#2196f3' : '', cursor: 'pointer' }}>{subscribedReplyerUser?.nickname}</Typography>
-                                                        <EllipsisText sx={{wordBreak: 'break-all', }} text={message.replyer.message} length={30}/>
-                                                    </Box>
+                                                        <Typography sx={{color: subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || '' : subscribedReplyerUser?.nicknameColor || '', cursor: 'pointer' }}>{subscribedReplyerUser?.nickname}</Typography>
+                                                        {replyMessage ?
+                                                            <EllipsisText sx={{wordBreak: 'break-all'}} text={replyMessage.message} length={30}/>
+                                                            :
+                                                            <Typography color='error' sx={{}}>Сообщение удалено</Typography>
+                                                        }                                                    </Box>
                                                 </Box>
                                                 <Typography>{message.message}</Typography>
                                             </>
@@ -269,7 +289,6 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
                     } else {
                         return (
                             <ListItem
-                                onClick={(e) => onOpenContextMenu(e, message, subscribedUser)}
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
                                 sx={{paddingLeft: 0, paddingRight: 0}}
                                 key={message.createdAt}
@@ -280,7 +299,7 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
                                 </Box>
                                 <Box sx={{flexGrow: 1, }}>
                                     <Box sx={{alignItems: 'center', display: 'flex'}}>
-                                        <Typography onClick={(e) => showUserInfo(e, subscribedUser)} sx={{cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
+                                        <Typography onClick={(e) => showUserInfo(e, subscribedUser)} sx={{cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all', color: subscribedUser?.nicknameColor || ''}} variant={'subtitle1'}>
                                             {subscribedUser ? subscribedUser.nickname : userId}
                                         </Typography>
                                         {subscribedUser?.isAdmin &&
@@ -291,15 +310,19 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
                                         <IconButton className='miniContextmenu' onClick={() => {
                                             setIsReplying(true)
                                             setReplyMessageInfo(message)
-                                        }}>
+                                        }} sx={{color: subscribedUser?.nicknameColor || ''}}>
                                             <ReplyIcon/>
                                         </IconButton>
                                     </Box>
                                     <Box sx={{display: 'flex',}}>
                                         <Box sx={{height: '45px', width: '2px', backgroundColor: 'white', mr: 1}}></Box>
                                         <Box onClick={() => showRepliedMessage(message)} sx={{cursor: 'pointer'}}>
-                                            <Typography sx={{color: subscribedReplyerUser?.userId === me?.userId ? '#2196f3' : '', cursor: 'pointer' , wordBreak: 'break-all'}}>{subscribedReplyerUser?.nickname}</Typography>
-                                            <EllipsisText sx={{wordBreak: 'break-all', }} text={message.replyer.message} length={30}/>
+                                            <Typography sx={{color: subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor : subscribedReplyerUser?.nicknameColor || '', cursor: 'pointer' , wordBreak: 'break-all'}}>{subscribedReplyerUser?.nickname}</Typography>
+                                            {replyMessage ?
+                                                <EllipsisText sx={{wordBreak: 'break-all'}} text={replyMessage.message} length={30}/>
+                                                :
+                                                <Typography color='error' sx={{}}>Сообщение удалено</Typography>
+                                            }
                                         </Box>
                                     </Box>
                                     <Typography>{message.message}</Typography>
@@ -312,7 +335,7 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
                 }
 
                 // const id = el.userId
-                const user = subscribedUsers[userId]
+                // const user = subscribedUsers[userId]
                 // const isMyMessage = el.userId === me?.userId;
                 // console.log(me)
                 switch (isMyMessage) {
@@ -321,20 +344,21 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
 
                         return (
                             <ListItem
-                                onClick={(e) => onOpenContextMenu(e, message, subscribedUser)}
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
                                 sx={{px: isMessageChanging ? 1 : 0, borderRadius: 3}}
                                 key={message.createdAt}
                                 className={'messageItem'}
+                                id={message.messageId}
                             >
                             <Box onClick={(e) => {
                                 const {pageX, pageY} = e
-                                if (user) {
+                                if (subscribedUser) {
                                     setIsUserModalOpen(true)
-                                    setUserModalInfo({user, pageX, pageY})
+                                    setUserModalInfo({user: subscribedUser, pageX, pageY})
                                 }
+                                setIsContextMenuOpen(false)
                             }} sx={{mr: 3, cursor: 'pointer'}}>
-                                <Avatar sx={{width: 50, height: 50}} src={`${user?.photoURL}`} alt="avatar"/>
+                                <Avatar sx={{width: 50, height: 50}} src={`${subscribedUser?.photoURL}`} alt="avatar"/>
                             </Box>
                             <Box sx={{flexGrow: 1, }}>
                                 {!isMessageChanging ?
@@ -342,14 +366,14 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
                                     <Box sx={{alignItems: 'center', display: 'flex'}}>
                                         <Typography onClick={(e) => {
                                             const {pageX, pageY} = e
-                                            if (user) {
+                                            if (subscribedUser) {
                                                 setIsUserModalOpen(true)
-                                                setUserModalInfo({user, pageX, pageY})
+                                                setUserModalInfo({user: subscribedUser, pageX, pageY})
                                             }
-                                        }} sx={{color: '#2196f3', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
-                                            {user ? user.nickname : userId}
+                                        }} sx={{color: me?.nicknameColor ? me.nicknameColor : '', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
+                                            {subscribedUser.nickname || userId}
                                         </Typography>
-                                        {user?.isAdmin &&
+                                        {subscribedUser?.isAdmin &&
 				                                <Typography variant={'subtitle1'} sx={{display: 'inline-block', ml: 1, fontSize: '12px', cursor: 'default'}}>
 					                                Админ
 				                                </Typography>
@@ -357,7 +381,7 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
                                         <IconButton className='miniContextmenu' onClick={() => {
                                             setIsReplying(true)
                                             setReplyMessageInfo(message)
-                                        }}>
+                                        }} sx={{color: subscribedUser.nicknameColor || ''}}>
                                             <ReplyIcon/>
                                         </IconButton>
                                     </Box>
@@ -395,32 +419,31 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
                         return (
                             <ListItem
                             className={'messageItem'}
-                            onClick={(e) => onOpenContextMenu(e, message, subscribedUser)}
                             onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
                             sx={{paddingLeft: 0, paddingRight: 0}}
                             key={message.createdAt}
                         >
                             <Box onClick={(e) => {
                                 const {pageX, pageY} = e
-                                if (user) {
+                                if (subscribedUser) {
                                     setIsUserModalOpen(true)
-                                    setUserModalInfo({user, pageX, pageY})
+                                    setUserModalInfo({user: subscribedUser, pageX, pageY})
                                 }
                             }} sx={{mr: 3, cursor: 'pointer'}}>
-                                <Avatar sx={{width: 50, height: 50}} src={`${user ? user.photoURL : blackBackground}`} alt="avatar"/>
+                                <Avatar sx={{width: 50, height: 50}} src={`${subscribedUser?.photoURL || blackBackground}`} alt="avatar"/>
                             </Box>
                             <Box sx={{flexGrow: 1}}>
                                 <Box sx={{alignItems: 'center', display: 'flex'}}>
                                     <Typography onClick={(e) => {
                                         const {pageX, pageY} = e
-                                        if (user) {
+                                        if (subscribedUser) {
                                             setIsUserModalOpen(true)
-                                            setUserModalInfo({user, pageX, pageY})
+                                            setUserModalInfo({user: subscribedUser, pageX, pageY})
                                         }
-                                    }} sx={{cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
-                                        {user ? user.nickname : userId}
+                                    }} sx={{color: subscribedUser?.nicknameColor || '', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
+                                        {subscribedUser?.nickname || userId}
                                     </Typography>
-                                    {user?.isAdmin &&
+                                    {subscribedUser?.isAdmin &&
                                         <Typography variant={'subtitle1'} sx={{display: 'inline-block', ml: 1, fontSize: '12px', cursor: 'default'}}>
                                            Админ
                                         </Typography>
@@ -428,7 +451,7 @@ const Messages: FC<MessagesPropTypes> = ({chatId, messages, subscribedUsers, set
                                     <IconButton className='miniContextmenu' onClick={() => {
                                         setIsReplying(true)
                                         setReplyMessageInfo(message)
-                                    }}>
+                                    }} sx={{color: subscribedUser?.nicknameColor || ''}}>
                                         <ReplyIcon/>
                                     </IconButton>
                                 </Box>

@@ -18,11 +18,14 @@ export const userWrapper = {
     display: 'flex'
 }
 
-export const activeUsername = {
-    color: '#2196f3',
-    cursor: 'pointer',
-    display: 'inline-block',
-    wordBreak: 'break-all'
+export const activeUsername = (color: string | undefined) => {
+
+    return ({
+        color: color ? color : '',
+        cursor: 'pointer',
+        display: 'inline-block',
+        wordBreak: 'break-all',
+    })
 }
 
 export const userRole = {

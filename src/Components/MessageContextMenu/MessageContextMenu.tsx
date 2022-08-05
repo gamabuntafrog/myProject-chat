@@ -7,6 +7,7 @@ import ReplyIcon from "@mui/icons-material/Reply";
 import EditIcon from '@mui/icons-material/Edit';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import {messagesType} from "../../types/messages";
+import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 
 type MessageContextMenuPT = {
     modalInfo: {
@@ -24,6 +25,10 @@ type MessageContextMenuPT = {
 }
 const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, setReplyMessageInfo, chatId, setIsContextMenuOpen, myId,setChangingMessageId}) => {
 
+    const {firestore, user} = useContext(Context)!;
+
+    const type = useGetTypeOfScreen()
+    const isMobileScreen = type === screenTypes.smallType
 
     const copyText = (text: string) => {
         const data = [new ClipboardItem({ "text/plain": new Blob([text], { type: "text/plain" }) })];
@@ -31,8 +36,6 @@ const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, 
 
         setIsContextMenuOpen(false)
     }
-
-    const {firestore} = useContext(Context)!;
 
 
     const onDelete = async (messageId: string) => {
@@ -42,7 +45,16 @@ const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, 
 
     return (
         <Box display='flex' textAlign='center' flexDirection='column' justifyContent='center'
-             position='absolute' sx={{top: `${modalInfo.pageY + 30}px`, left: `${modalInfo.pageX + - 180}px`, padding: '10px', backgroundColor: '#0d47a1', zIndex: 101, borderRadius: '5px', wordBreak: 'normal'}}>
+             position='fixed'
+             sx={{
+                 top: `${modalInfo.pageY + 30}px`,
+                 left: `${modalInfo.pageX + - 180}px`,
+                 padding: '10px',
+                 backgroundColor: '#242424',
+                 zIndex: 101,
+                 borderRadius: '5px',
+                 wordBreak: 'normal'
+             }}>
             <Button color={'error'} onClick={() => {
                 setIsContextMenuOpen(false)
             }}>
@@ -52,27 +64,25 @@ const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, 
                 setIsReplying(true)
                 setReplyMessageInfo(modalInfo.message)
                 setIsContextMenuOpen(false)
-            }} startIcon={<ReplyIcon/>} sx={{color:'white'}} >
+            }} startIcon={<ReplyIcon/>}  >
                 <Typography>Ответить</Typography>
             </Button>
             {modalInfo.isMe &&
-                <Button startIcon={<EditIcon/>} sx={{color:'white', my: 1}} onClick={() => {
-                    // modalInfo.data.isChanging = true
-                    console.log(modalInfo)
+                <Button startIcon={<EditIcon/>} sx={{ my: 1}} onClick={() => {
                     setChangingMessageId(modalInfo.message.messageId)
                     setIsContextMenuOpen(false)
                 }}>
                     <Typography>Редактировать</Typography>
                 </Button>
             }
+            <Button startIcon={<ContentCopyIcon/>} onClick={() => copyText(modalInfo.message.message)}>
+                Копировать текст
+            </Button>
             {modalInfo.isMe &&
 		        <Button color={'error'}  onClick={() => onDelete(modalInfo.message.messageId)} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
                     <Typography>Удалить</Typography>
                 </Button>
             }
-            <Button startIcon={<ContentCopyIcon/>} sx={{color: 'white'}} onClick={() => copyText(modalInfo.message.message)}>
-                Копировать текст
-            </Button>
         </Box>
     )
 }

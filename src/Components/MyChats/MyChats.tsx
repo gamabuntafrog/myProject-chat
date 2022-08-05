@@ -1,7 +1,7 @@
 import React, {FC, useContext, useState} from "react"
 import {Context} from "../../index";
 import {Box, Button, List, TextField, Typography} from "@mui/material";
-import './MyChats.css';
+import '../../App.css';
 import MyChatsItem from "../MyChatsItem";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import {chatList, closeButton, myChatBar, myChatBarChats, myChatBarInput, myChatsSection} from "./MyChatsStyles";
@@ -18,9 +18,9 @@ const MyChats: FC<MyChatsPT> = ({isChatListOpen, setIsChatListOpen}) => {
     const type = useGetTypeOfScreen()
     const mediumOfSmallType = (type === screenTypes.mediumType || type === screenTypes.smallType);
 
-    if (isUserLoading && user) {
+    if (isUserLoading) {
         return (
-            <Box sx={{...myChatsSection(mediumOfSmallType, isChatListOpen)}}>
+            <Box sx={{...myChatsSection(mediumOfSmallType, isChatListOpen, user?.nicknameColor)}}>
                 <List sx={chatList}>
                     <Box sx={{textAlign: 'center'}}>
                         Loading.....
@@ -32,7 +32,7 @@ const MyChats: FC<MyChatsPT> = ({isChatListOpen, setIsChatListOpen}) => {
 
 
     return (
-        <Box component='section' sx={{...myChatsSection(mediumOfSmallType, isChatListOpen)}}>
+        <Box component='section' sx={{...myChatsSection(mediumOfSmallType, isChatListOpen, user?.nicknameColor)}}>
             {isChatListOpen &&
                         <Button onClick={() => setIsChatListOpen(false)} variant='contained' color='error' sx={closeButton}>Закрыть</Button>
             }

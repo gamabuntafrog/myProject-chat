@@ -16,6 +16,7 @@ type MyChatsItemPT = {
     setIsChatListOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
+
 const MyChatsItem: FC<MyChatsItemPT> = ({chatId, filterValue, setIsChatListOpen}) => {
 
     const {user: me, firestore} = useContext(Context)!
@@ -29,6 +30,9 @@ const MyChatsItem: FC<MyChatsItemPT> = ({chatId, filterValue, setIsChatListOpen}
     const [messages, isMessagesLoading] = useCollectionData(query(messagesRef,
         orderBy('createdAt', 'desc'), limit(1)
     ))
+
+
+
 
     const getUser = async (userId: string) => {
         try {

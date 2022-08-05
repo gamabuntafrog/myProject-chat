@@ -1,15 +1,3 @@
 
 
-.chatLink {
-    border-radius: 10px;
-}
-
-.chatLink:hover {
-    background-color: #121229;
-}
-
-.activeChat {
-    border-radius: 10px;
-    background-color: #121212;
-}
 

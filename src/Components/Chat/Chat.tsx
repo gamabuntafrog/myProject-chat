@@ -26,6 +26,7 @@ const Chat: FC = () => {
     const [isChatListOpen, setIsChatListOpen] = useState(false);
     const [replyMessageInfo, setReplyMessageInfo] = useState(null);
     const [isReplying, setIsReplying] = useState(false);
+    const [isChatChanging, setIsChatChanging] = useState(false);
 
     const type = useGetTypeOfScreen()
     const mediumOrSmallType = (type === screenTypes.mediumType || type === screenTypes.smallType);
@@ -57,9 +58,13 @@ const Chat: FC = () => {
 
     }, [subscribedUsersCollection]);
 
+    useEffect(() => {
+        setIsChatChanging(true)
+    }, [id]);
+
 
     const getUsers = async (subscribedUsersList: {userId: string, isAdmin: boolean}[]) => {
-        console.log(subscribedUsersList)
+        // console.log(subscribedUsersList)
 
         const fetchedUsers = subscribedUsersList.map( async ({userId, isAdmin}) => {
             const document = await getDoc(doc(firestore, 'users',`${userId}`))
@@ -69,7 +74,7 @@ const Chat: FC = () => {
         const usersData: any = {}
         const users = await Promise.all(fetchedUsers).then((documents) => {
             documents.forEach(({document, isAdmin}) => {
-                console.log(document)
+                // console.log(document)
                 usersData[document.id] = {
                     ...document.data(),
                     isAdmin
@@ -79,7 +84,7 @@ const Chat: FC = () => {
 
         setUsers(usersData)
         setIsLoading(false)
-
+        setIsChatChanging(false)
     }
 
 
@@ -100,6 +105,7 @@ const Chat: FC = () => {
                         messages={messages}
                         setIsReplying={setIsReplying}
                         setReplyMessageInfo={setReplyMessageInfo}
+                        isChatChanging={isChatChanging}
                     />
                     <EntryField
                         users={users}

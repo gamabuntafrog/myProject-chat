@@ -1,11 +1,11 @@
 import {screenTypes} from "../../hooks/useGetTypeOfScreen";
 
 
-export const appBar = (type: screenTypes) => {
+export const appBar = (type: screenTypes, color: string | undefined) => {
 
     return ({
         flexGrow: 1,
-        background: '#0d47a1',
+        background: color ? color : '#0d47a1',
         boxShadow: 3,
         borderRadius: (type === screenTypes.mediumType || type === screenTypes.smallType) ? '' : '0 0 40px 40px',
         maxWidth: '1280px',
