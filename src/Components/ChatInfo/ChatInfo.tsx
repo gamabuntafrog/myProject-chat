@@ -7,6 +7,7 @@ import {Context} from "../../index";
 import {entryFieldInfo} from "./chatInfoStyles";
 import InfoIcon from "@mui/icons-material/Info";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
+import {justifyColumnCenter} from "../GeneralStyles";
 
 type ChatInfoPT = {
     id: string,
@@ -36,7 +37,7 @@ const ChatInfo: FC<ChatInfoPT> = ({
     const [newChatInfo, setNewChatInfo] = useState({chatName, chatImage, chatDescription});
 
     const type = useGetTypeOfScreen()
-
+    const isMobile = type === screenTypes.smallType
     const history = useHistory()
 
     useEffect(() => {
@@ -100,11 +101,11 @@ const ChatInfo: FC<ChatInfoPT> = ({
                 </IconButton>
             </Box>
             {isModalOpen &&
-		        <Modal isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-			        <Box sx={{textAlign: 'center'}}>
+		        <Modal br={'10px 0 0 10px'} buttonPosition={'absolute'} isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+			        <Box sx={{textAlign: 'center', width: isChangingChatInfo ? '95%' : 'auto'}}>
                         {isChangingChatInfo ?
                             <Box sx={{display: 'flex',flexDirection: 'column', my: 1 }}>
-                                <TextField onChange={(e) => {
+                                <TextField fullWidth onChange={(e) => {
                                     setNewChatInfo(prev => {
                                         return {...prev, chatName: e.target.value}
                                     })
@@ -124,7 +125,8 @@ const ChatInfo: FC<ChatInfoPT> = ({
                             </Box>
                             :
                             <>
-                                <Avatar sx={{width: '300px', height: '300px', mb: 3, mx: 'auto'}} src={chatImage}/>
+                                <Avatar sx={{width: '100%', mb: 3, mx: 'auto',
+                                borderRadius: '0 0 30px 30px', height: 'auto'}} src={chatImage}/>
                                 <Typography variant={'h2'} sx={{fontWeight: '800'}}>{chatName}</Typography>
                                 <Typography variant={'subtitle1'} sx={{my: 3}}>{chatDescription}</Typography>
                             </>
@@ -135,31 +137,32 @@ const ChatInfo: FC<ChatInfoPT> = ({
 			                        Изменить информацию
 		                        </Button>
                             }
-	                        <Button onClick={unsubscribeFromChat} color={'error'}>Выйти с чата</Button>
+	                        <Button onClick={unsubscribeFromChat} size='large' color='error'>Выйти с чата</Button>
                         </Box>
                         <Typography variant='h5'>Пользователи ({usersArray.length}):</Typography>
-                        <List sx={{width: '100%'}}>
+                        <List sx={{width: '90%', mx: 'auto'}}>
                           {usersArray?.map((el: any, i: number) => {
                               const [docId, user] = el
-                              const {bio, userId, nickname, photoURL} = user
+                              const {nickname, photoURL} = user
 
-                              return <ListItem className={'typography'} onClick={() => {
-                                  setUserModalInfo(user)
-                                  setIsUserModalOpen(true)
-                              }} sx={{display: 'flex',  justifyContent: 'center'}} key={i}>
-                                  <Avatar sx={{width: '50px', height: '50px'}} src={user.photoURL}/>
-                                  <Typography sx={{ml: 1}} >
-                                      {nickname}
-                                  </Typography>
-
-                              </ListItem>
+                              return (
+                                  <ListItem className={'typography'} onClick={() => {
+                                      setUserModalInfo(user)
+                                      setIsUserModalOpen(true)
+                                  }} sx={{display: 'flex',  justifyContent: 'center'}} key={i}>
+                                      <Avatar sx={{width: '50px', height: '50px'}} src={photoURL}/>
+                                      <Typography sx={{ml: 1}} >
+                                          {nickname}
+                                      </Typography>
+                                  </ListItem>
+                              )
                           })}
                         </List>
                     </Box>
 		        </Modal>
             }
             {isUserModalOpen &&
-		        <Modal isModalOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)}>
+		        <Modal isPadding height={'auto'} isModalOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)}>
 			        <Avatar sx={{width: 200, height: 200}} src={`${userModalInfo.photoURL}`} alt="avatar"/>
 			        <NavLink style={{color: 'white'}} to={`/user/${userModalInfo.userId}`}>
 				        <Typography sx={{mt: 1}} variant={'h5'}>{userModalInfo.nickname}</Typography>

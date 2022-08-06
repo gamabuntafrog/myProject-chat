@@ -169,7 +169,7 @@ const Messages: FC<MessagesPropTypes> = ({
                     setTimeout(() => {
                         child.classList.remove('focus')
                         listRef.current!.removeEventListener('scroll', focusMessage)
-                    }, 1000)
+                    }, 1500)
                 }
             }
             focusMessage()
@@ -238,7 +238,7 @@ const Messages: FC<MessagesPropTypes> = ({
                             <ListItem
                                 className={'messageItem'}
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                                sx={{px: 0, width: '100%'}}
+                                sx={{px: 1, width: '100%', borderRadius: 3}}
                                 key={messageId}
                             >
                                 <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={avatarWrapper}>
@@ -259,7 +259,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                                     <IconButton className='miniContextmenu' onClick={() => {
                                                         setIsReplying(true)
                                                         setReplyMessageInfo(message)
-                                                    }} sx={{color: subscribedUser.nicknameColor || ''}}>
+                                                    }} sx={{color: subscribedUser?.nicknameColor || ''}}>
                                                         <ReplyIcon/>
                                                     </IconButton>
                                                 </Box>
@@ -309,7 +309,7 @@ const Messages: FC<MessagesPropTypes> = ({
                         return (
                             <ListItem
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                                sx={{paddingLeft: 0, paddingRight: 0}}
+                                sx={{px: 1, borderRadius: 3}}
                                 key={message.createdAt}
                                 className={'messageItem'}
                             >
@@ -364,7 +364,7 @@ const Messages: FC<MessagesPropTypes> = ({
                         return (
                             <ListItem
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                                sx={{px: isMessageChanging ? 1 : 0, borderRadius: 3}}
+                                sx={{px: 1, borderRadius: 3}}
                                 key={message.createdAt}
                                 className={'messageItem'}
                                 id={message.messageId}
@@ -390,7 +390,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                                 setUserModalInfo({user: subscribedUser, pageX, pageY})
                                             }
                                         }} sx={{color: me?.nicknameColor ? me.nicknameColor : '', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
-                                            {subscribedUser.nickname || userId}
+                                            {subscribedUser?.nickname || userId}
                                         </Typography>
                                         {subscribedUser?.isAdmin &&
 				                                <Typography variant={'subtitle1'} sx={{display: 'inline-block', ml: 1, fontSize: '12px', cursor: 'default'}}>
@@ -400,7 +400,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                         <IconButton className='miniContextmenu' onClick={() => {
                                             setIsReplying(true)
                                             setReplyMessageInfo(message)
-                                        }} sx={{color: subscribedUser.nicknameColor || ''}}>
+                                        }} sx={{color: subscribedUser?.nicknameColor || ''}}>
                                             <ReplyIcon/>
                                         </IconButton>
                                     </Box>
@@ -439,7 +439,7 @@ const Messages: FC<MessagesPropTypes> = ({
                             <ListItem
                             className={'messageItem'}
                             onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                            sx={{paddingLeft: 0, paddingRight: 0}}
+                            sx={{px: 1, borderRadius: 3}}
                             key={message.createdAt}
                         >
                             <Box onClick={(e) => {

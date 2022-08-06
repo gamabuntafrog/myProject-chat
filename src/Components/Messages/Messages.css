@@ -3,6 +3,8 @@
 .messageItem {
     background-color: #121212;
     position: relative;
+    transition: 0.2s ease-out;
+
 }
 
 .myMessage:hover {
@@ -22,4 +24,5 @@
 
 .focus {
     background-color: #474747;
+    transition: 0.2s ease-in;
 }

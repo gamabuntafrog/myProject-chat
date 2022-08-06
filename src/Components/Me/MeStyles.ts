@@ -5,8 +5,10 @@ export const meContainer = {
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'column',
+    display: 'flex',
     mt: 10,
-    py: 2
+    py: 2,
+    px: 1
 }
 
 export const avatar = {

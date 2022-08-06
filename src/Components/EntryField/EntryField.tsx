@@ -67,7 +67,10 @@ const EntryField: FC<EntryFieldPT> = ({
 
     const submitPost = async () => {
 
-        if (message.trim() === '') {
+        const messageOnSubmit = message
+        setMessage('')
+
+        if (messageOnSubmit.trim() === '') {
             setOpen(true)
             return
         }
@@ -79,7 +82,7 @@ const EntryField: FC<EntryFieldPT> = ({
                 const docRef = await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), {
                     messageType: messagesExemplar.replyMessage,
                     userId: user.userId,
-                    message,
+                    message: messageOnSubmit,
                     createdAt: Date.now(),
                     replyer: replyMessageInfo,
                     messageId: newMessageId,
@@ -91,7 +94,7 @@ const EntryField: FC<EntryFieldPT> = ({
                 const docRef = await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), {
                     messageType: messagesExemplar.message,
                     userId: user?.userId,
-                    message,
+                    message: messageOnSubmit,
                     createdAt: Date.now(),
                     messageId: newMessageId,
                     chatId: id
@@ -102,7 +105,6 @@ const EntryField: FC<EntryFieldPT> = ({
             }
         }
 
-        setMessage('')
     }
 
     const handleClose = (_: any, reason: string) => {

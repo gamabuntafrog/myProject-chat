@@ -118,7 +118,7 @@ const Search: FC = () => {
                 }>Создать чат</Button>
                 <RecomendedChatList firestore={firestore} />
             </Box>
-            <Modal isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+            <Modal height={'auto'} isPadding={true} isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
                 <FormControl fullWidth sx={{...justifyColumnCenter, alignItems: 'center'}}>
                     <FormLabel htmlFor={'input1'} sx={createChatLabel}>Название беседы</FormLabel>
                     <TextField id={'input1'} onChange={(e) => setNewChatData(prev => {

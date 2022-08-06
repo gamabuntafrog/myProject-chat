@@ -37,7 +37,7 @@ const Me: FC = () => {
     }
 
     if (user) {
-        return (<Grid sx={meContainer} spacing={2} container component={'section'}>
+        return (<Box sx={meContainer} component={'section'}>
             <Box sx={{width: '50vw'}}>
             </Box>
             <Avatar sx={avatar} src={user.photoURL} alt="avatar"/>
@@ -67,14 +67,14 @@ const Me: FC = () => {
                     <Typography sx={{fontWeight: 500}} variant='h6'>
                         {user.bio}
                     </Typography>
-                    <Typography sx={{fontWeight: 500}} variant='h6'>
+                    <Typography sx={{fontWeight: 500, textAlign: 'center'}} variant='h6'>
                         Created at {user?.createdAt}
                     </Typography>
                     <Button sx={{mt: 2}} onClick={() => setIsClicked(true)}>Змінити інформацію</Button>
 
                 </Box>
             }
-        </Grid>)
+        </Box>)
     } else {
         return <Box></Box>
     }
