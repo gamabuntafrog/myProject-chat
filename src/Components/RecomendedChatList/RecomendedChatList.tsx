@@ -8,10 +8,12 @@ import {chatDescriptionStyle, chatLink} from "./RecomendedChatListStyles";
 import {chatType} from "../../types/chatType";
 import {FirestoreError} from 'firebase/firestore'
 import { TailSpin } from  'react-loader-spinner'
+import '../../App.css';
 
 const RecomendedChatList: FC<{firestore: any}> = ({firestore}) => {
 
-    const [chatsList, isLoading]: [(chatType[] | undefined), boolean, (FirestoreError | undefined), any] = useCollectionData<any>(query(collection(firestore, 'chats')))
+    const [chatsList, isLoading]:
+        [(chatType[] | undefined), boolean, (FirestoreError | undefined), any] = useCollectionData<any>(query(collection(firestore, 'chats')))
 
     if (isLoading) {
         return (
@@ -31,9 +33,9 @@ const RecomendedChatList: FC<{firestore: any}> = ({firestore}) => {
 
                         return (
                             <ListItem sx={justifyColumnCenter} key={i}>
-                                <NavLink style={chatLink} to={`/chat/${chatId}`}>
-                                    <Avatar src={chatImage} sx={{mr: 1}}/>
-                                    <Box>
+                                <NavLink style={chatLink} className={'chatLink'} to={`/chat/${chatId}`}>
+                                    <Avatar src={chatImage} sx={{mr: 2}}/>
+                                    <Box sx={{wordBreak: 'break-all'}}>
                                         <Typography sx={{color: 'white'}} variant={'subtitle1'}>
                                             {chatName}
                                         </Typography>

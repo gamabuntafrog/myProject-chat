@@ -9,7 +9,15 @@ export const modalBackdrop = {
     wordBreak: 'break-word',
 }
 
-export const modalContainer = ({isMobile, isPadding, br, height}: { isMobile: boolean, isPadding?: boolean, br?: string, height?: string}): object => {
+type modalContainerPT = {
+    isMobile: boolean,
+    isPadding?: boolean,
+    br?: string,
+    height?: string,
+    jc?: 'center' | 'start'
+}
+
+export const modalContainer = ({isMobile, isPadding, br, height, jc}: modalContainerPT): object => {
 
 
     if (isMobile) {
@@ -17,7 +25,7 @@ export const modalContainer = ({isMobile, isPadding, br, height}: { isMobile: bo
             backgroundColor: '#121212',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: jc || "center",
             flexDirection: 'column',
             padding: isPadding ? '15px' : 0,
             overflowY: 'auto',

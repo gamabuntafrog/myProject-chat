@@ -12,20 +12,30 @@ type ModalPT = {
     isPadding?: boolean,
     buttonPosition?: 'relative' | 'absolute',
     br?: string,
-    height?: string
+    height?: string,
+    jc?: 'center' | 'start'
 }
 
 
-const Modal: FC<ModalPT> = ({isModalOpen, children, onClose, isPadding, buttonPosition, br, height}) => {
+const Modal: FC<ModalPT> = ({
+    isModalOpen,
+    children,
+    onClose,
+    isPadding,
+    buttonPosition,
+    br,
+    height,
+    jc
+}) => {
 
     const type = useGetTypeOfScreen()
     const isMobile = type === screenTypes.smallType;
 
     return (
         <MUIModal onClose={onClose} open={isModalOpen} sx={{...modalBackdrop, ...justifyColumnCenter}}>
-            <Box sx={modalContainer({isMobile, isPadding: isPadding, br, height})}>
+            <Box sx={modalContainer({isMobile, isPadding: isPadding, br, height, jc})}>
                 <Button color={'error'} sx={modalCloseButton(buttonPosition)} onClick={onClose}>
-                    <CloseIcon />
+                    <CloseIcon/>
                 </Button>
                 {children}
             </Box>

@@ -1,6 +1,7 @@
 export const messagesList = {
     px: 2,
     maxHeight: '100vh',
+    minHeight: '80%',
     overflowY: 'auto'
 }
 

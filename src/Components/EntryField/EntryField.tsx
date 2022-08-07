@@ -63,6 +63,9 @@ const EntryField: FC<EntryFieldPT> = ({
         await updateDoc(doc(firestore, 'users', `${user?.userId}`), {
             subscribedChats: arrayUnion(chatId)
         })
+        await updateDoc(doc(firestore, 'chats', `${id}`), {
+            users: arrayUnion(user?.userId)
+        })
     }
 
     const submitPost = async () => {
@@ -89,6 +92,17 @@ const EntryField: FC<EntryFieldPT> = ({
                     chatId: id
 
                 })
+                await setDoc(doc(firestore, 'chats', `${id}`), {
+                    lastMessage: {
+                        messageType: messagesExemplar.replyMessage,
+                        userId: user.userId,
+                        message: messageOnSubmit,
+                        createdAt: Date.now(),
+                        replyer: replyMessageInfo,
+                        messageId: newMessageId,
+                        chatId: id
+                    }
+                }, {merge: true})
                 setIsReplying(false)
             } else {
                 const docRef = await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), {
@@ -99,7 +113,16 @@ const EntryField: FC<EntryFieldPT> = ({
                     messageId: newMessageId,
                     chatId: id
                 })
-
+                await setDoc(doc(firestore, 'chats', `${id}`), {
+                    lastMessage: {
+                        messageType: messagesExemplar.message,
+                        userId: user.userId,
+                        message: messageOnSubmit,
+                        createdAt: Date.now(),
+                        messageId: newMessageId,
+                        chatId: id
+                    }
+                }, {merge: true})
                 // console.log(docRef)
 
             }

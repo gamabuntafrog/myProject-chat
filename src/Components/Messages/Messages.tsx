@@ -230,7 +230,7 @@ const Messages: FC<MessagesPropTypes> = ({
                     const subscribedReplyerUser = subscribedUsers[message.replyer.userId]
                     // console.log(replyMessages[messageId])
                     const replyMessage: replyMessageType = (replyMessages[message.replyer.messageId])
-                    console.log(replyMessage)
+                    // console.log(replyMessage)
                     if (isMyMessage) {
                         const isMessageChanging = messageId === changingMessageId
 

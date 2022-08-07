@@ -3,11 +3,13 @@
 export const chatLink = {
     color: 'white',
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
+    justifyContent: 'start',
+    width: '100%',
+    padding: '10px'
 }
 
 export const chatDescriptionStyle = {
     color: 'white',
-    ml: 1,
     wordBreak: 'break-word'
 }

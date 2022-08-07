@@ -2,12 +2,11 @@ import React, {FC, useContext, useEffect, useState} from "react"
 import {Avatar, Box, Button, IconButton, List, ListItem, TextField, Typography} from "@mui/material";
 import Modal from "../Modal";
 import {NavLink, useHistory} from "react-router-dom";
-import {arrayRemove, deleteDoc, doc, setDoc, updateDoc} from "firebase/firestore";
+import {arrayRemove, deleteDoc, doc, setDoc, updateDoc, collection} from "firebase/firestore";
 import {Context} from "../../index";
 import {entryFieldInfo} from "./chatInfoStyles";
 import InfoIcon from "@mui/icons-material/Info";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
-import {justifyColumnCenter} from "../GeneralStyles";
 
 type ChatInfoPT = {
     id: string,
@@ -53,6 +52,10 @@ const ChatInfo: FC<ChatInfoPT> = ({
                 subscribedChats: arrayRemove(id)
             })
             await deleteDoc(doc(firestore, 'chats', `${id}`, 'users', `${me.userId}`))
+            await updateDoc(doc(firestore, 'chats', `${id}`), {
+                users: arrayRemove(me.userId)
+            })
+
             history.push('/search')
         }
     }
@@ -85,6 +88,13 @@ const ChatInfo: FC<ChatInfoPT> = ({
 
     }
 
+    const deleteChat = async () => {
+        await deleteDoc(doc(firestore, 'chats', `${id}`))
+        setIsUserModalOpen(false)
+
+        history.push('/search')
+    }
+
     const isUserAdmin = (me && users[me.userId].isAdmin)
 
     return (
@@ -101,7 +111,7 @@ const ChatInfo: FC<ChatInfoPT> = ({
                 </IconButton>
             </Box>
             {isModalOpen &&
-		        <Modal br={'10px 0 0 10px'} buttonPosition={'absolute'} isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+		        <Modal jc={'start'} br={'10px 0 0 10px'} buttonPosition={'absolute'} isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
 			        <Box sx={{textAlign: 'center', width: isChangingChatInfo ? '95%' : 'auto'}}>
                         {isChangingChatInfo ?
                             <Box sx={{display: 'flex',flexDirection: 'column', my: 1 }}>
@@ -133,9 +143,14 @@ const ChatInfo: FC<ChatInfoPT> = ({
                         }
                         <Box sx={{display: 'flex', flexDirection: 'column', my: 1}}>
                             {(isUserAdmin && !isChangingChatInfo) &&
-		                        <Button onClick={() => setIsChangingChatInfo(true)}>
-			                        Изменить информацию
-		                        </Button>
+                                <>
+	                                <Button onClick={() => setIsChangingChatInfo(true)}>
+		                                Изменить информацию
+	                                </Button>
+                                    <Button color='error' onClick={deleteChat} >
+                                        Удалить чат
+                                    </Button>
+                                </>
                             }
 	                        <Button onClick={unsubscribeFromChat} size='large' color='error'>Выйти с чата</Button>
                         </Box>

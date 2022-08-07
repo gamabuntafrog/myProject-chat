@@ -7,7 +7,8 @@ export const myChatsSection = (mediumOfSmallType: boolean, isChatListOpen: boole
                 width: '100%',
                 zIndex: 1000,
                 backgroundColor: '#121212',
-                overflowY: 'auto'
+                overflowY: 'auto',
+                minHeight: '100%'
             }
         } else {
             return {
@@ -28,7 +29,7 @@ export const myChatsSection = (mediumOfSmallType: boolean, isChatListOpen: boole
 
 export const chatList = {
     mx: 'auto',
-    width: '90%'
+    width: '90%',
 }
 
 export const myChatBar = {
@@ -52,4 +53,30 @@ export const myChatBarChats = {
 export const closeButton = {
     mt: 3,
     ml: 1
+}
+
+export const itemWrapper = {
+    color: 'white',
+    padding: '0 10px',
+    marginBottom: '5px',
+    display: 'flex',
+    alignItems: 'center',
+    textDecoration: 'none'
+}
+
+export const item = {
+    justifyContent: 'start',
+    px: 0
+}
+
+export const listIfNoContent = {
+    justifyContent: 'center',
+    display: 'flex',
+    flexDirection: 'column'
+}
+
+export const itemMessagesWrapper = {
+    display: 'flex',
+    alignItems: 'baseline',
+    whiteSpace: 'nowrap'
 }

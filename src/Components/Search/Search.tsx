@@ -48,26 +48,31 @@ const Search: FC = () => {
         try {
             if (user) {
                 const newChatId = `${shortid.generate()}${shortid.generate()}$${Date.now()}`
-
+                const newMessageId = `${user.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
 
                 await updateDoc(doc(firestore, 'users', `${user.userId}`), {
                     subscribedChats: arrayUnion(newChatId)
                 })
+
                 await setDoc(doc(firestore, 'chats', `${newChatId}`), {
                     createdAt: Date.now(),
                     users: [
-                        {
-                            userId: user.userId,
-                            isAdmin: true
-                        }
+                        user.userId,
                     ],
                     chatName: newChatName,
                     chatDescription: newChatDescription,
                     chatImage: newChatImage,
                     chatId: newChatId,
+                    lastMessage: {
+                        messageType: messagesExemplar.startMessage,
+                        userId: user?.userId,
+                        message: 'Начало чата',
+                        createdAt: Date.now(),
+                        messageId: newMessageId,
+                        chatId: newChatId
+                    }
                 })
 
-                const newMessageId = `${user.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
 
                 await setDoc(doc(firestore, 'chats', `${newChatId}`, 'messages', `${newMessageId}`), {
                     messageType: messagesExemplar.startMessage,

@@ -1,3 +1,4 @@
+import {messagesType} from "./messages";
 
 export type chatType = {
     chatId: string,
@@ -5,4 +6,5 @@ export type chatType = {
     chatImage: string,
     chatName: string,
     createdAt: number,
+    lastMessage: messagesType
 }
