@@ -21,10 +21,12 @@
     top: 0;
     right: -5px;
 }
+.message {
+    transition: 0.2s ease-out;
 
-.focus {
-    padding: 16px;
-    background-color: rgba(1,1,1, 0.5);
+}
+.focus .message {
+    background-color: lightgrey !important;
+    color: black;
     transition: 0.2s ease-in;
-    width: 100% !important;
 }

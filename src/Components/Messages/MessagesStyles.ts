@@ -20,13 +20,13 @@ export const avatarWrapper = {
     cursor: 'pointer'
 }
 
-export const messageWrapper = (isMessageBeforeIsMine: boolean) => {
+export const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThisMine: boolean) => {
 
     return ({
         flexGrow: 1,
         backgroundColor: '#121212',
         pl: 2, pr: 4, py: 2,
-        borderRadius: isMessageBeforeIsMine ? 2 : '16px 16px 16px 0'
+        borderRadius: isMessageAfterThisMine ? 2 : '16px 16px 16px 0'
     })
 }
 

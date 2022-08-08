@@ -87,14 +87,14 @@ const MyChats: FC<MyChatsPT> = ({isChatListOpen, setIsChatListOpen}) => {
                         <Button onClick={() => setIsChatListOpen(false)} variant='contained' color='error' sx={closeButton}>Закрыть</Button>
             }
             <Box sx={myChatBar}>
-                {/*{user!.subscribedChats.length > 0 ?*/}
-                {/*    <>*/}
-                {/*        <TextField fullWidth placeholder='Поиск' sx={myChatBarInput} variant='standard' onChange={(e) => setFilterValue(e.target.value)}/>*/}
-                {/*        <Typography sx={myChatBarChats}>Ваши чаты ({user?.subscribedChats.length}):</Typography>*/}
-                {/*    </>*/}
-                {/*    :*/}
-                {/*    <Typography sx={{textAlign: 'center', mt: 5}}>Ваш список пустой</Typography>*/}
-                {/*}*/}
+                {chats && chats?.length > 0 ?
+                    <>
+                        <TextField fullWidth placeholder='Поиск' sx={myChatBarInput} variant='standard' onChange={(e) => setFilterValue(e.target.value)}/>
+                        <Typography sx={myChatBarChats}>Ваши чаты ({chats?.length}):</Typography>
+                    </>
+                    :
+                    <Typography sx={{textAlign: 'center', mt: 5}}>Ваш список пустой</Typography>
+                }
             </Box>
                 <List sx={chatList} >
                     {users && filteredChats?.map((chat: chatType) => {

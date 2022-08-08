@@ -247,7 +247,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                 <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={avatarWrapper}>
                                     {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                                 </Box>
-                                <Box sx={messageWrapper(isMessageBeforeIsMine)}>
+                                <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine)}>
                                     {!isMessageChanging ?
                                             <>
                                                 <Box sx={userWrapper}>
@@ -327,7 +327,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                 <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={{mr: 3, cursor: 'pointer'}}>
                                     {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                                 </Box>
-                                <Box sx={messageWrapper(isMessageBeforeIsMine)}>
+                                <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine)}>
                                     <Box sx={{alignItems: 'center', display: 'flex'}}>
                                         {!isMessageBeforeIsMine && <>
 			                                    <Typography onClick={(e) => {
@@ -398,7 +398,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                 }} sx={{mr: 3, cursor: 'pointer'}}>
                                    {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                                 </Box>
-                            <Box sx={messageWrapper(isMessageBeforeIsMine)}>
+                            <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine)}>
                                 {!isMessageChanging ?
                                     <>
                                     <Box sx={{alignItems: 'center', display: 'flex'}}>
@@ -474,7 +474,7 @@ const Messages: FC<MessagesPropTypes> = ({
                             }} sx={{mr: 3, cursor: 'pointer'}}>
                                 {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                             </Box>
-                            <Box sx={messageWrapper(isMessageBeforeIsMine)}>
+                            <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine)}>
                                 <Box sx={{alignItems: 'center', display: 'flex'}}>
                                     {!isMessageBeforeIsMine && <>
 			                                <Typography onClick={(e) => {
