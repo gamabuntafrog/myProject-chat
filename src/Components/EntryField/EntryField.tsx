@@ -144,7 +144,7 @@ const EntryField: FC<EntryFieldPT> = ({
         </Container>
     }
 
-    return <Box sx={{position: 'sticky', bottom: '0px', pt: 1, pb: 2, px: 2, backgroundColor: '#121212', zIndex: 100, }}>
+    return <Box sx={{position: 'sticky', bottom: '0px', mt: -1, pt: 1, pb: 2, px: 2, backgroundColor: '#121212', zIndex: 100, borderRadius: '8px 8px 0 0'}}>
         <Box>
             <ChatInfo
                 id={id}

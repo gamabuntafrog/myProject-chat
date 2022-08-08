@@ -5,6 +5,7 @@ import About from "./About/About";
 import Me from "./Me";
 import User from "./User";
 import MyChats from "./MyChats";
+import Settings from "./Settings";
 
 
 
@@ -21,6 +22,10 @@ export const publicRoutes = [
 ]
 
 export const privateRoutes = [
+    {
+        path: '/chat',
+        Component: Chat
+    },
     {
         path: '/chat/:id',
         Component: Chat
@@ -42,8 +47,8 @@ export const privateRoutes = [
         Component: User
     },
     {
-        path: '/myChats',
-        Component: MyChats
+        path: '/settings',
+        Component: Settings
     }
     
 ]

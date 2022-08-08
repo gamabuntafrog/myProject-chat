@@ -12,7 +12,7 @@ export const chatContainer = (mediumOrSmallType: boolean): object => {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            position: 'relative'
+            position: 'relative',
         }
     } else {
         return {
@@ -23,8 +23,8 @@ export const chatContainer = (mediumOrSmallType: boolean): object => {
             flexDirection: 'column',
             justifyContent: 'space-between',
             width: '75%',
-            position: 'relative'
-
+            position: 'relative',
+            pt: 1
         }
     }
 
@@ -43,3 +43,9 @@ export const chatSection = (type: screenTypes) => {
     })
 }
 
+export const logo = {
+    fontWeight: 600,
+    fontSize: 100,
+    textDecoration: 'none',
+    color: 'white'
+}

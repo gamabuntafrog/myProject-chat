@@ -4,7 +4,7 @@ import {Typography, Grid, Button, Link} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import Avatar from '@mui/material/Avatar';
-import {FC, useContext} from "react";
+import {FC, useContext, useEffect, useState} from "react";
 import {Context} from "../../index";
 import React from 'react';
 import {headerMenuContainer, navLink, userInfo, userInfoAvatar} from "./HeaderMenuStyles";
@@ -14,19 +14,24 @@ import InfoIcon from '@mui/icons-material/Info';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import SearchIcon from '@mui/icons-material/Search';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
-
+import SettingsIcon from '@mui/icons-material/Settings';
+import {useCollectionData} from "react-firebase-hooks/firestore";
+import {collection, query, where} from "firebase/firestore";
+import {chatType} from "../../types/chatType";
 
 type HeaderMenuPropTypes = {
     toggleModal: () => void
 }
 
 const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
+    const {user, firestore, auth} = useContext(Context)!
 
-    const {user, auth} = useContext(Context)!
+
     const outFromAccount = () => {
         signOut(auth).then(res => res)
         toggleModal()
     }
+
 
     if (user) {
         return (
@@ -53,6 +58,14 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
                 </NavLink>
             </Grid>
             <Grid item xs={12} >
+                <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={'/settings'}>
+                    <SettingsIcon sx={{mr: 1}}/>
+                    <Typography variant={'h5'}>
+                        Настройки
+                    </Typography>
+                </NavLink>
+            </Grid>
+            <Grid item xs={12} >
                 <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={'/about'}>
                     <InfoIcon sx={{mr: 1}}/>
                     <Typography variant='h5'>
@@ -60,16 +73,15 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
                     </Typography>
                 </NavLink>
             </Grid>
-            {user.subscribedChats[0] &&
                 <Grid item xs={12} >
-                    <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={`/chat/${user.subscribedChats[0]}`}>
+                    <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={`/chat`}>
                         <TelegramIcon sx={{mr: 1}}/>
                         <Typography variant={'h5'}>
                             Мои чаты
                         </Typography>
                     </NavLink>
                 </Grid>
-            }
+
             <Grid item xs={12} >
                 <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={'/search'}>
                     <SearchIcon sx={{mr: 1}}/>

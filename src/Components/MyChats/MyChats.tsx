@@ -42,14 +42,14 @@ const MyChats: FC<MyChatsPT> = ({isChatListOpen, setIsChatListOpen}) => {
                     usersObject[user.data()?.userId] = user.data()
                 }
             })
-            console.log(usersObject)
+            // console.log(usersObject)
             setUsers(usersObject)
         })
     }
 
     useEffect(() => {
         if (chats) {
-            console.log(chats)
+            // console.log(chats)
             fetchUsers(chats)
         }
     }, [chats]);
@@ -87,18 +87,18 @@ const MyChats: FC<MyChatsPT> = ({isChatListOpen, setIsChatListOpen}) => {
                         <Button onClick={() => setIsChatListOpen(false)} variant='contained' color='error' sx={closeButton}>Закрыть</Button>
             }
             <Box sx={myChatBar}>
-                {user!.subscribedChats.length > 0 ?
-                    <>
-                        <TextField fullWidth placeholder='Поиск' sx={myChatBarInput} variant='standard' onChange={(e) => setFilterValue(e.target.value)}/>
-                        <Typography sx={myChatBarChats}>Ваши чаты ({user?.subscribedChats.length}):</Typography>
-                    </>
-                    :
-                    <Typography sx={{textAlign: 'center', mt: 5}}>Ваш список пустой</Typography>
-                }
+                {/*{user!.subscribedChats.length > 0 ?*/}
+                {/*    <>*/}
+                {/*        <TextField fullWidth placeholder='Поиск' sx={myChatBarInput} variant='standard' onChange={(e) => setFilterValue(e.target.value)}/>*/}
+                {/*        <Typography sx={myChatBarChats}>Ваши чаты ({user?.subscribedChats.length}):</Typography>*/}
+                {/*    </>*/}
+                {/*    :*/}
+                {/*    <Typography sx={{textAlign: 'center', mt: 5}}>Ваш список пустой</Typography>*/}
+                {/*}*/}
             </Box>
                 <List sx={chatList} >
                     {users && filteredChats?.map((chat: chatType) => {
-                        console.log(chat)
+                        // console.log(chat)
                         const {lastMessage, chatId, chatImage, chatName} = chat
                         const user = users[lastMessage.userId]
 

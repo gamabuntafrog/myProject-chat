@@ -1,7 +1,7 @@
 
 
 .messageItem {
-    background-color: #121212;
+    /*background-color: #121212;*/
     position: relative;
     transition: 0.2s ease-out;
 
@@ -19,10 +19,12 @@
     display: flex !important;
     position: absolute;
     top: 0;
-    right: 0;
+    right: -5px;
 }
 
 .focus {
-    background-color: #474747;
+    padding: 16px;
+    background-color: rgba(1,1,1, 0.5);
     transition: 0.2s ease-in;
+    width: 100% !important;
 }

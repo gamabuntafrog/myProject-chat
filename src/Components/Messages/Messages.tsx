@@ -54,6 +54,7 @@ const Messages: FC<MessagesPropTypes> = ({
     const [replyMessages, setReplyMessages] = useState(null);
 
     const type = useGetTypeOfScreen()
+    const isMobileOrMediumScreen = (type === screenTypes.smallType || type === screenTypes.mediumType)
 
     const history = useHistory()
 
@@ -212,7 +213,7 @@ const Messages: FC<MessagesPropTypes> = ({
               modalInfo={userModalInfo}
               setIsUserModalOpen={setIsUserModalOpen}
             />}
-        <List ref={listRef} sx={messagesList}>
+        <List ref={listRef} sx={messagesList(isMobileOrMediumScreen, me?.messagesBackground)}>
             {subscribedUsers && replyMessages && messages?.map((message: messagesType, i: number) => {
                 if (message.messageType === messagesExemplar.startMessage) {
                     return (
@@ -234,27 +235,33 @@ const Messages: FC<MessagesPropTypes> = ({
                     if (isMyMessage) {
                         const isMessageChanging = messageId === changingMessageId
 
+                        const isMessageBeforeIsMine = messages[i - 1].userId === message.userId
+                        const isMessageAfterThisMine = messages[i + 1]?.userId === message.userId
                         return (
                             <ListItem
                                 className={'messageItem'}
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                                sx={{px: 1, width: '100%', borderRadius: 3}}
+                                sx={{padding: 0, width: 'auto', pr: 5, mt: 1, borderRadius: 3, display: 'inline-flex', alignItems: 'end'}}
                                 key={messageId}
                             >
                                 <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={avatarWrapper}>
-                                    <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/>
+                                    {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                                 </Box>
-                                <Box sx={messageWrapper}>
+                                <Box sx={messageWrapper(isMessageBeforeIsMine)}>
                                     {!isMessageChanging ?
                                             <>
                                                 <Box sx={userWrapper}>
-                                                    <Typography onClick={(e) => showUserInfo(e, subscribedUser)} sx={activeUsername(me!.nicknameColor)} variant='subtitle1'>
-                                                        {subscribedUser ? subscribedUser.nickname : userId}
-                                                    </Typography>
-                                                    {subscribedUser?.isAdmin &&
-                                                        <Typography variant='subtitle1' sx={userRole}>
-                                                            Админ
-                                                        </Typography>
+                                                    {!isMessageBeforeIsMine &&
+                                                        <>
+	                                                        <Typography onClick={(e) => showUserInfo(e, subscribedUser)} sx={activeUsername(me!.nicknameColor)} variant='subtitle1'>
+                                                              {subscribedUser ? subscribedUser.nickname : userId}
+	                                                        </Typography>
+                                                            {subscribedUser?.isAdmin &&
+		                                                        <Typography variant='subtitle1' sx={userRole}>
+			                                                        Админ
+		                                                        </Typography>
+                                                            }
+                                                        </>
                                                     }
                                                     <IconButton className='miniContextmenu' onClick={() => {
                                                         setIsReplying(true)
@@ -271,7 +278,8 @@ const Messages: FC<MessagesPropTypes> = ({
                                                             <EllipsisText sx={{wordBreak: 'break-all'}} text={replyMessage.message} length={30}/>
                                                             :
                                                             <Typography color='error' sx={{}}>Сообщение удалено</Typography>
-                                                        }                                                    </Box>
+                                                        }
+                                                    </Box>
                                                 </Box>
                                                 <Typography>{message.message}</Typography>
                                             </>
@@ -306,25 +314,37 @@ const Messages: FC<MessagesPropTypes> = ({
                             </ListItem>
                         )
                     } else {
+                        const isMessageBeforeIsMine = messages[i - 1].userId === message.userId
+                        const isMessageAfterThisMine = messages[i + 1]?.userId === message.userId
+
                         return (
                             <ListItem
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                                sx={{px: 1, borderRadius: 3}}
+                                sx={{padding: 0, width: 'auto', pr: 5, mt: 1, borderRadius: 3, display: 'inline-flex', alignItems: 'end'}}
                                 key={message.createdAt}
                                 className={'messageItem'}
                             >
                                 <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={{mr: 3, cursor: 'pointer'}}>
-                                    <Avatar sx={{width: 50, height: 50}} src={`${subscribedUser?.photoURL}`} alt="avatar"/>
+                                    {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                                 </Box>
-                                <Box sx={{flexGrow: 1, }}>
+                                <Box sx={messageWrapper(isMessageBeforeIsMine)}>
                                     <Box sx={{alignItems: 'center', display: 'flex'}}>
-                                        <Typography onClick={(e) => showUserInfo(e, subscribedUser)} sx={{cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all', color: subscribedUser?.nicknameColor || ''}} variant={'subtitle1'}>
-                                            {subscribedUser ? subscribedUser.nickname : userId}
-                                        </Typography>
-                                        {subscribedUser?.isAdmin &&
-                                            <Typography variant={'subtitle1'} sx={{display: 'inline-block', ml: 1, fontSize: '12px', cursor: 'default'}}>
-                                                Админ
-                                            </Typography>
+                                        {!isMessageBeforeIsMine && <>
+			                                    <Typography onClick={(e) => {
+                                              const {pageX, pageY} = e
+                                              if (subscribedUser) {
+                                                  setIsUserModalOpen(true)
+                                                  setUserModalInfo({user: subscribedUser, pageX, pageY})
+                                              }
+                                          }} sx={{color: subscribedUser?.nicknameColor ? subscribedUser.nicknameColor : '', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
+                                              {subscribedUser?.nickname || userId}
+			                                    </Typography>
+                                            {subscribedUser?.isAdmin &&
+				                                    <Typography variant={'subtitle1'} sx={{display: 'inline-block', ml: 1, fontSize: '12px', cursor: 'default'}}>
+					                                    Админ
+				                                    </Typography>
+                                            }
+		                                    </>
                                         }
                                         <IconButton className='miniContextmenu' onClick={() => {
                                             setIsReplying(true)
@@ -353,10 +373,10 @@ const Messages: FC<MessagesPropTypes> = ({
 
                 }
 
-                // const id = el.userId
-                // const user = subscribedUsers[userId]
-                // const isMyMessage = el.userId === me?.userId;
-                // console.log(me)
+                const isMessageBeforeIsMine = messages[i - 1].userId === message.userId
+                const isMessageAfterThisMine = messages[i + 1]?.userId === message.userId
+
+
                 switch (isMyMessage) {
                     case true:
                         const isMessageChanging = message.messageId === changingMessageId
@@ -364,39 +384,42 @@ const Messages: FC<MessagesPropTypes> = ({
                         return (
                             <ListItem
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                                sx={{px: 1, borderRadius: 3}}
-                                key={message.createdAt}
+                                sx={{padding: 0, width: 'auto', pr: 5, mt: 1, borderRadius: 3, display: 'inline-flex', alignItems: 'end'}}                                key={message.createdAt}
                                 className={'messageItem'}
                                 id={message.messageId}
                             >
-                            <Box onClick={(e) => {
-                                const {pageX, pageY} = e
-                                if (subscribedUser) {
-                                    setIsUserModalOpen(true)
-                                    setUserModalInfo({user: subscribedUser, pageX, pageY})
-                                }
-                                setIsContextMenuOpen(false)
-                            }} sx={{mr: 3, cursor: 'pointer'}}>
-                                <Avatar sx={{width: 50, height: 50}} src={`${subscribedUser?.photoURL}`} alt="avatar"/>
-                            </Box>
-                            <Box sx={{flexGrow: 1, }}>
+                               <Box onClick={(e) => {
+                                    const {pageX, pageY} = e
+                                    if (subscribedUser) {
+                                        setIsUserModalOpen(true)
+                                        setUserModalInfo({user: subscribedUser, pageX, pageY})
+                                    }
+                                    setIsContextMenuOpen(false)
+                                }} sx={{mr: 3, cursor: 'pointer'}}>
+                                   {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
+                                </Box>
+                            <Box sx={messageWrapper(isMessageBeforeIsMine)}>
                                 {!isMessageChanging ?
                                     <>
                                     <Box sx={{alignItems: 'center', display: 'flex'}}>
-                                        <Typography onClick={(e) => {
-                                            const {pageX, pageY} = e
-                                            if (subscribedUser) {
-                                                setIsUserModalOpen(true)
-                                                setUserModalInfo({user: subscribedUser, pageX, pageY})
+                                        {!isMessageBeforeIsMine && <>
+	                                        <Typography onClick={(e) => {
+                                              const {pageX, pageY} = e
+                                              if (subscribedUser) {
+                                                  setIsUserModalOpen(true)
+                                                  setUserModalInfo({user: subscribedUser, pageX, pageY})
+                                              }
+                                            }} sx={{color: me?.nicknameColor ? me.nicknameColor : '', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
+                                              {subscribedUser?.nickname || userId}
+	                                        </Typography>
+                                            {subscribedUser?.isAdmin &&
+		                                        <Typography variant={'subtitle1'} sx={{display: 'inline-block', ml: 1, fontSize: '12px', cursor: 'default'}}>
+			                                        Админ
+		                                        </Typography>
                                             }
-                                        }} sx={{color: me?.nicknameColor ? me.nicknameColor : '', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
-                                            {subscribedUser?.nickname || userId}
-                                        </Typography>
-                                        {subscribedUser?.isAdmin &&
-				                                <Typography variant={'subtitle1'} sx={{display: 'inline-block', ml: 1, fontSize: '12px', cursor: 'default'}}>
-					                                Админ
-				                                </Typography>
+                                        </>
                                         }
+
                                         <IconButton className='miniContextmenu' onClick={() => {
                                             setIsReplying(true)
                                             setReplyMessageInfo(message)
@@ -439,8 +462,8 @@ const Messages: FC<MessagesPropTypes> = ({
                             <ListItem
                             className={'messageItem'}
                             onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                            sx={{px: 1, borderRadius: 3}}
-                            key={message.createdAt}
+                            sx={{padding: 0, width: 'auto', pr: 5, mt: 1, borderRadius: 3, display: 'inline-flex', alignItems: 'end'}}
+                            key={message.messageId}
                         >
                             <Box onClick={(e) => {
                                 const {pageX, pageY} = e
@@ -449,23 +472,26 @@ const Messages: FC<MessagesPropTypes> = ({
                                     setUserModalInfo({user: subscribedUser, pageX, pageY})
                                 }
                             }} sx={{mr: 3, cursor: 'pointer'}}>
-                                <Avatar sx={{width: 50, height: 50}} src={`${subscribedUser?.photoURL || blackBackground}`} alt="avatar"/>
+                                {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                             </Box>
-                            <Box sx={{flexGrow: 1}}>
+                            <Box sx={messageWrapper(isMessageBeforeIsMine)}>
                                 <Box sx={{alignItems: 'center', display: 'flex'}}>
-                                    <Typography onClick={(e) => {
-                                        const {pageX, pageY} = e
-                                        if (subscribedUser) {
-                                            setIsUserModalOpen(true)
-                                            setUserModalInfo({user: subscribedUser, pageX, pageY})
+                                    {!isMessageBeforeIsMine && <>
+			                                <Typography onClick={(e) => {
+                                          const {pageX, pageY} = e
+                                          if (subscribedUser) {
+                                              setIsUserModalOpen(true)
+                                              setUserModalInfo({user: subscribedUser, pageX, pageY})
+                                          }
+                                      }} sx={{color: subscribedUser?.nicknameColor ? subscribedUser.nicknameColor : '', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
+                                          {subscribedUser?.nickname || userId}
+			                                </Typography>
+                                        {subscribedUser?.isAdmin &&
+				                                <Typography variant={'subtitle1'} sx={{display: 'inline-block', ml: 1, fontSize: '12px', cursor: 'default'}}>
+					                                Админ
+				                                </Typography>
                                         }
-                                    }} sx={{color: subscribedUser?.nicknameColor || '', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
-                                        {subscribedUser?.nickname || userId}
-                                    </Typography>
-                                    {subscribedUser?.isAdmin &&
-                                        <Typography variant={'subtitle1'} sx={{display: 'inline-block', ml: 1, fontSize: '12px', cursor: 'default'}}>
-                                           Админ
-                                        </Typography>
+		                                </>
                                     }
                                     <IconButton className='miniContextmenu' onClick={() => {
                                         setIsReplying(true)

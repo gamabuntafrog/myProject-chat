@@ -28,7 +28,7 @@ const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, 
     const {firestore, user} = useContext(Context)!;
 
     const type = useGetTypeOfScreen()
-    const isMobileScreen = type === screenTypes.smallType
+    const isMobileScreen = (type === screenTypes.smallType)
 
     const copyText = (text: string) => {
         const data = [new ClipboardItem({ "text/plain": new Blob([text], { type: "text/plain" }) })];
@@ -43,12 +43,15 @@ const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, 
         setIsContextMenuOpen(false)
     }
 
+    const staticTop = (window.innerHeight / 1.4)
+    const mobileStaticLeft = (window.innerWidth / 2.4)
+
     return (
         <Box display='flex' textAlign='center' flexDirection='column' justifyContent='center'
              position='fixed'
              sx={{
-                 top: `${modalInfo.pageY + 30}px`,
-                 left: `${modalInfo.pageX + - 180}px`,
+                 top: modalInfo.pageY > staticTop ? staticTop : `${modalInfo.pageY + 10}px`,
+                 left: isMobileScreen ? mobileStaticLeft : `${modalInfo.pageX + 10}px`,
                  padding: '10px',
                  backgroundColor: '#242424',
                  zIndex: 101,

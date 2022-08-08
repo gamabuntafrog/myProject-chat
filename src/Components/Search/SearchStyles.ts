@@ -7,7 +7,7 @@ export const searchSection = {
     alignItems: 'center',
     justifyContent: 'center',
     height: '100vh',
-    pt: 100
+    pt: '20%'
 }
 
 export const searchContainer = (type: screenTypes) => {
@@ -24,7 +24,6 @@ export const searchContainer = (type: screenTypes) => {
 
 export const searchExample = {
     mb: 5,
-    color: '#1976d2'
 }
 
 export const createChatInput = {

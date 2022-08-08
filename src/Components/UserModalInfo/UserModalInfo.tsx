@@ -17,10 +17,10 @@ type UserModalInfoPT = {
 
 const UserModalInfo: FC<UserModalInfoPT> = ({modalInfo, setIsUserModalOpen}) => {
 
-    console.log(modalInfo)
-    console.log(window.innerHeight)
     const type = useGetTypeOfScreen()
     const isMobileScreen = type === screenTypes.smallType
+
+    const maxTopOfModal = (window.innerHeight / 2)
 
     return (
         <Box display='flex' textAlign='center' flexDirection='column' justifyContent='center'
@@ -38,7 +38,7 @@ const UserModalInfo: FC<UserModalInfoPT> = ({modalInfo, setIsUserModalOpen}) => 
                  }
                  :
                  {
-                     top: modalInfo.pageY > 580 ? '580px' : `${modalInfo.pageY + 20}px`,
+                     top: modalInfo.pageY > maxTopOfModal ? maxTopOfModal : `${modalInfo.pageY - 20}px`,
                      left: `${modalInfo.pageX + 20}px`,
                      padding: '20px',
                      backgroundColor: modalInfo.user?.nicknameColor || '#121212',
