@@ -1,4 +1,4 @@
-import React, {FC, useContext, useEffect, useState} from "react";
+import React, {FC, useContext, useEffect, useRef, useState} from "react";
 import shortid from 'shortid';
 import {useParams} from "react-router-dom";
 import {arrayUnion, doc, setDoc, updateDoc} from "firebase/firestore";
@@ -8,11 +8,11 @@ import ReplyIcon from '@mui/icons-material/Reply';
 import SendIcon from '@mui/icons-material/Send';
 import '../../App.css';
 import ChatInfo from "../ChatInfo";
-import {messagesExemplar} from '../../types/messages';
+import {messagesExemplar, messagesType, messageType, replyMessageType} from '../../types/messages';
 import CloseIcon from "@mui/icons-material/Close";
-// @ts-ignore
 import EllipsisText from "react-ellipsis-text";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
+import { emojiType } from "../Chat/Chat";
 
 type EntryFieldPT = {
     chatName: string,
@@ -24,21 +24,26 @@ type EntryFieldPT = {
     setIsReplying: React.Dispatch<React.SetStateAction<boolean>>
     replyMessageInfo: any,
     setIsChatListOpen: React.Dispatch<React.SetStateAction<boolean>>,
-    isChatListOpen: boolean
+    isChatListOpen: boolean,
+    showMessageOnReply: (message: messagesType) => void,
+    listRef: React.MutableRefObject<HTMLUListElement | null>,
+    emoji: emojiType | null
 }
 
 const EntryField: FC<EntryFieldPT> = ({
-        chatName,
-        users,
-        chatId,
-        chatDescription,
-        chatImage,
-        isReplying,
-        replyMessageInfo,
-        setIsReplying,
-        setIsChatListOpen,
-        isChatListOpen
-    }) => {
+    chatName,
+    users,
+    chatId,
+    chatDescription,
+    chatImage,
+    isReplying,
+    replyMessageInfo,
+    setIsReplying,
+    setIsChatListOpen,
+    isChatListOpen,
+    showMessageOnReply,
+    emoji
+}) => {
 
     const { firestore, user, isUserLoading} = useContext(Context)!
 
@@ -47,12 +52,33 @@ const EntryField: FC<EntryFieldPT> = ({
     const [message, setMessage] = useState('');
     const [open, setOpen] = useState(false);
 
+    const inputRef = useRef<null | HTMLInputElement>(null);
+
     const type = useGetTypeOfScreen()
+
+    useEffect(() => {
+        if (isReplying) {
+            inputRef.current!.focus()
+            console.log(inputRef)
+        }
+
+    }, [isReplying]);
+
 
     useEffect(() => {
         setIsReplying(false)
         setMessage('')
     }, [id]);
+
+    useEffect(() => {
+        if (emoji) {
+            console.log(emoji)
+            setMessage(prev => {
+                return prev + emoji.emoji
+            })
+        }
+
+    }, [emoji]);
 
 
     const subscribeUser = async () => {
@@ -155,15 +181,17 @@ const EntryField: FC<EntryFieldPT> = ({
                 setIsChatListOpen={setIsChatListOpen}
             />
             {isReplying &&
-		        <Box sx={{display: 'flex', mb: 1, alignItems: 'center'}}>
-			        <ReplyIcon sx={{width: '30px', height: '30px', mr: 1}}/>
-			        <Box>
-				        <Typography>{users[replyMessageInfo.userId].nickname}</Typography>
-				        <Typography >
-                            <EllipsisText text={replyMessageInfo.message} length={150}/>
-                        </Typography>
+		        <Box sx={{display: 'flex', mb: 1, alignItems: 'center', cursor: 'pointer'}}>
+                    <Box sx={{display: 'flex', alignItems: 'center', width: '100%'}} onClick={() => showMessageOnReply(replyMessageInfo)}>
+	                    <ReplyIcon sx={{width: '30px', height: '30px', mr: 1}}/>
+	                    <Box>
+		                    <Typography>{users[replyMessageInfo.userId].nickname}</Typography>
+		                    <Typography >
+			                    <EllipsisText text={replyMessageInfo.message} length={150}/>
+		                    </Typography>
+	                    </Box>
+                    </Box>
 
-			        </Box>
 			        <Button color={'error'} sx={{ml: 'auto'}} onClick={() => setIsReplying(false)}>
 				        <CloseIcon />
 			        </Button>
@@ -182,6 +210,7 @@ const EntryField: FC<EntryFieldPT> = ({
                     onKeyPress={(e) => {
                         if (e.key === "Enter") return submitPost() //submit
                     }}
+                    ref={inputRef}
                 />
                 <Button sx={{ml: 1, borderRadius: type === screenTypes.largeType ? '4px' : '50px'}} variant="outlined" onClick={submitPost}>
                     <SendIcon/>

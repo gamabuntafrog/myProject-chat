@@ -31,3 +31,29 @@
         padding-top: 56px;
     }
 }
+
+.emoji-picker-react .emoji-scroll-wrapper {
+    overflow-x: hidden;
+    background-color: #121212;
+}
+
+.emoji-picker-react .emoji-group:before {
+    background-color: #121212 !important;
+
+}
+
+.emoji-picker-react input.emoji-search {
+    background-color: #121212 !important;
+    border: 1px solid #363636 !important;
+    margin-top: 10px;
+}
+aside.emoji-picker-react {
+    box-shadow: none !important;
+}
+.emoji-picker-react div.skin-tones-list {
+    top: 24px !important;
+}
+.emoji-picker-react .emoji-categories {
+    display: none !important;
+}
+

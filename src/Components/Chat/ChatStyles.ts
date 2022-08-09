@@ -17,14 +17,15 @@ export const chatContainer = (mediumOrSmallType: boolean): object => {
     } else {
         return {
             backgroundColor: '#121212',
-            maxWidth: '75%',
+            maxWidth: '60%',
             zIndex: '100',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             width: '75%',
             position: 'relative',
-            pt: 1
+            pt: 1,
+            margin: '0 auto'
         }
     }
 

@@ -17,6 +17,7 @@ const Settings: FC = () => {
         await setDoc(doc(firestore, 'users', user!.userId), {
             messagesBackground: backgroundRef
         }, {merge: true})
+        setBackgroundRef('')
     }
 
     return (

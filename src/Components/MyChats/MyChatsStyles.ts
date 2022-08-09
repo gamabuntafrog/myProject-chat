@@ -18,7 +18,7 @@ export const myChatsSection = (mediumOfSmallType: boolean, isChatListOpen: boole
     } else {
         return {
             position: 'relative',
-            width: '25%',
+            width: '20%',
             zIndex: 1000,
             backgroundColor: '#121212',
             overflowY: 'auto',

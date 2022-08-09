@@ -6,8 +6,10 @@ import {Context} from "../../index";
 import ReplyIcon from "@mui/icons-material/Reply";
 import EditIcon from '@mui/icons-material/Edit';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import {messagesType} from "../../types/messages";
+import {messagesExemplar, messagesType} from "../../types/messages";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
+import {chatType} from "../../types/chatType";
+import shortid from "shortid";
 
 type MessageContextMenuPT = {
     modalInfo: {
@@ -21,9 +23,22 @@ type MessageContextMenuPT = {
     chatId: string,
     setIsContextMenuOpen: React.Dispatch<React.SetStateAction<boolean>>,
     myId: string,
-    setChangingMessageId: React.Dispatch<React.SetStateAction<string>>
+    setChangingMessageId: React.Dispatch<React.SetStateAction<string>>,
+    chatInfo: chatType | undefined,
+    secondLastMessage: messagesType[] | undefined
 }
-const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, setReplyMessageInfo, chatId, setIsContextMenuOpen, myId,setChangingMessageId}) => {
+const MessageContextMenu: FC<MessageContextMenuPT> =
+    ({
+        modalInfo,
+        setIsReplying,
+        setReplyMessageInfo,
+        chatId,
+        setIsContextMenuOpen,
+        myId,
+        setChangingMessageId,
+        chatInfo,
+        secondLastMessage
+    }) => {
 
     const {firestore, user} = useContext(Context)!;
 
@@ -41,6 +56,15 @@ const MessageContextMenu: FC<MessageContextMenuPT> = ({modalInfo,setIsReplying, 
     const onDelete = async (messageId: string) => {
         await deleteDoc(doc(firestore, 'chats', `${chatId}`, 'messages', `${messageId}`))
         setIsContextMenuOpen(false)
+
+        if (chatInfo!.lastMessage.messageId === messageId) {
+            const newMessageId = `${user!.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
+
+            const chatRef = doc(firestore, 'chats', `${chatId}`)
+            await setDoc(chatRef, {
+                lastMessage: secondLastMessage![0]
+            }, {merge: true})
+        }
     }
 
     const staticTop = (window.innerHeight / 1.4)

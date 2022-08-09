@@ -110,7 +110,7 @@ const MyChats: FC<MyChatsPT> = ({isChatListOpen, setIsChatListOpen}) => {
                                 key={chat?.chatId}
                             >
                                 <ListItem sx={item} >
-                                    <Avatar sx={{mr: 2}} src={chat?.chatImage ? chat.chatImage : blackBackground}/>
+                                    <Avatar sx={{mr: 1.5}} src={chat?.chatImage ? chat.chatImage : blackBackground}/>
                                     <Box sx={{overflow: 'hidden'}}>
                                         <Typography sx={{fontWeight: '800'}}>
                                             {chat?.chatName}

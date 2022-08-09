@@ -21,10 +21,33 @@
     top: 0;
     right: -5px;
 }
+
+@media screen and (max-width: 600px) {
+    .messageItem:hover .miniContextmenu {
+        display: flex !important;
+        position: absolute;
+        top: 0;
+        right: 10px;
+    }
+    .message {
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none;   /* Chrome/Safari/Opera */
+        -khtml-user-select: none;    /* Konqueror */
+        -moz-user-select: none;      /* Firefox */
+        -ms-user-select: none;       /* Internet Explorer/Edge */
+        user-select: none;           /* Non-prefixed version, currently */
+    }
+}
+
+
+
+
 .message {
     transition: 0.2s ease-out;
-
 }
+
+
+
 .focus .message {
     background-color: lightgrey !important;
     color: black;

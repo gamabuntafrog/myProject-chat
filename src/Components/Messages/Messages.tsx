@@ -13,8 +13,8 @@ import {user} from "../../types/user";
 import {
     activeUsername,
     avatarWrapper,
-    messageContainer,
-    messagesList,
+    messageContainer, messageLeftLine, messageListItem,
+    messagesList, messageStyles,
     messageWrapper,
     userRole,
     userWrapper
@@ -23,6 +23,7 @@ import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import './Messages.css';
 import ReplyIcon from "@mui/icons-material/Reply";
 import {useHistory} from "react-router-dom";
+import {chatType} from "../../types/chatType";
 
 type MessagesPropTypes = {
     chatId: string,
@@ -30,7 +31,10 @@ type MessagesPropTypes = {
     subscribedUsers: any,
     setIsReplying: React.Dispatch<React.SetStateAction<boolean>>
     setReplyMessageInfo: React.Dispatch<React.SetStateAction<any>>,
-    isChatChanging: boolean
+    isChatChanging: boolean,
+    showRepliedMessage: (message: replyMessageType) => void,
+    listRef: React.MutableRefObject<HTMLUListElement | null>,
+    chatInfo: chatType | undefined
 }
 
 const Messages: FC<MessagesPropTypes> = ({
@@ -39,13 +43,15 @@ const Messages: FC<MessagesPropTypes> = ({
     subscribedUsers,
     setReplyMessageInfo,
     setIsReplying,
-    isChatChanging
+    isChatChanging,
+    showRepliedMessage,
+    listRef,
+    chatInfo
 }) => {
 
     const {user: me, firestore} = useContext(Context)!
     const [userModalInfo, setUserModalInfo] = useState<null | any>(null);
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-    const listRef = useRef<null | HTMLUListElement>(null);
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
     const [contextMenuInfo, setContextMenuInfo] = useState<any>(null);
     const [changeMessageInputValue, setChangeMessageInputValue] = useState('');
@@ -55,6 +61,7 @@ const Messages: FC<MessagesPropTypes> = ({
 
     const type = useGetTypeOfScreen()
     const isMobileOrMediumScreen = (type === screenTypes.smallType || type === screenTypes.mediumType)
+    const isMobile = type === screenTypes.smallType
 
     const history = useHistory()
 
@@ -141,6 +148,7 @@ const Messages: FC<MessagesPropTypes> = ({
     }
 
     const changeMessage = async (message: messagesType) => {
+        console.log(chatInfo)
 
         const newMessage = {...message, message: changeMessageInputValue, changedAt: Date.now()}
         console.log(newMessage)
@@ -148,6 +156,15 @@ const Messages: FC<MessagesPropTypes> = ({
         try {
             const messageRef = doc(firestore, 'chats', `${chatId}`, 'messages', `${message.messageId}`)
             await setDoc(messageRef, newMessage)
+
+
+            if (chatInfo && chatInfo.lastMessage.messageId === message.messageId) {
+                const chatRef = doc(firestore, 'chats', `${chatId}`)
+                await setDoc(chatRef, {
+                    lastMessage: newMessage
+                }, {merge: true})
+
+            }
         } catch (e) {
             console.log(e)
         } finally {
@@ -156,36 +173,7 @@ const Messages: FC<MessagesPropTypes> = ({
         }
     }
 
-    const showRepliedMessage = (repliedMessage: replyMessageType) => {
-        const indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
-            return repliedMessage.replyer.messageId === message.messageId
-        })
-        if (indexOfReplyerMessage >= 0) {
-            const child = listRef.current!.children[indexOfReplyerMessage]
-            child.scrollIntoView({block: 'center', behavior: "smooth"})
-            const focusMessage = () => {
-                if (isInViewport(child)) {
-                    child.classList.add('focus')
 
-                    setTimeout(() => {
-                        child.classList.remove('focus')
-                        listRef.current!.removeEventListener('scroll', focusMessage)
-                    }, 1500)
-                }
-            }
-            focusMessage()
-            listRef.current!.addEventListener('scroll', focusMessage)
-        }
-        function isInViewport(element: any) {
-            const rect = element.getBoundingClientRect();
-            return (
-                rect.top >= 0 &&
-                rect.left >= 0 &&
-                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-            );
-        }
-    }
 
     if (!messages && !subscribedUsers && !me) {
         return <List sx={{minHeight: '90vh'}}>
@@ -195,7 +183,7 @@ const Messages: FC<MessagesPropTypes> = ({
 
     const blackBackground = 'https://www.tynker.com/minecraft/api/block?id=5993332e76f2936e3f8b4586&w=400&h=400&width=400&height=400&mode=contain&format=jpg&quality=75&cache=max&v=1502819118'
 
-
+    const secondLastMessage = messages?.slice(messages?.length - 2, messages?.length - 1)
 
     return (
         <>
@@ -208,6 +196,8 @@ const Messages: FC<MessagesPropTypes> = ({
               setIsContextMenuOpen={setIsContextMenuOpen}
               myId={me.userId}
               setChangingMessageId={setChangingMessageId}
+              chatInfo={chatInfo}
+              secondLastMessage={secondLastMessage}
             />}
             {isUserModalOpen && <UserModalInfo
               modalInfo={userModalInfo}
@@ -229,9 +219,8 @@ const Messages: FC<MessagesPropTypes> = ({
 
                 if (messageType === messagesExemplar.replyMessage) {
                     const subscribedReplyerUser = subscribedUsers[message.replyer.userId]
-                    // console.log(replyMessages[messageId])
                     const replyMessage: replyMessageType = (replyMessages[message.replyer.messageId])
-                    // console.log(replyMessage)
+
                     if (isMyMessage) {
                         const isMessageChanging = messageId === changingMessageId
 
@@ -241,13 +230,13 @@ const Messages: FC<MessagesPropTypes> = ({
                             <ListItem
                                 className={'messageItem'}
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                                sx={{padding: 0, width: 'auto', pr: 5, mt: 1, borderRadius: 3, display: 'inline-flex', alignItems: 'end'}}
+                                sx={messageListItem(isMobile)}
                                 key={messageId}
                             >
                                 <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={avatarWrapper}>
                                     {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                                 </Box>
-                                <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine)}>
+                                <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile)}>
                                     {!isMessageChanging ?
                                             <>
                                                 <Box sx={userWrapper}>
@@ -271,22 +260,24 @@ const Messages: FC<MessagesPropTypes> = ({
                                                     </IconButton>
                                                 </Box>
                                                 <Box sx={messageContainer}>
-                                                    <Box sx={{height: '45px', width: '2px', backgroundColor: 'white', mr: 1}} />
+                                                    <Box sx={messageLeftLine} />
                                                     <Box onClick={() => showRepliedMessage(message)} sx={{cursor: 'pointer'}}>
                                                         <Typography sx={{color: subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || '' : subscribedReplyerUser?.nicknameColor || '', cursor: 'pointer' }}>{subscribedReplyerUser?.nickname}</Typography>
                                                         {replyMessage ?
-                                                            <EllipsisText sx={{wordBreak: 'break-all'}} text={replyMessage.message} length={30}/>
+                                                            <EllipsisText sx={messageStyles} text={replyMessage.message} length={30}/>
                                                             :
                                                             <Typography color='error' sx={{}}>Сообщение удалено</Typography>
                                                         }
                                                     </Box>
                                                 </Box>
-                                                <Typography>{message.message}</Typography>
+                                                <Typography sx={messageStyles}>
+                                                    {message.message}
+                                                </Typography>
                                             </>
                                         :
                                             <Box>
                                                 <Box sx={{display: 'flex', wordBreak: 'break-all'}}>
-                                                    <Box sx={{height: '45px', width: '2px', backgroundColor: 'white', mr: 1}}/>
+                                                    <Box sx={messageLeftLine}/>
                                                     <Box>
                                                         <Typography onClick={(e) => showUserInfo(e, subscribedReplyerUser)} sx={{color: subscribedReplyerUser?.userId === me?.userId ? '#2196f3' : '', cursor: 'pointer', wordBreak: 'break-all' }}>{subscribedReplyerUser?.nickname}</Typography>
                                                         <EllipsisText sx={{wordBreak: 'break-all'}} text={message.replyer.message} length={30}/>
@@ -320,14 +311,14 @@ const Messages: FC<MessagesPropTypes> = ({
                         return (
                             <ListItem
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                                sx={{padding: 0, width: 'auto', pr: 5, mt: 1, borderRadius: 3, display: 'inline-flex', alignItems: 'end'}}
+                                sx={messageListItem(isMobile)}
                                 key={message.createdAt}
                                 className={'messageItem'}
                             >
-                                <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={{mr: 3, cursor: 'pointer'}}>
+                                <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={avatarWrapper}>
                                     {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                                 </Box>
-                                <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine)}>
+                                <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile)}>
                                     <Box sx={{alignItems: 'center', display: 'flex'}}>
                                         {!isMessageBeforeIsMine && <>
 			                                    <Typography onClick={(e) => {
@@ -354,17 +345,19 @@ const Messages: FC<MessagesPropTypes> = ({
                                         </IconButton>
                                     </Box>
                                     <Box sx={{display: 'flex',}}>
-                                        <Box sx={{height: '45px', width: '2px', backgroundColor: 'white', mr: 1}}></Box>
+                                        <Box sx={messageLeftLine}></Box>
                                         <Box onClick={() => showRepliedMessage(message)} sx={{cursor: 'pointer'}}>
                                             <Typography sx={{color: subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor : subscribedReplyerUser?.nicknameColor || '', cursor: 'pointer' , wordBreak: 'break-all'}}>{subscribedReplyerUser?.nickname}</Typography>
                                             {replyMessage ?
-                                                <EllipsisText sx={{wordBreak: 'break-all'}} text={replyMessage.message} length={30}/>
+                                                <EllipsisText sx={messageStyles} text={replyMessage.message} length={30}/>
                                                 :
-                                                <Typography color='error' sx={{}}>Сообщение удалено</Typography>
+                                                <Typography color='error'>Сообщение удалено</Typography>
                                             }
                                         </Box>
                                     </Box>
-                                    <Typography>{message.message}</Typography>
+                                    <Typography sx={{messageStyles}}>
+                                        {message.message}
+                                    </Typography>
 
                                 </Box>
                             </ListItem>
@@ -384,7 +377,8 @@ const Messages: FC<MessagesPropTypes> = ({
                         return (
                             <ListItem
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                                sx={{padding: 0, width: 'auto', pr: 5, mt: 1, borderRadius: 3, display: 'inline-flex', alignItems: 'end'}}                                key={message.createdAt}
+                                sx={messageListItem(isMobile)}
+                                key={message.createdAt}
                                 className={'messageItem'}
                                 id={message.messageId}
                             >
@@ -395,10 +389,10 @@ const Messages: FC<MessagesPropTypes> = ({
                                         setUserModalInfo({user: subscribedUser, pageX, pageY})
                                     }
                                     setIsContextMenuOpen(false)
-                                }} sx={{mr: 3, cursor: 'pointer'}}>
+                                }} sx={avatarWrapper}>
                                    {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                                 </Box>
-                            <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine)}>
+                            <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile)}>
                                 {!isMessageChanging ?
                                     <>
                                     <Box sx={{alignItems: 'center', display: 'flex'}}>
@@ -427,7 +421,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                             <ReplyIcon/>
                                         </IconButton>
                                     </Box>
-                                    <Typography sx={{wordBreak: 'break-all'}} variant={'body1'}>
+                                    <Typography sx={messageStyles} variant={'body1'}>
                                         {message.message}
                                     </Typography>
                                     </>
@@ -462,7 +456,7 @@ const Messages: FC<MessagesPropTypes> = ({
                             <ListItem
                             className={'messageItem'}
                             onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                            sx={{padding: 0, width: 'auto', pr: 5, mt: 1, borderRadius: 3, display: 'inline-flex', alignItems: 'end'}}
+                            sx={messageListItem(isMobile)}
                             key={message.messageId}
                         >
                             <Box onClick={(e) => {
@@ -471,10 +465,10 @@ const Messages: FC<MessagesPropTypes> = ({
                                     setIsUserModalOpen(true)
                                     setUserModalInfo({user: subscribedUser, pageX, pageY})
                                 }
-                            }} sx={{mr: 3, cursor: 'pointer'}}>
+                            }} sx={avatarWrapper}>
                                 {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                             </Box>
-                            <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine)}>
+                            <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile)}>
                                 <Box sx={{alignItems: 'center', display: 'flex'}}>
                                     {!isMessageBeforeIsMine && <>
 			                                <Typography onClick={(e) => {
@@ -500,7 +494,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                         <ReplyIcon/>
                                     </IconButton>
                                 </Box>
-                                <Typography sx={{wordBreak: 'break-all'}} variant={'body1'}>
+                                <Typography sx={messageStyles} variant={'body1'}>
                                     {message.message}
                                 </Typography>
                             </Box>

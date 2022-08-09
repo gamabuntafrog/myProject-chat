@@ -1,12 +1,12 @@
 import {collection, getDoc,orderBy, query, doc, } from 'firebase/firestore';
-import React, {FC, useContext, useEffect, useState} from 'react';
+import React, {FC, useContext, useEffect, useRef, useState} from 'react';
 import {NavLink, Route, useParams} from 'react-router-dom';
 import {Context} from '../..';
 import {Container, Box, Typography, Button} from "@mui/material";
 import EntryField from '../EntryField';
 import Messages from '../Messages';
 import {useCollectionData, useDocumentData} from "react-firebase-hooks/firestore";
-import { messagesType } from '../../types/messages';
+import {messagesType, replyMessageType} from '../../types/messages';
 import MyChats from "../MyChats";
 import './Chat.css';
 import {chatContainer, chatSection, logo} from "./ChatStyles";
@@ -14,7 +14,15 @@ import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import Loader from "../Loader";
 import {justifyColumnCenter} from "../GeneralStyles";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import Picker, { SKIN_TONE_MEDIUM_DARK } from 'emoji-picker-react';
 
+export type emojiType = {
+    activeSkinTone: string,
+    emoji: string,
+    names: string[]
+    originalUnified: string,
+    unified: string
+}
 
 const Chat: FC = () => {
 
@@ -31,17 +39,26 @@ const Chat: FC = () => {
     const [isReplying, setIsReplying] = useState(false);
     const [isChatChanging, setIsChatChanging] = useState(false);
 
+    const [chosenEmoji, setChosenEmoji] = useState<null | emojiType>(null);
+
+
+
     const type = useGetTypeOfScreen()
     const mediumOrSmallType = (type === screenTypes.mediumType || type === screenTypes.smallType);
+    const smallType = type === screenTypes.smallType
+    const mediumType = type === screenTypes.mediumType
 
     const chatRef = doc(firestore, 'chats',  `${id}`)
-    const [chatData] = useDocumentData(chatRef)
+    const [chatData] = useDocumentData<any>(chatRef)
 
     const messagesRef = collection(firestore, 'chats',  `${id}`, 'messages')
     const [messagesCollection] = useCollectionData<any>(query(messagesRef, orderBy('createdAt')))
 
     const usersRef = collection(firestore, 'chats',  `${id}`, 'users')
     const [subscribedUsersCollection] = useCollectionData<any>(usersRef)
+
+
+    const listRef = useRef<null | HTMLUListElement>(null);
 
     useEffect(() => {
         if (messagesCollection && chatData) {
@@ -65,6 +82,10 @@ const Chat: FC = () => {
         setIsChatChanging(true)
     }, [id]);
 
+    const onEmojiClick = (_: any, emojiObject: emojiType) => {
+        console.log(emojiObject)
+        setChosenEmoji(emojiObject);
+    };
 
     const getUsers = async (subscribedUsersList: {userId: string, isAdmin: boolean}[]) => {
         // console.log(subscribedUsersList)
@@ -90,6 +111,69 @@ const Chat: FC = () => {
         setIsChatChanging(false)
     }
 
+    const showRepliedMessage = (repliedMessage: replyMessageType) => {
+        const indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
+            return repliedMessage.replyer.messageId === message.messageId
+        })
+
+        if (indexOfReplyerMessage && indexOfReplyerMessage >= 0) {
+            const child = listRef.current!.children[indexOfReplyerMessage]
+            child.scrollIntoView({block: 'center', behavior: "smooth"})
+            const focusMessage = () => {
+                if (isInViewport(child)) {
+                    child.classList.add('focus')
+
+                    setTimeout(() => {
+                        child.classList.remove('focus')
+                        listRef.current!.removeEventListener('scroll', focusMessage)
+                    }, 1500)
+                }
+            }
+            focusMessage()
+            listRef.current!.addEventListener('scroll', focusMessage)
+        }
+        function isInViewport(element: any) {
+            const rect = element.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
+        }
+    }
+
+    const showMessageOnReply = (repliedMessage: messagesType) => {
+        const indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
+            return repliedMessage.messageId === message.messageId
+        })
+
+        if (indexOfReplyerMessage && indexOfReplyerMessage >= 0) {
+            const child = listRef.current!.children[indexOfReplyerMessage]
+            child.scrollIntoView({block: 'center', behavior: "smooth"})
+            const focusMessage = () => {
+                if (isInViewport(child)) {
+                    child.classList.add('focus')
+
+                    setTimeout(() => {
+                        child.classList.remove('focus')
+                        listRef.current!.removeEventListener('scroll', focusMessage)
+                    }, 1500)
+                }
+            }
+            focusMessage()
+            listRef.current!.addEventListener('scroll', focusMessage)
+        }
+        function isInViewport(element: any) {
+            const rect = element.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
+        }
+    }
 
     if (isLoading) return (
         <Box sx={chatSection(type)}>
@@ -109,6 +193,9 @@ const Chat: FC = () => {
                             setIsReplying={setIsReplying}
                             setReplyMessageInfo={setReplyMessageInfo}
                             isChatChanging={isChatChanging}
+                            showRepliedMessage={showRepliedMessage}
+                            listRef={listRef}
+                            chatInfo={chatData}
                         />
                         <EntryField
                             users={users}
@@ -121,6 +208,19 @@ const Chat: FC = () => {
                             replyMessageInfo={replyMessageInfo}
                             setIsChatListOpen={setIsChatListOpen}
                             isChatListOpen={isChatListOpen}
+                            showMessageOnReply={showMessageOnReply}
+                            listRef={listRef}
+                            emoji={chosenEmoji}
+                        />
+                    </Box>
+                    <Box sx={{width: smallType ? 0 : mediumType ? '35%' : '20%'}}>
+                        <Picker
+                            onEmojiClick={onEmojiClick}
+                            disableAutoFocus={true}
+                            skinTone={SKIN_TONE_MEDIUM_DARK}
+                            groupNames={{ smileys_people: 'PEOPLE' }}
+                            native
+                            pickerStyle={{width: '100%', height: '100%', overflowX: 'hidden', border: 'none', background: '#121212', color: 'white', }}
                         />
                     </Box>
                 </Box>
