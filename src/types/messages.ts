@@ -18,15 +18,16 @@ export type startMessageType = {
 export type messageType = {
     messageId: string,
     createdAt: number,
+    changedAt?: number
     message: string,
     userId: string,
-    isChanging?: boolean,
-    messageType: messagesExemplar.message
+    messageType: messagesExemplar.message,
 }
 
 export type replyMessageType = {
     messageId: string,
     createdAt: number,
+    changedAt?: number
     message: string,
     userId: string,
     isChanging?: boolean,

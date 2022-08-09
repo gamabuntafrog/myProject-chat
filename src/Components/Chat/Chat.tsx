@@ -1,12 +1,12 @@
-import {collection, getDoc,orderBy, query, doc, } from 'firebase/firestore';
+import {collection, doc, getDoc, orderBy, query,} from 'firebase/firestore';
 import React, {FC, useContext, useEffect, useRef, useState} from 'react';
-import {NavLink, Route, useParams} from 'react-router-dom';
+import {NavLink, useParams} from 'react-router-dom';
 import {Context} from '../..';
-import {Container, Box, Typography, Button} from "@mui/material";
+import {Box, Button, Typography} from "@mui/material";
 import EntryField from '../EntryField';
 import Messages from '../Messages';
 import {useCollectionData, useDocumentData} from "react-firebase-hooks/firestore";
-import {messagesType, replyMessageType} from '../../types/messages';
+import {messagesExemplar, messagesType, replyMessageType} from '../../types/messages';
 import MyChats from "../MyChats";
 import './Chat.css';
 import {chatContainer, chatSection, logo} from "./ChatStyles";
@@ -14,7 +14,7 @@ import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import Loader from "../Loader";
 import {justifyColumnCenter} from "../GeneralStyles";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
-import Picker, { SKIN_TONE_MEDIUM_DARK } from 'emoji-picker-react';
+import Picker, {SKIN_TONE_MEDIUM_DARK} from 'emoji-picker-react';
 
 export type emojiType = {
     activeSkinTone: string,
@@ -111,10 +111,17 @@ const Chat: FC = () => {
         setIsChatChanging(false)
     }
 
-    const showRepliedMessage = (repliedMessage: replyMessageType) => {
-        const indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
-            return repliedMessage.replyer.messageId === message.messageId
-        })
+    const showRepliedMessage = (repliedMessage: replyMessageType | messagesType) => {
+        let indexOfReplyerMessage
+        if (repliedMessage.messageType === messagesExemplar.replyMessage) {
+            indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
+                return repliedMessage.replyer.messageId === message.messageId
+            })
+        } else {
+            indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
+                return repliedMessage.messageId === message.messageId
+            })
+        }
 
         if (indexOfReplyerMessage && indexOfReplyerMessage >= 0) {
             const child = listRef.current!.children[indexOfReplyerMessage]

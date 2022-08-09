@@ -4,7 +4,7 @@ export const messagesList = (isMobileScreen: boolean, background: string | undef
         px: 2,
         pb: 3,
         maxHeight: '100vh',
-        minHeight: '60%',
+        minHeight: '70%',
         overflowY: 'auto',
         background: background ? `url(${background})` : '#121212',
         backgroundSize: 'cover',
@@ -82,3 +82,9 @@ export const messageLeftLine = {
     mr: 1
 }
 
+export const dateMessage = {
+    fontSize: '12px',
+    position: 'absolute',
+    bottom: '5px',
+    right: '10px'
+}
