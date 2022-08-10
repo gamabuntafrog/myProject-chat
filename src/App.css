@@ -92,3 +92,22 @@ p {
 a {
     text-decoration: none;
 }
+
+input[type="file"] {
+    display: none;
+}
+
+.custom-file-upload {
+    border: 1px solid #484848;
+    border-radius: 4px;
+    display: inline-block;
+    padding: 10px !important;
+    cursor: pointer;
+    text-align: center;
+}
+
+.custom-file-upload:hover {
+    border: 1px solid var(--nicknameColor);
+;
+
+}

@@ -9,11 +9,14 @@ import EllipsisText from "react-ellipsis-text";
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import {appBar, headerMenuWrapper, linkToUserInfo, logo, slideMenu, userAvatar, userNickname} from "./NavbarStyles";
 import {NavLink} from "react-router-dom";
+import {ThemeContext} from "../../App";
 
 const Navbar: FC = () => {
 
     const type = useGetTypeOfScreen()
     const {user} = useContext(Context)!
+    const {userStyles} = useContext(ThemeContext)!
+
     const [isOpen, setIsOpen] = useState(false);
 
     const toggleModal = () => {
@@ -21,7 +24,7 @@ const Navbar: FC = () => {
     }
 
     return (
-        <AppBar sx={appBar(type, user?.nicknameColor)} >
+        <AppBar sx={appBar(type, userStyles.backgroundColor)} >
             <Toolbar>
                 <NavLink style={logo} to={'/search'}>
                     <Typography variant="h4" sx={logo}>

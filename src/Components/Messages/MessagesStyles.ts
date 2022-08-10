@@ -1,12 +1,12 @@
-export const messagesList = (isMobileScreen: boolean, background: string | undefined) => {
+export const messagesList = (isMobileScreen: boolean, background: string | null | undefined, color: string | undefined) => {
 
     return ({
         px: 2,
         pb: 3,
         maxHeight: '100vh',
-        minHeight: '70%',
+        minHeight: '70vh',
         overflowY: 'auto',
-        background: background ? `url(${background})` : '#121212',
+        background: background ? `url(${background})` : color ? color : '#363636',
         backgroundSize: 'cover',
         borderRadius: isMobileScreen ? 0 : 2,
         display: 'flex',
@@ -20,15 +20,16 @@ export const avatarWrapper = {
     cursor: 'pointer'
 }
 
-export const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThisMine: boolean, isMobileType: boolean) => {
+export const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThisMine: boolean, isMobileType: boolean, borderRadius?: string | number) => {
 
     return ({
         flexGrow: 1,
         backgroundColor: '#121212',
-        pl: isMobileType ? 1 : 2,
+        pl: 2,
         pr: isMobileType ? 2 : 4,
-        py: 2,
-        borderRadius: isMessageAfterThisMine ? 2 : '16px 16px 16px 0'
+        pt: 2,
+        pb: 3,
+        borderRadius: isMessageAfterThisMine ? borderRadius ? `${borderRadius}px` : 1 : `${borderRadius}px ${borderRadius}px ${borderRadius}px 0`
     })
 }
 

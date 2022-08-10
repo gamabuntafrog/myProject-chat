@@ -34,7 +34,8 @@ const Login: FC = () => {
                     email: user.email,
                     createdAt: user.metadata.creationTime,
                     phoneNumber: user.phoneNumber ? user.phoneNumber : null,
-                    subscribedChats: []
+                    subscribedChats: [],
+                    nicknameColor: '#rgb(13, 71, 161)'
                 })
             }
 

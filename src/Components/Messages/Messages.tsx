@@ -25,6 +25,7 @@ import ReplyIcon from "@mui/icons-material/Reply";
 import {useHistory} from "react-router-dom";
 import {chatType} from "../../types/chatType";
 import {format} from 'date-fns'
+import {ThemeContext} from "../../App";
 
 type MessagesPropTypes = {
     chatId: string,
@@ -174,6 +175,7 @@ const Messages: FC<MessagesPropTypes> = ({
             setChangeMessageInputValue('')
         }
     }
+    const {userStyles, changeColor, changeBorderRadius} = useContext(ThemeContext)!
 
 
 
@@ -200,12 +202,13 @@ const Messages: FC<MessagesPropTypes> = ({
               setChangingMessageId={setChangingMessageId}
               chatInfo={chatInfo}
               secondLastMessage={secondLastMessage}
+              setChangeMessageInputValue={setChangeMessageInputValue}
             />}
             {isUserModalOpen && <UserModalInfo
               modalInfo={userModalInfo}
               setIsUserModalOpen={setIsUserModalOpen}
             />}
-        <List ref={listRef} sx={messagesList(isMobileOrMediumScreen, me?.messagesBackground)}>
+        <List ref={listRef} sx={messagesList(isMobileOrMediumScreen, me?.messagesBackground, userStyles?.backgroundColor)}>
             {subscribedUsers && replyMessages && messages?.map((message: messagesType, i: number) => {
                 const createdAtFormatted = format(message.createdAt, 'HH mm').split(' ').join(':')
 
@@ -231,7 +234,6 @@ const Messages: FC<MessagesPropTypes> = ({
                 if (messageType === messagesExemplar.replyMessage) {
                     const subscribedReplyerUser = subscribedUsers[message.replyer.userId]
                     const replyMessage: replyMessageType = replyMessages[message.replyer.messageId]
-                    console.log(replyMessages)
                         return (
                             <ListItem
                                 className={'messageItem'}
@@ -242,7 +244,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                 <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={avatarWrapper}>
                                     {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                                 </Box>
-                                <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile)}>
+                                <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius)}>
                                     {!isMessageChanging ?
                                             <>
                                                 <Box sx={userWrapper}>
@@ -326,9 +328,6 @@ const Messages: FC<MessagesPropTypes> = ({
                         )
                     }
 
-
-                console.log(createdAtFormatted)
-
                 return (
                     <ListItem
                         onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
@@ -347,7 +346,7 @@ const Messages: FC<MessagesPropTypes> = ({
                         }} sx={avatarWrapper}>
                             {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                         </Box>
-                        <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile)}>
+                        <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius)}>
                             {!isMessageChanging ?
                                 <>
                                     <Box sx={{alignItems: 'center', display: 'flex'}}>

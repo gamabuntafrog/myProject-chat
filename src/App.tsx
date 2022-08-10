@@ -4,7 +4,7 @@ import Navbar from './Components/Navbar';
 import AppRouter from './Components/AppRouter';
 import {useAuthState} from 'react-firebase-hooks/auth';
 import Loader from './Components/Loader';
-import {FC, useContext, useEffect} from 'react';
+import {createContext, FC, useContext, useEffect, useState} from 'react';
 import {Context} from '.';
 import React from 'react';
 import {Auth} from "firebase/auth";
@@ -12,6 +12,7 @@ import {FirebaseApp} from "firebase/app";
 import {doc, Firestore} from "firebase/firestore";
 import {useDocumentData} from "react-firebase-hooks/firestore";
 import {createTheme, CssBaseline, ThemeProvider} from "@mui/material";
+import context from "./types/context";
 
 type AppPropTypes = {
     auth: Auth, app: FirebaseApp, firestore: Firestore
@@ -19,27 +20,52 @@ type AppPropTypes = {
 
 const r = document.querySelector(':root')!;
 
+export const ThemeContext = createContext<{
+    userStyles: {backgroundColor: string, theme: '', messagesBorderRadius: string},
+    changeColor: (color: string) => void
+    changeBorderRadius: (br: string) => void
+
+} | null>(null)
+
 const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
 
     const [googleUser, isUserLoading] = useAuthState(auth)
     const [user, isLoading] = useDocumentData<any>(doc(firestore, 'users', `${googleUser?.uid}`))
-    console.log(user)
+
+    const [userStyles, setUserStyles] = useState
+    <{backgroundColor: string, theme: '', messagesBorderRadius: string}>
+    ({backgroundColor: '', theme: '', messagesBorderRadius: ''});
+
+    console.log(userStyles)
+
 
     const darkTheme = createTheme({
         palette: {
             mode: 'dark',
             primary: {
-                main: user?.nicknameColor ? user.nicknameColor : '#1976d2',
+                main: userStyles.backgroundColor || '#484848',
             },
         },
     });
 
     useEffect(() => {
-        // @ts-ignore
-        r.style.setProperty('--nicknameColor', user?.nicknameColor);
+        if (userStyles) {
+            // @ts-ignore
+            r.style.setProperty('--nicknameColor', userStyles.backgroundColor);
+        }
+    }, [userStyles]);
 
-
+    useEffect(() => {
+        if (user) {
+            const localStorageUserInfo = localStorage.getItem(user.userId)
+            const parsedLocalStorUserInfo = localStorageUserInfo ? JSON.parse(localStorageUserInfo) : null;
+            console.log(parsedLocalStorUserInfo)
+            if (parsedLocalStorUserInfo) {
+                setUserStyles(parsedLocalStorUserInfo)
+            }
+        }
     }, [user]);
+
 
     if (isLoading) {
         return <Loader/>
@@ -53,17 +79,22 @@ const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
             user,
             isUserLoading
         }}>
-            <ThemeProvider theme={darkTheme}>
-                <CssBaseline />
-                <div className="App">
+            <ThemeContext.Provider value={{
+                userStyles,
+                changeColor: (color: string) => setUserStyles(prev => {return {...prev, backgroundColor: color}}),
+                changeBorderRadius: (br: string) => setUserStyles(prev => {return {...prev, messagesBorderRadius: br}})
+            }}>
+                <ThemeProvider theme={darkTheme}>
+                    <CssBaseline />
+                    <div className="App">
+                        <BrowserRouter>
+                            <Navbar/>
+                            <AppRouter/>
+                        </BrowserRouter>
+                    </div>
+                </ThemeProvider>
+            </ThemeContext.Provider>
 
-                <BrowserRouter>
-                    <Navbar/>
-                    <AppRouter/>
-                </BrowserRouter>
-
-            </div>
-            </ThemeProvider>
         </Context.Provider>
 
     );

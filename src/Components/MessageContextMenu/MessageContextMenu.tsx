@@ -24,6 +24,7 @@ type MessageContextMenuPT = {
     setIsContextMenuOpen: React.Dispatch<React.SetStateAction<boolean>>,
     myId: string,
     setChangingMessageId: React.Dispatch<React.SetStateAction<string>>,
+    setChangeMessageInputValue: React.Dispatch<React.SetStateAction<string>>,
     chatInfo: chatType | undefined,
     secondLastMessage: messagesType[] | undefined
 }
@@ -37,7 +38,8 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
         myId,
         setChangingMessageId,
         chatInfo,
-        secondLastMessage
+        secondLastMessage,
+        setChangeMessageInputValue
     }) => {
 
     const {firestore, user} = useContext(Context)!;
@@ -97,6 +99,7 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
             {modalInfo.isMe &&
                 <Button startIcon={<EditIcon/>} sx={{ my: 1}} onClick={() => {
                     setChangingMessageId(modalInfo.message.messageId)
+                    setChangeMessageInputValue(modalInfo.message.message)
                     setIsContextMenuOpen(false)
                 }}>
                     <Typography>Редактировать</Typography>
