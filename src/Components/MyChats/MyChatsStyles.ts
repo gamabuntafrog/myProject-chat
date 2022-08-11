@@ -6,7 +6,7 @@ export const myChatsSection = (mediumOfSmallType: boolean, isChatListOpen: boole
                 position: 'absolute',
                 width: '100%',
                 zIndex: 1000,
-                backgroundColor: '#121212',
+                backgroundColor: color || '#121212',
                 overflowY: 'auto',
                 minHeight: '100%'
             }
@@ -20,7 +20,7 @@ export const myChatsSection = (mediumOfSmallType: boolean, isChatListOpen: boole
             position: 'relative',
             width: '20%',
             zIndex: 1000,
-            backgroundColor: '#121212',
+            backgroundColor: color || '#121212',
             overflowY: 'auto',
             pt: 3
         }

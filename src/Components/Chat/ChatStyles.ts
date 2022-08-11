@@ -6,7 +6,7 @@ export const chatContainer = (mediumOrSmallType: boolean): object => {
 
     if (mediumOrSmallType) {
         return {
-            backgroundColor: '#121212',
+            // backgroundColor: '#121212',
             zIndex: '100',
             width: '100%',
             display: 'flex',
@@ -16,7 +16,7 @@ export const chatContainer = (mediumOrSmallType: boolean): object => {
         }
     } else {
         return {
-            backgroundColor: '#121212',
+            // backgroundColor: '#121212',
             maxWidth: '60%',
             zIndex: '100',
             display: 'flex',
@@ -24,7 +24,6 @@ export const chatContainer = (mediumOrSmallType: boolean): object => {
             justifyContent: 'space-between',
             width: '75%',
             position: 'relative',
-            pt: 1,
             margin: '0 auto'
         }
     }
@@ -39,7 +38,7 @@ export const chatSection = (type: screenTypes) => {
         height: '100vh',
         display: 'flex',
         justifyContent: 'space-between',
-        backgroundColor: '#121212',
+        // backgroundColor: '#121212',
         pt: type === screenTypes.smallType ? '56px' : '64px'
     })
 }

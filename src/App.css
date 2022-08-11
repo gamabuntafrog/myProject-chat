@@ -1,15 +1,19 @@
 
+:root {
+    --nicknameColor: '';
+    --secondBackgroundColor: #121212;
+}
+
 body {
     min-height: 100vh;
+    background-color: var(--secondBackgroundColor) !important;
 }
 .App {
     min-height: 100vh;
     /*padding-top: 64px;*/
 }
 
-:root {
-    --nicknameColor: ''
-}
+
 
 .nav-link {
     color: inherit;
@@ -110,4 +114,8 @@ input[type="file"] {
     border: 1px solid var(--nicknameColor);
 ;
 
+}
+
+.chrome-picker {
+    width: 100% !important;
 }

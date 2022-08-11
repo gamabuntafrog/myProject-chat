@@ -10,6 +10,7 @@ import {useCollectionData} from "react-firebase-hooks/firestore";
 import {NavLink} from "react-router-dom";
 import EllipsisText from "react-ellipsis-text";
 import '../../App.css';
+import {ThemeContext} from "../../App";
 
 type MyChatsPT = {
     isChatListOpen: boolean,
@@ -20,6 +21,7 @@ const MyChats: FC<MyChatsPT> = ({isChatListOpen, setIsChatListOpen}) => {
 
 
     const {user, isUserLoading, firestore} = useContext(Context)!
+    const {userStyles} = useContext(ThemeContext)!
 
     const [chats, isChatsLoading] = useCollectionData<any>(query(collection(firestore, 'chats'), where('users', 'array-contains', user?.userId)))
     const [filteredChats, setFilteredChats] = useState<null | chatType[]>(null);
@@ -69,7 +71,7 @@ const MyChats: FC<MyChatsPT> = ({isChatListOpen, setIsChatListOpen}) => {
 
     if (isUserLoading) {
         return (
-            <Box sx={{...myChatsSection(mediumOfSmallType, isChatListOpen, user?.nicknameColor)}}>
+            <Box sx={{...myChatsSection(mediumOfSmallType, isChatListOpen, userStyles.secondBackgroundColor)}}>
                 <List sx={chatList}>
                     <Box sx={{textAlign: 'center'}}>
                         Loading.....
@@ -82,7 +84,7 @@ const MyChats: FC<MyChatsPT> = ({isChatListOpen, setIsChatListOpen}) => {
     const blackBackground = 'https://www.tynker.com/minecraft/api/block?id=5993332e76f2936e3f8b4586&w=400&h=400&width=400&height=400&mode=contain&format=jpg&quality=75&cache=max&v=1502819118'
 
     return (
-        <Box component='section' sx={{...myChatsSection(mediumOfSmallType, isChatListOpen, user?.nicknameColor)}}>
+        <Box component='section' sx={{...myChatsSection(mediumOfSmallType, isChatListOpen, userStyles.secondBackgroundColor)}}>
             {isChatListOpen &&
                         <Button onClick={() => setIsChatListOpen(false)} variant='contained' color='error' sx={closeButton}>Закрыть</Button>
             }

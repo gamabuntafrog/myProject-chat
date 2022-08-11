@@ -18,13 +18,17 @@ type AppPropTypes = {
     auth: Auth, app: FirebaseApp, firestore: Firestore
 }
 
-const r = document.querySelector(':root')!;
+const r: HTMLInputElement = document.querySelector(':root')!;
+
+export type userStylesType = {backgroundColor: string, secondBackgroundColor: string, theme: 'light' | 'dark' | '', messagesBorderRadius: string, backgroundImage: ArrayBuffer | File | string }
 
 export const ThemeContext = createContext<{
-    userStyles: {backgroundColor: string, theme: '', messagesBorderRadius: string},
-    changeColor: (color: string) => void
-    changeBorderRadius: (br: string) => void
-
+    userStyles: userStylesType,
+    changeColor: (color: string) => void,
+    changeBorderRadius: (br: string) => void,
+    changeBackground: (bg: string | File | ArrayBuffer) => void,
+    changeTheme: (theme : 'light' | 'dark') => void,
+    changeSecondColor: (color: string) => void
 } | null>(null)
 
 const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
@@ -32,16 +36,14 @@ const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
     const [googleUser, isUserLoading] = useAuthState(auth)
     const [user, isLoading] = useDocumentData<any>(doc(firestore, 'users', `${googleUser?.uid}`))
 
-    const [userStyles, setUserStyles] = useState
-    <{backgroundColor: string, theme: '', messagesBorderRadius: string}>
-    ({backgroundColor: '', theme: '', messagesBorderRadius: ''});
+    const [userStyles, setUserStyles] = useState<userStylesType>({backgroundColor: '', secondBackgroundColor: '', theme: '', messagesBorderRadius: '', backgroundImage: ''});
 
     console.log(userStyles)
 
 
     const darkTheme = createTheme({
         palette: {
-            mode: 'dark',
+            mode: userStyles.theme || 'dark',
             primary: {
                 main: userStyles.backgroundColor || '#484848',
             },
@@ -52,6 +54,8 @@ const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
         if (userStyles) {
             // @ts-ignore
             r.style.setProperty('--nicknameColor', userStyles.backgroundColor);
+            r.style.setProperty('--secondBackgroundColor', userStyles.secondBackgroundColor);
+
         }
     }, [userStyles]);
 
@@ -81,8 +85,11 @@ const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
         }}>
             <ThemeContext.Provider value={{
                 userStyles,
-                changeColor: (color: string) => setUserStyles(prev => {return {...prev, backgroundColor: color}}),
-                changeBorderRadius: (br: string) => setUserStyles(prev => {return {...prev, messagesBorderRadius: br}})
+                changeColor: (color) => setUserStyles(prev => {return {...prev, backgroundColor: color}}),
+                changeSecondColor: (color) => setUserStyles(prev => {return {...prev, secondBackgroundColor: color}}),
+                changeBorderRadius: (br) => setUserStyles(prev => {return {...prev, messagesBorderRadius: br}}),
+                changeBackground: (bg) => setUserStyles(prev => {return {...prev, backgroundImage: bg}}),
+                changeTheme: (theme) => setUserStyles(prev => {return {...prev, theme}}),
             }}>
                 <ThemeProvider theme={darkTheme}>
                     <CssBaseline />

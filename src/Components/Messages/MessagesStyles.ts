@@ -1,4 +1,4 @@
-export const messagesList = (isMobileScreen: boolean, background: string | null | undefined, color: string | undefined) => {
+export const messagesList = (isMobileScreen: boolean, background: ArrayBuffer | File | string | null | undefined, color: string | undefined) => {
 
     return ({
         px: 2,
@@ -8,7 +8,6 @@ export const messagesList = (isMobileScreen: boolean, background: string | null 
         overflowY: 'auto',
         background: background ? `url(${background})` : color ? color : '#363636',
         backgroundSize: 'cover',
-        borderRadius: isMobileScreen ? 0 : 2,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'start'
@@ -45,6 +44,7 @@ export const activeUsername = (color: string | undefined) => {
         cursor: 'pointer',
         display: 'inline-block',
         wordBreak: 'break-all',
+
     })
 }
 

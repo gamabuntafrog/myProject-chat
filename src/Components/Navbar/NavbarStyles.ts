@@ -32,13 +32,16 @@ export const slideMenu = {
     }
 }
 
-export const headerMenuWrapper = {
-    paddingTop: 5,
-    paddingBottom: 3,
-    boxShadow: 3,
-    backgroundColor: '#121212',
-    borderRadius: 1,
-    maxWidth: '90%'
+export const headerMenuWrapper = (color: string) => {
+
+    return ({
+        paddingTop: 5,
+        paddingBottom: 3,
+        boxShadow: 3,
+        backgroundColor: color,
+        borderRadius: 1,
+        maxWidth: '90%'
+    })
 }
 
 export const linkToUserInfo = {

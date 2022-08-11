@@ -59,7 +59,7 @@ const Navbar: FC = () => {
                     onClose={toggleModal}
                     sx={slideMenu}
                 >
-                    <Container sx={headerMenuWrapper}>
+                    <Container sx={headerMenuWrapper(userStyles.secondBackgroundColor)}>
                         <HeaderMenu toggleModal={toggleModal} />
                     </Container>
                 </Drawer>

@@ -1,13 +1,14 @@
 import React, {useState, useEffect, FC, useContext} from "react"
 import {
+    Alert,
     Avatar,
     Box,
     Button,
-    FormControl,
+    FormControl, FormLabel,
     IconButton,
     Input,
     List,
-    ListItem,
+    ListItem, Snackbar,
     TextField,
     Typography
 } from "@mui/material";
@@ -29,9 +30,9 @@ import DoneIcon from "@mui/icons-material/Done";
 import CloseIcon from "@mui/icons-material/Close";
 import '../../App.css';
 import '../Messages/Messages.css';
-import {ColorChangeHandler, SliderPicker} from "react-color";
+import {ChromePicker, ColorChangeHandler, SliderPicker} from "react-color";
 import {ThemeContext} from "../../App";
-
+import '../../App.css'
 const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThisMine: boolean, isMobileType: boolean, borderRadius?: string | number) => {
 
     return ({
@@ -44,7 +45,7 @@ const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThisMine: 
         borderRadius: isMessageAfterThisMine ? borderRadius ? `${borderRadius}px` : 1 : `${borderRadius}px ${borderRadius}px ${borderRadius}px 0`
     })
 }
-export const messagesList = (isMobileScreen: boolean, background: string | null, color: string | undefined) => {
+export const messagesList = (isMobileScreen: boolean, background: ArrayBuffer | File | string | null, color: string | undefined) => {
 
     return ({
         px: 2,
@@ -130,28 +131,69 @@ const Settings: FC = () => {
         }
     }
 
-    const {userStyles, changeColor, changeBorderRadius} = useContext(ThemeContext)!
+    const {userStyles, changeColor, changeBorderRadius, changeBackground, changeTheme, changeSecondColor} = useContext(ThemeContext)!
 
     const submitSettings = async () => {
         localStorage.setItem(user!.userId, JSON.stringify({
             backgroundColor: userStyles.backgroundColor,
+            secondBackgroundColor: userStyles.secondBackgroundColor,
             theme: 'dark',
-            messagesBorderRadius: userStyles.messagesBorderRadius
+            messagesBorderRadius: userStyles.messagesBorderRadius,
+            backgroundImage: previewBackground
         }))
-        await setDoc(doc(firestore, 'users', user!.userId), {
-            messagesBackground: backgroundRef,
-        }, {merge: true})
+
         changeBorderRadius(userStyles.messagesBorderRadius)
         changeColor(userStyles.backgroundColor)
+        changeBackground(previewBackground)
+
+        setSnackBarOpen(true)
     }
 
+    useEffect(() => {
+        if (userStyles) {
+            setPreviewBackground(userStyles.backgroundImage)
+        }
+
+    }, [userStyles]);
 
 
     const handleColor: ColorChangeHandler = (color, event) => {
-        console.log(color.hex)
+        // console.log(color.hex)
         changeColor(color.hex)
-
     }
+    const handleSecondColor: ColorChangeHandler = (color, event) => {
+        // console.log(color.hex)
+        changeSecondColor(color.hex)
+    }
+    const [newUserAvatarFile, setNewUserAvatarFile] = useState<null | File>(null);
+    const [previewBackground, setPreviewBackground] = useState<any>(userStyles.backgroundImage || null);
+
+
+    const imageHandler = (file: File) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+            if (reader.readyState === 2) {
+                if (reader.result) {
+                    changeBackground(reader.result)
+                }
+            }
+        }
+        reader.readAsDataURL(file)
+    }
+
+    const [snackBarOpen, setSnackBarOpen] = useState(false);
+
+    const handleClick = () => {
+        setSnackBarOpen(!snackBarOpen)
+    }
+    const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+
+        setSnackBarOpen(false);
+    };
+
 
     return (
         <Box sx={{
@@ -163,17 +205,55 @@ const Settings: FC = () => {
             display: 'flex',
             flexDirection: 'column'
         }}>
-            <Typography>Фон в чате</Typography>
-            <Button color='error' onClick={() => setBackgroundRef('')}>Удалить картинку</Button>
-            <TextField placeholder='Ссылка' onChange={(e) => setBackgroundRef(e.target.value)} />
             <Box sx={{minHeight: '80%', mt: 5}}>
-                <SliderPicker color={userStyles.backgroundColor} onChange={handleColor} onChangeComplete={handleColor}/>
-                <Typography sx={{mt: 2}}>Border Radius: {userStyles.messagesBorderRadius}</Typography>
+                <Snackbar
+                    anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
+                    open={snackBarOpen}
+                    autoHideDuration={5000}
+                    onClose={handleClose}
+                    message="Сохранено"
+                    sx={{}}
+                >
+                    <Box sx={{width: '100%', background: userStyles.secondBackgroundColor, display: 'flex',
+                        padding: 3, borderRadius: 1, alignItems: 'center'
+                    }}>
+                        <Typography color='green'>Сохранено</Typography>
+                        <Button sx={{ml: 2}} variant='outlined' onClick={handleClick}>Закрыть</Button>
+                    </Box>
+                </Snackbar>
+                <Button sx={{mb: 1}} onClick={() => {
+                    if (userStyles.theme === 'dark') {
+                        changeTheme('light')
+                    } else {
+                        changeTheme('dark')
+                    }
+                }}>{userStyles.theme || 'dark'}</Button>
+                <Box sx={{mb: 2}}>
+                    <SliderPicker color={userStyles.backgroundColor} onChange={handleColor} onChangeComplete={handleColor}/>
+                </Box>
+                <ChromePicker disableAlpha={true} color={userStyles.secondBackgroundColor} onChange={handleSecondColor} onChangeComplete={handleSecondColor}/>
+                <Box sx={{width: '90%',display: 'flex', flexDirection: 'column', mx: 'auto'}}>
+                    <FormLabel sx={{color: newUserAvatarFile ? 'green' : '', mt: 2, mb: 1}} className='custom-file-upload' htmlFor='fileInput'>
+                        {newUserAvatarFile ?
+                            newUserAvatarFile.name
+                            :
+                            'Загрузите картинку'
+                        }
+                    </FormLabel>
+                    <input id='fileInput'  type='file' accept=".jpg, .jpeg, .png" onChange={(e) => {
+                        if (e.target.files) {
+                            setNewUserAvatarFile(e.target.files[0])
+                            imageHandler(e.target.files[0])
+                        }
+                    }}/>
+                    <Button variant='outlined' color='error' onClick={() => changeBackground('')}>Удалить картинку</Button>
+                    <Typography sx={{mt: 2}}>Border Radius: {userStyles.messagesBorderRadius}</Typography>
+                </Box>
                 <Input onChange={(e) => {
                     console.log(e.target.value)
                     changeBorderRadius(e.target.value)
-                }} value={userStyles.messagesBorderRadius} componentsProps={{input: {max: '50'}}} sx={{mb: 2}} type='range'/>
-                <List sx={messagesList(isMobileOrMediumScreen, backgroundRef || '', userStyles.backgroundColor)}>
+                }} fullWidth value={userStyles.messagesBorderRadius} componentsProps={{input: {max: '50'}}} sx={{mb: 2}} type='range'/>
+                <List sx={messagesList(isMobileOrMediumScreen, userStyles.backgroundImage, userStyles.backgroundColor)}>
 
                 {messages && messages.map((message: messagesType, i: number) => {
                     const createdAtFormatted = format(message.createdAt, 'HH mm').split(' ').join(':')

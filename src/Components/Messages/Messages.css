@@ -55,6 +55,10 @@
 
 .focus .message {
     background-color: lightgrey !important;
-    color: black;
+    color: black !important;
+    transition: 0.2s ease-in;
+}
+.focus .message p {
+    color: black !important;
     transition: 0.2s ease-in;
 }

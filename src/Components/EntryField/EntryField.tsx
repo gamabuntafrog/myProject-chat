@@ -13,6 +13,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import EllipsisText from "react-ellipsis-text";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import { emojiType } from "../Chat/Chat";
+import {ThemeContext} from "../../App";
 
 type EntryFieldPT = {
     chatName: string,
@@ -46,6 +47,7 @@ const EntryField: FC<EntryFieldPT> = ({
 }) => {
 
     const { firestore, user, isUserLoading} = useContext(Context)!
+    const {userStyles} = useContext(ThemeContext)!
 
     const {id} = useParams<{ id: string }>()
 
@@ -170,7 +172,7 @@ const EntryField: FC<EntryFieldPT> = ({
         </Container>
     }
 
-    return <Box sx={{position: 'sticky', bottom: '0px', mt: -1, pt: 1, pb: 2, px: 2, backgroundColor: '#121212', zIndex: 100, borderRadius: '8px 8px 0 0'}}>
+    return <Box sx={{position: 'sticky', bottom: '0px', mt: -1, pt: 1, pb: 2, px: 2, backgroundColor: userStyles.secondBackgroundColor || '#121212', zIndex: 100, borderRadius: '8px 8px 0 0'}}>
         <Box>
             <ChatInfo
                 id={id}
@@ -205,7 +207,7 @@ const EntryField: FC<EntryFieldPT> = ({
                     onChange={(e) => setMessage(e.currentTarget.value)}
                     fullWidth
                     multiline
-                    sx={{fieldset: {borderRadius: type === screenTypes.largeType ? '30px 0 0 30px' : '50px'}}}
+                    sx={{fieldset: {borderRadius: type === screenTypes.largeType ? '30px 0 0 30px' : '50px',}}}
                     maxRows={10}
                     onKeyPress={(e) => {
                         if (e.key === "Enter") return submitPost() //submit

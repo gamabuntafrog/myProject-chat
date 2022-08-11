@@ -15,6 +15,7 @@ import Loader from "../Loader";
 import {justifyColumnCenter} from "../GeneralStyles";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import Picker, {SKIN_TONE_MEDIUM_DARK} from 'emoji-picker-react';
+import {ThemeContext} from "../../App";
 
 export type emojiType = {
     activeSkinTone: string,
@@ -27,8 +28,6 @@ export type emojiType = {
 const Chat: FC = () => {
 
     const {id} = useParams<{ id: string }>()
-    const test = useParams<{ id: string }>()
-    console.log(test)
     const {firestore} = useContext(Context)!
 
     const [messages, setMessages] = useState<messagesType[] | null>(null);
@@ -182,6 +181,8 @@ const Chat: FC = () => {
         }
     }
 
+    const {userStyles} = useContext(ThemeContext)!
+
     if (isLoading) return (
         <Box sx={chatSection(type)}>
             <Loader/>
@@ -227,7 +228,7 @@ const Chat: FC = () => {
                             skinTone={SKIN_TONE_MEDIUM_DARK}
                             groupNames={{ smileys_people: 'PEOPLE' }}
                             native
-                            pickerStyle={{width: '100%', height: '100%', overflowX: 'hidden', border: 'none', background: '#121212', color: 'white', }}
+                            pickerStyle={{width: '100%', height: '100%', overflowX: 'hidden', border: 'none', background: userStyles.secondBackgroundColor || '#121212', color: 'white', }}
                         />
                     </Box>
                 </Box>

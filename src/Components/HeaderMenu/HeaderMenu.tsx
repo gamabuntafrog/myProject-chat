@@ -18,6 +18,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import {useCollectionData} from "react-firebase-hooks/firestore";
 import {collection, query, where} from "firebase/firestore";
 import {chatType} from "../../types/chatType";
+import {ThemeContext} from "../../App";
 
 type HeaderMenuPropTypes = {
     toggleModal: () => void
@@ -26,6 +27,7 @@ type HeaderMenuPropTypes = {
 const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
     const {user, firestore, auth} = useContext(Context)!
 
+    const {userStyles} = useContext(ThemeContext)!
 
     const outFromAccount = () => {
         signOut(auth).then(res => res)
@@ -35,7 +37,7 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
 
     if (user) {
         return (
-        <Grid sx={headerMenuContainer} spacing={2} container >
+        <Grid sx={headerMenuContainer(userStyles.secondBackgroundColor)} spacing={2} container >
             <Grid item xs={12} sx={userInfo} >
                 <Avatar sx={userInfoAvatar} src={user.photoURL} alt="avatar" />
                 <Typography sx={{fontWeight: 600}} variant='h5'>
@@ -99,7 +101,7 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
         )
     } else {
         return (
-            <Grid sx={headerMenuContainer} spacing={2} container >
+            <Grid sx={headerMenuContainer(userStyles.secondBackgroundColor || '#121212')} spacing={2} container >
                 <Grid item xs={12} >
                     <NavLink style={navLink} className={'nav-link'} to={'/login'} onClick={toggleModal}>
                         <VpnKeyIcon sx={{mr: 1}}/>

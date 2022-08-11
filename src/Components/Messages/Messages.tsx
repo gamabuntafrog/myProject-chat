@@ -208,7 +208,7 @@ const Messages: FC<MessagesPropTypes> = ({
               modalInfo={userModalInfo}
               setIsUserModalOpen={setIsUserModalOpen}
             />}
-        <List ref={listRef} sx={messagesList(isMobileOrMediumScreen, me?.messagesBackground, userStyles?.backgroundColor)}>
+        <List ref={listRef} sx={messagesList(isMobileOrMediumScreen, userStyles?.backgroundImage, userStyles?.backgroundColor)}>
             {subscribedUsers && replyMessages && messages?.map((message: messagesType, i: number) => {
                 const createdAtFormatted = format(message.createdAt, 'HH mm').split(' ').join(':')
 
@@ -270,7 +270,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                                 <Box sx={messageContainer}>
                                                     <Box sx={messageLeftLine} />
                                                     <Box onClick={() => showRepliedMessage(message)} sx={{cursor: 'pointer'}}>
-                                                        <Typography sx={{color: subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || '' : subscribedReplyerUser?.nicknameColor || '', cursor: 'pointer' }}>{subscribedReplyerUser?.nickname}</Typography>
+                                                        <Typography sx={{color: `${subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || '' : subscribedReplyerUser?.nicknameColor || ''} !important`, cursor: 'pointer' }}>{subscribedReplyerUser?.nickname}</Typography>
                                                         {replyMessage ?
                                                             <EllipsisText sx={messageStyles} text={replyMessage.message} length={30}/>
                                                             :

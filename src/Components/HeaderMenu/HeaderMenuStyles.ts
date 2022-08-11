@@ -1,10 +1,14 @@
 
 
-export const headerMenuContainer = {
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'column',
-    wordBreak: 'break-word'
+export const headerMenuContainer = (color: string) => {
+
+    return ({
+        backgroundColor: color,
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexDirection: 'column',
+        wordBreak: 'break-word'
+    })
 }
 
 export const userInfo = {
