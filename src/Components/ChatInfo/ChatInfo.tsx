@@ -7,6 +7,8 @@ import {Context} from "../../index";
 import {entryFieldInfo} from "./chatInfoStyles";
 import InfoIcon from "@mui/icons-material/Info";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
+import {userAvatar} from "../Navbar/NavbarStyles";
+import {ChatInfoContext} from "../../App";
 
 type ChatInfoPT = {
     id: string,
@@ -14,7 +16,6 @@ type ChatInfoPT = {
     chatImage: string,
     chatDescription: string,
     users: any,
-    setIsChatListOpen: React.Dispatch<React.SetStateAction<boolean>>,
 }
 
 const ChatInfo: FC<ChatInfoPT> = ({
@@ -23,10 +24,12 @@ const ChatInfo: FC<ChatInfoPT> = ({
         users,
         chatImage,
         chatDescription,
-        setIsChatListOpen
     }) => {
 
     const {firestore, user: me} = useContext(Context)!
+    const {isChatInfoOpen, handleChatInfoIsOpen} = useContext(ChatInfoContext)!
+
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [usersArray, setUsersArray] = useState<any | null>(null);
     const [userModalInfo, setUserModalInfo] = useState<null | any>(null);
@@ -96,22 +99,23 @@ const ChatInfo: FC<ChatInfoPT> = ({
     }
 
     const isUserAdmin = (me && users[me.userId].isAdmin)
-
+    // console.log(isChatInfoOpen)
     return (
         <Box>
-            <Box sx={entryFieldInfo} >
-                {type !== screenTypes.largeType &&
-                    <Button sx={{mr: 2}} onClick={() => setIsChatListOpen(true)}>
-                        Ваши чаты
-                    </Button>
-                }
-                <Typography variant={'body1'}>{chatName}</Typography>
-                <IconButton sx={{ml: 1}}  color="primary" onClick={() => setIsModalOpen(true)}>
-                    <InfoIcon/>
-                </IconButton>
-            </Box>
-            {isModalOpen &&
-		        <Modal jc={'start'} br={'10px 0 0 10px'} buttonPosition={'absolute'} isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+            {/*<Box sx={entryFieldInfo} >*/}
+            {/*    {type !== screenTypes.largeType &&*/}
+            {/*        <Button sx={{mr: 2}} onClick={() => setIsChatListOpen(true)}>*/}
+            {/*            Ваши чаты*/}
+            {/*        </Button>*/}
+            {/*    }*/}
+            {/*    /!*<Avatar sx={userAvatar} src={chatImage} alt="avatar" />*!/*/}
+            {/*    /!*<Typography variant={'body1'}>{chatName}</Typography>*!/*/}
+            {/*    <IconButton sx={{ml: 1}}  color="primary" onClick={() => setIsModalOpen(true)}>*/}
+            {/*        <InfoIcon/>*/}
+            {/*    </IconButton>*/}
+            {/*</Box>*/}
+            {isChatInfoOpen &&
+		        <Modal jc={'start'} br={'10px 0 0 10px'} buttonPosition={'absolute'} isModalOpen={isChatInfoOpen} onClose={() => handleChatInfoIsOpen(isChatInfoOpen)}>
 			        <Box sx={{textAlign: 'center', width: isChangingChatInfo ? '95%' : 'auto'}}>
                         {isChangingChatInfo ?
                             <Box sx={{display: 'flex',flexDirection: 'column', my: 1 }}>
@@ -137,7 +141,7 @@ const ChatInfo: FC<ChatInfoPT> = ({
                             <>
                                 <Avatar sx={{width: '100%', mb: 3, mx: 'auto',
                                 borderRadius: '0 0 30px 30px', height: 'auto'}} src={chatImage}/>
-                                <Typography variant={'h2'} sx={{fontWeight: '800'}}>{chatName}</Typography>
+                                <Typography variant={isMobile ? 'h4' : 'h2'} sx={{fontWeight: '800', px:1}}>{chatName}</Typography>
                                 <Typography variant={'subtitle1'} sx={{my: 3}}>{chatDescription}</Typography>
                             </>
                         }

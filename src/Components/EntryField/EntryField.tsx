@@ -24,7 +24,6 @@ type EntryFieldPT = {
     isReplying: boolean,
     setIsReplying: React.Dispatch<React.SetStateAction<boolean>>
     replyMessageInfo: any,
-    setIsChatListOpen: React.Dispatch<React.SetStateAction<boolean>>,
     isChatListOpen: boolean,
     showMessageOnReply: (message: messagesType) => void,
     listRef: React.MutableRefObject<HTMLUListElement | null>,
@@ -40,8 +39,6 @@ const EntryField: FC<EntryFieldPT> = ({
     isReplying,
     replyMessageInfo,
     setIsReplying,
-    setIsChatListOpen,
-    isChatListOpen,
     showMessageOnReply,
     emoji
 }) => {
@@ -172,7 +169,7 @@ const EntryField: FC<EntryFieldPT> = ({
         </Container>
     }
 
-    return <Box sx={{position: 'sticky', bottom: '0px', mt: -1, pt: 1, pb: 2, px: 2, backgroundColor: userStyles.secondBackgroundColor || '#121212', zIndex: 100, borderRadius: '8px 8px 0 0'}}>
+    return <Box sx={{position: 'sticky', bottom: '0px', mt: -1, pt: 2, pb: 2, px: 2, backgroundColor: userStyles.secondBackgroundColor || '#121212', zIndex: 100, borderRadius: '8px 8px 0 0', borderTop: '1px solid #363636'}}>
         <Box>
             <ChatInfo
                 id={id}
@@ -180,7 +177,6 @@ const EntryField: FC<EntryFieldPT> = ({
                 users={users}
                 chatImage={chatImage}
                 chatDescription={chatDescription}
-                setIsChatListOpen={setIsChatListOpen}
             />
             {isReplying &&
 		        <Box sx={{display: 'flex', mb: 1, alignItems: 'center', cursor: 'pointer'}}>

@@ -7,6 +7,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, initializeFirestore } from 'firebase/firestore';
 import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
 import context from "./types/context";
+import {BrowserRouter} from "react-router-dom";
 
 
 const firebaseConfig = {
@@ -32,9 +33,10 @@ export const Context = createContext<context | null>(null)
 
 ReactDOM.render(
   <React.StrictMode>
+    <BrowserRouter>
 
-        <App auth={auth} app={app} firestore={firestore} />
-
+    <App auth={auth} app={app} firestore={firestore} />
+    </BrowserRouter>
   </React.StrictMode>,
   document.getElementById('root')
 );

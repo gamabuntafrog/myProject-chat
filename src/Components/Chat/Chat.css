@@ -58,6 +58,6 @@ aside.emoji-picker-react {
     display: none !important;
 }
 
-p, span {
-    color: lightgrey !important;
-}
+/*p, span {*/
+/*    color: lightgrey !important;*/
+/*}*/

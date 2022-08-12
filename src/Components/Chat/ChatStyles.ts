@@ -1,30 +1,34 @@
 import {screenTypes} from "../../hooks/useGetTypeOfScreen";
 
 
-export const chatContainer = (mediumOrSmallType: boolean): object => {
+export const chatContainer = (mediumOrSmallType: boolean, background: string | File | ArrayBuffer, backgroundColor: string, chatNoExisting?: boolean): object => {
 
 
     if (mediumOrSmallType) {
         return {
-            // backgroundColor: '#121212',
+            background: background ? `url(${background})` : backgroundColor,
             zIndex: '100',
             width: '100%',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             position: 'relative',
+            backgroundPositionX: 'center',
+            backgroundSize: 'cover',
         }
     } else {
         return {
-            // backgroundColor: '#121212',
-            maxWidth: '60%',
+            background: background ? `url(${background})` : backgroundColor,
+            backgroundPositionX: 'center',
+            backgroundSize: 'cover',
+            maxWidth: chatNoExisting ? '80%' : '60%',
             zIndex: '100',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            width: '75%',
+            width: chatNoExisting ? '80%' : '75%',
             position: 'relative',
-            margin: '0 auto'
+            margin: '0 auto',
         }
     }
 
@@ -47,5 +51,4 @@ export const logo = {
     fontWeight: 600,
     fontSize: 100,
     textDecoration: 'none',
-    color: 'white'
 }

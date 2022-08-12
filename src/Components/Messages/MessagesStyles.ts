@@ -6,7 +6,7 @@ export const messagesList = (isMobileScreen: boolean, background: ArrayBuffer | 
         maxHeight: '100vh',
         minHeight: '70vh',
         overflowY: 'auto',
-        background: background ? `url(${background})` : color ? color : '#363636',
+        // background: background ? `url(${background})` : color ? color : '#363636',
         backgroundSize: 'cover',
         display: 'flex',
         flexDirection: 'column',
@@ -19,12 +19,13 @@ export const avatarWrapper = {
     cursor: 'pointer'
 }
 
-export const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThisMine: boolean, isMobileType: boolean, borderRadius?: string | number) => {
+export const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThisMine: boolean, isMobileType: boolean, borderRadius: string | number, backgroundColor: string) => {
 
     return ({
         flexGrow: 1,
-        backgroundColor: '#121212',
+        backgroundColor: backgroundColor || '#121212',
         pl: 2,
+        color: 'white',
         pr: isMobileType ? 2 : 4,
         pt: 2,
         pb: 3,

@@ -16,18 +16,18 @@ body {
 
 
 .nav-link {
-    color: inherit;
+    /*color: inherit;*/
     text-decoration: none;
 }
 
 .nav-link:hover,
 .nav-link:focus {
     transition: 0.2s;
-    color: var(--nicknameColor);
+    color: var(--nicknameColor) !important;
 }
 
-.active {
-    color: var(--nicknameColor);
+.nav-link.active {
+    color: var(--nicknameColor) !important;
 }
 
 .chatLink {
@@ -43,6 +43,13 @@ body {
     background-color: var(--nicknameColor);
 }
 
+/*@media screen and (max-width: 768px) {*/
+/*    header {*/
+/*        padding-left: 8px !important;*/
+/*        padding-right: 8px !important;*/
+
+/*    }*/
+/*}*/
 
 
 @media screen and (min-width: 768px) {

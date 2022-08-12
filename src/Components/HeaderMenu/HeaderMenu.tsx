@@ -1,5 +1,5 @@
 import { signOut } from 'firebase/auth';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
 import {Typography, Grid, Button, Link} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
@@ -52,7 +52,7 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
                 </NavLink>
             </Grid>
             <Grid item xs={12} >
-                <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={'/me'}>
+                <NavLink style={navLink(userStyles.theme)} onClick={toggleModal} className={'nav-link'} to={'/me'}>
                     <PersonIcon sx={{mr: 1}}/>
                     <Typography variant='h5'>
                         Мой аккаунт
@@ -60,7 +60,7 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
                 </NavLink>
             </Grid>
             <Grid item xs={12} >
-                <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={'/settings'}>
+                <NavLink style={navLink(userStyles.theme)} onClick={toggleModal} className={'nav-link'} to={'/settings'}>
                     <SettingsIcon sx={{mr: 1}}/>
                     <Typography variant={'h5'}>
                         Настройки
@@ -68,7 +68,7 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
                 </NavLink>
             </Grid>
             <Grid item xs={12} >
-                <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={'/about'}>
+                <NavLink style={navLink(userStyles.theme)} onClick={toggleModal} className={'nav-link'} to={'/about'}>
                     <InfoIcon sx={{mr: 1}}/>
                     <Typography variant='h5'>
                         Про сайт
@@ -76,7 +76,7 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
                 </NavLink>
             </Grid>
                 <Grid item xs={12} >
-                    <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={`/chat`}>
+                    <NavLink style={navLink(userStyles.theme)} onClick={toggleModal} className={'nav-link'} to={`/chat`}>
                         <TelegramIcon sx={{mr: 1}}/>
                         <Typography variant={'h5'}>
                             Мои чаты
@@ -85,7 +85,7 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
                 </Grid>
 
             <Grid item xs={12} >
-                <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={'/search'}>
+                <NavLink style={navLink(userStyles.theme)} onClick={toggleModal} className={'nav-link'} to={'/search'}>
                     <SearchIcon sx={{mr: 1}}/>
                     <Typography variant={'h5'}>
                         Поиск
@@ -103,7 +103,7 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
         return (
             <Grid sx={headerMenuContainer(userStyles.secondBackgroundColor || '#121212')} spacing={2} container >
                 <Grid item xs={12} >
-                    <NavLink style={navLink} className={'nav-link'} to={'/login'} onClick={toggleModal}>
+                    <NavLink style={navLink('')} className={'nav-link'} to={'/login'} onClick={toggleModal}>
                         <VpnKeyIcon sx={{mr: 1}}/>
                         <Typography variant={'h5'}>
                             Войти
@@ -111,7 +111,7 @@ const HeaderMenu: FC<HeaderMenuPropTypes> = ({toggleModal}) => {
                     </NavLink>
                 </Grid>
                 <Grid item xs={12} >
-                    <NavLink style={navLink} onClick={toggleModal} className={'nav-link'} to={'/about'}>
+                    <NavLink style={navLink('')} onClick={toggleModal} className={'nav-link'} to={'/about'}>
                         <InfoIcon sx={{mr: 1}}/>
                         <Typography variant='h5'>
                             Про сайт

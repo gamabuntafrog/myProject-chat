@@ -15,7 +15,7 @@ import Loader from "../Loader";
 import {justifyColumnCenter} from "../GeneralStyles";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import Picker, {SKIN_TONE_MEDIUM_DARK} from 'emoji-picker-react';
-import {ThemeContext} from "../../App";
+import {ChatInfoContext, ChatListContext, ThemeContext} from "../../App";
 
 export type emojiType = {
     activeSkinTone: string,
@@ -29,11 +29,12 @@ const Chat: FC = () => {
 
     const {id} = useParams<{ id: string }>()
     const {firestore} = useContext(Context)!
-
+    const {changeChatInfo} = useContext(ChatInfoContext)!
+    const {handleIsChatListOpen, isChatListOpen} = useContext(ChatListContext)!
     const [messages, setMessages] = useState<messagesType[] | null>(null);
     const [users, setUsers] = useState<null | any>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isChatListOpen, setIsChatListOpen] = useState(false);
+    // const [isChatListOpen, setIsChatListOpen] = useState(false);
     const [replyMessageInfo, setReplyMessageInfo] = useState(null);
     const [isReplying, setIsReplying] = useState(false);
     const [isChatChanging, setIsChatChanging] = useState(false);
@@ -71,15 +72,39 @@ const Chat: FC = () => {
     }, [chatData, id, messagesCollection]);
 
     useEffect(() => {
-        if (subscribedUsersCollection) {
-            getUsers(subscribedUsersCollection)
+        if (chatData) {
+            changeChatInfo(chatData)
         }
 
+    }, [chatData]);
+
+
+    useEffect(() => {
+        let unsubscribed = false
+
+        if (subscribedUsersCollection) {
+            const fetchUsersWrapperFunction = async () => {
+                if (!unsubscribed) {
+                    const users = await getUsers(subscribedUsersCollection)
+                    setUsers(users)
+                    setIsLoading(false)
+                    setIsChatChanging(false)
+                }
+            }
+            fetchUsersWrapperFunction()
+        }
+
+        return () => {
+            unsubscribed = true
+        }
     }, [subscribedUsersCollection]);
 
     useEffect(() => {
         setIsChatChanging(true)
+
     }, [id]);
+
+
 
     const onEmojiClick = (_: any, emojiObject: emojiType) => {
         console.log(emojiObject)
@@ -105,9 +130,8 @@ const Chat: FC = () => {
             })
         })
 
-        setUsers(usersData)
-        setIsLoading(false)
-        setIsChatChanging(false)
+
+        return usersData
     }
 
     const showRepliedMessage = (repliedMessage: replyMessageType | messagesType) => {
@@ -192,8 +216,8 @@ const Chat: FC = () => {
     if (id && users && messages) {
         return (
                 <Box sx={chatSection(type)}>
-                    <MyChats setIsChatListOpen={setIsChatListOpen} isChatListOpen={isChatListOpen} />
-                    <Box sx={chatContainer(mediumOrSmallType)}>
+                    <MyChats id={id} handleIsChatListOpen={handleIsChatListOpen} isChatListOpen={isChatListOpen} />
+                    <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage ,  userStyles.backgroundColor)}>
                         <Messages
                             chatId={id}
                             subscribedUsers={users}
@@ -214,14 +238,13 @@ const Chat: FC = () => {
                             isReplying={isReplying}
                             setIsReplying={setIsReplying}
                             replyMessageInfo={replyMessageInfo}
-                            setIsChatListOpen={setIsChatListOpen}
                             isChatListOpen={isChatListOpen}
                             showMessageOnReply={showMessageOnReply}
                             listRef={listRef}
                             emoji={chosenEmoji}
                         />
                     </Box>
-                    <Box sx={{width: smallType ? 0 : mediumType ? '35%' : '20%'}}>
+                    <Box sx={{width: smallType ? 0 : mediumType ? '35%' : '20%', borderLeft: '1px solid #363636'}}>
                         <Picker
                             onEmojiClick={onEmojiClick}
                             disableAutoFocus={true}
@@ -230,54 +253,34 @@ const Chat: FC = () => {
                             native
                             pickerStyle={{width: '100%', height: '100%', overflowX: 'hidden', border: 'none', background: userStyles.secondBackgroundColor || '#121212', color: 'white', }}
                         />
+                        {/*    <img src={'https://media0.giphy.com/media/UO5elnTqo4vSg/giphy.gif?cid=790b761149852ac594a94121e9ce7bca2c034d663fc5b726&rid=giphy.gif&ct=g'}/>*/}
+
                     </Box>
                 </Box>
         );
     } else if (!id) {
         return (
             <Box sx={chatSection(type)}>
-                <MyChats setIsChatListOpen={setIsChatListOpen} isChatListOpen={isChatListOpen} />
-                <Box sx={chatContainer(mediumOrSmallType)}>
-                    <Box sx={{maxWidth: '75%', mx: 'auto', ...justifyColumnCenter}}>
-                        <Typography
-                            sx={{mt: '20%'}}
-                            variant={'h3'}>
-
-                        </Typography>
-                        <Typography variant="h4" sx={logo}>
-                            Чат
-                            <ChatBubbleOutlineIcon/>
-                        </Typography>
-                        {type !== screenTypes.largeType &&
-                            <Button sx={{mt: 10}} size='large' variant={'outlined'} onClick={() => setIsChatListOpen(true)}>
-                                Ваши чаты
-                            </Button>
-                        }
-                        <Button size='large' sx={{mt: 1}} variant={'outlined'}>
-                            <NavLink className={'nav-link'} to={'/search'} style={{textDecoration: 'none', color: 'inherit',}}>
-                                Поиск
-                            </NavLink>
-                        </Button>
-                    </Box>
-                </Box>
+                <MyChats id={id} handleIsChatListOpen={handleIsChatListOpen} isChatListOpen={isChatListOpen} />
+                <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage, userStyles.backgroundColor, true)}/>
             </Box>
         )
     } else {
         return (
             <Box sx={chatSection(type)}>
-                <MyChats setIsChatListOpen={setIsChatListOpen} isChatListOpen={isChatListOpen} />
-                <Box sx={chatContainer(mediumOrSmallType)}>
+                <MyChats handleIsChatListOpen={handleIsChatListOpen} isChatListOpen={isChatListOpen} />
+                <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage, userStyles.backgroundColor, true)}>
                     <Box sx={{maxWidth: '75%', mx: 'auto', ...justifyColumnCenter}}>
                         <Typography
                             sx={{mt: '20%'}}
                             variant={'h3'}>Чата по id: {id} не существует
                         </Typography>
                         {type !== screenTypes.largeType &&
-								        <Button sx={{mt: 10}} size='large' variant={'outlined'} onClick={() => setIsChatListOpen(true)}>
-									        Ваши чаты
-								        </Button>
+                            <Button sx={{mt: 10}} size='large' variant={'contained'} onClick={() => handleIsChatListOpen(isChatListOpen)}>
+                                Ваши чаты
+                            </Button>
                         }
-                        <Button size='large' sx={{mt: 1}} variant={'outlined'}>
+                        <Button size='large' sx={{mt: 1}} variant={'contained'}>
                             <NavLink className={'nav-link'} to={'/search'} style={{textDecoration: 'none', color: 'inherit',}}>
                                 Поиск
                             </NavLink>

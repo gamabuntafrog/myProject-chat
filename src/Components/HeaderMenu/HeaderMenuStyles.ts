@@ -7,7 +7,8 @@ export const headerMenuContainer = (color: string) => {
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'column',
-        wordBreak: 'break-word'
+        wordBreak: 'break-word',
+
     })
 }
 
@@ -23,7 +24,11 @@ export const userInfoAvatar = {
     mr: 2
 }
 
-export const navLink = {
-    display: 'flex',
-    alignItems: 'center'
+export const navLink = (theme: 'dark' | 'light' | '') => {
+    console.log(theme)
+    return ({
+        display: 'flex',
+        alignItems: 'center',
+        color: theme === "dark" ? 'white' : 'black',
+    })
 }

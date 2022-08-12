@@ -68,6 +68,7 @@ const Messages: FC<MessagesPropTypes> = ({
     const history = useHistory()
 
     useEffect(() => {
+        console.log(messages)
         if (listRef.current) {
             scrollToBottom()
         }
@@ -244,7 +245,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                 <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={avatarWrapper}>
                                     {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                                 </Box>
-                                <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius)}>
+                                <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor)}>
                                     {!isMessageChanging ?
                                             <>
                                                 <Box sx={userWrapper}>
@@ -346,7 +347,7 @@ const Messages: FC<MessagesPropTypes> = ({
                         }} sx={avatarWrapper}>
                             {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                         </Box>
-                        <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius)}>
+                        <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor)}>
                             {!isMessageChanging ?
                                 <>
                                     <Box sx={{alignItems: 'center', display: 'flex'}}>

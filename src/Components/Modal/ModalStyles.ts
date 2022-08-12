@@ -14,15 +14,16 @@ type modalContainerPT = {
     isPadding?: boolean,
     br?: string,
     height?: string,
-    jc?: 'center' | 'start'
+    jc?: 'center' | 'start',
+    backgroundColor?: string
 }
 
-export const modalContainer = ({isMobile, isPadding, br, height, jc}: modalContainerPT): object => {
+export const modalContainer = ({isMobile, isPadding, br, height, jc, backgroundColor}: modalContainerPT): object => {
 
 
     if (isMobile) {
         return ({
-            backgroundColor: '#121212',
+            backgroundColor: backgroundColor || '#121212',
             display: 'flex',
             alignItems: 'center',
             justifyContent: jc || "center",
@@ -36,7 +37,7 @@ export const modalContainer = ({isMobile, isPadding, br, height, jc}: modalConta
     }
 
     return ({
-        backgroundColor: '#121212',
+        backgroundColor: backgroundColor || '#121212',
         display: 'flex',
         alignItems: 'center',
         flexDirection: 'column',

@@ -1,9 +1,10 @@
-import React, {FC} from "react"
+import React, {FC, useContext} from "react"
 import {Box, Button, Modal as MUIModal} from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close'
 import {modalBackdrop, modalCloseButton, modalContainer} from "./ModalStyles";
 import {justifyColumnCenter} from "../GeneralStyles";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
+import {ThemeContext} from "../../App";
 
 type ModalPT = {
     isModalOpen: boolean,
@@ -27,13 +28,15 @@ const Modal: FC<ModalPT> = ({
     height,
     jc
 }) => {
+    const {userStyles} = useContext(ThemeContext)!
+
 
     const type = useGetTypeOfScreen()
     const isMobile = type === screenTypes.smallType;
 
     return (
         <MUIModal onClose={onClose} open={isModalOpen} sx={{...modalBackdrop, ...justifyColumnCenter}}>
-            <Box sx={modalContainer({isMobile, isPadding: isPadding, br, height, jc})}>
+            <Box sx={modalContainer({isMobile, isPadding: isPadding, br, height, jc, backgroundColor: userStyles.secondBackgroundColor})}>
                 <Button color={'error'} sx={modalCloseButton(buttonPosition)} onClick={onClose}>
                     <CloseIcon/>
                 </Button>

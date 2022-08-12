@@ -1,5 +1,5 @@
 import './App.css';
-import {BrowserRouter} from 'react-router-dom';
+import {BrowserRouter, useHistory, useLocation, useParams} from 'react-router-dom';
 import Navbar from './Components/Navbar';
 import AppRouter from './Components/AppRouter';
 import {useAuthState} from 'react-firebase-hooks/auth';
@@ -13,6 +13,7 @@ import {doc, Firestore} from "firebase/firestore";
 import {useDocumentData} from "react-firebase-hooks/firestore";
 import {createTheme, CssBaseline, ThemeProvider} from "@mui/material";
 import context from "./types/context";
+import {chatType} from "./types/chatType";
 
 type AppPropTypes = {
     auth: Auth, app: FirebaseApp, firestore: Firestore
@@ -21,6 +22,18 @@ type AppPropTypes = {
 const r: HTMLInputElement = document.querySelector(':root')!;
 
 export type userStylesType = {backgroundColor: string, secondBackgroundColor: string, theme: 'light' | 'dark' | '', messagesBorderRadius: string, backgroundImage: ArrayBuffer | File | string }
+
+export const ChatInfoContext = createContext<{
+    chatInfo: chatType | null,
+    changeChatInfo: (chatInfo: chatType | null) => void,
+    handleChatInfoIsOpen: (isOpen: boolean) => void ,
+    isChatInfoOpen: boolean
+} | null>(null)
+
+export const ChatListContext = createContext<{
+    isChatListOpen: boolean,
+    handleIsChatListOpen: (isOpen: boolean) => void
+} | null>(null)
 
 export const ThemeContext = createContext<{
     userStyles: userStylesType,
@@ -35,10 +48,17 @@ const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
 
     const [googleUser, isUserLoading] = useAuthState(auth)
     const [user, isLoading] = useDocumentData<any>(doc(firestore, 'users', `${googleUser?.uid}`))
-
+    // console.log(user)
     const [userStyles, setUserStyles] = useState<userStylesType>({backgroundColor: '', secondBackgroundColor: '', theme: '', messagesBorderRadius: '', backgroundImage: ''});
 
-    console.log(userStyles)
+    const [chatInfo, setChatInfo] = useState<chatType | null>(null);
+    const [isChatInfoOpen, setIsChatInfoOpen] = useState(false);
+    const [isChatListOpen, setIsChatListOpen] = useState(true);
+
+    const location = useLocation()
+    const isLocationIsChat = location.pathname.includes('chat/')
+    // console.log(isLocationIsChat)
+
 
 
     const darkTheme = createTheme({
@@ -52,24 +72,36 @@ const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
 
     useEffect(() => {
         if (userStyles) {
-            // @ts-ignore
             r.style.setProperty('--nicknameColor', userStyles.backgroundColor);
             r.style.setProperty('--secondBackgroundColor', userStyles.secondBackgroundColor);
-
         }
     }, [userStyles]);
 
     useEffect(() => {
         if (user) {
             const localStorageUserInfo = localStorage.getItem(user.userId)
-            const parsedLocalStorUserInfo = localStorageUserInfo ? JSON.parse(localStorageUserInfo) : null;
-            console.log(parsedLocalStorUserInfo)
-            if (parsedLocalStorUserInfo) {
+            if (!localStorageUserInfo) {
+                const startedStyles: userStylesType = {
+                    backgroundColor: '#606060',
+                    secondBackgroundColor: '#121212',
+                    theme: 'dark',
+                    messagesBorderRadius: '10',
+                    backgroundImage: '',
+                }
+                localStorage.setItem(user.userId, JSON.stringify(startedStyles))
+                setUserStyles(startedStyles)
+            } else {
+                const parsedLocalStorUserInfo = JSON.parse(localStorageUserInfo);
                 setUserStyles(parsedLocalStorUserInfo)
             }
         }
     }, [user]);
 
+    useEffect(() => {
+        if (!isLocationIsChat) {
+            setChatInfo(null) // cleaning header
+        }
+    }, [isLocationIsChat]);
 
     if (isLoading) {
         return <Loader/>
@@ -91,15 +123,25 @@ const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
                 changeBackground: (bg) => setUserStyles(prev => {return {...prev, backgroundImage: bg}}),
                 changeTheme: (theme) => setUserStyles(prev => {return {...prev, theme}}),
             }}>
-                <ThemeProvider theme={darkTheme}>
-                    <CssBaseline />
-                    <div className="App">
-                        <BrowserRouter>
-                            <Navbar/>
-                            <AppRouter/>
-                        </BrowserRouter>
-                    </div>
-                </ThemeProvider>
+                <ChatInfoContext.Provider value={{
+                    chatInfo: chatInfo,
+                    changeChatInfo: (chatInfo => setChatInfo(chatInfo)),
+                    isChatInfoOpen,
+                    handleChatInfoIsOpen: (isOpen => setIsChatInfoOpen(!isOpen))
+                }}>
+                    <ChatListContext.Provider value={{
+                        isChatListOpen,
+                        handleIsChatListOpen: (isOpen => setIsChatListOpen(!isOpen))
+                    }}>
+                        <ThemeProvider theme={darkTheme}>
+                            <CssBaseline />
+                            <div className="App">
+                                    <Navbar/>
+                                    <AppRouter/>
+                            </div>
+                        </ThemeProvider>
+                    </ChatListContext.Provider>
+                </ChatInfoContext.Provider>
             </ThemeContext.Provider>
 
         </Context.Provider>

@@ -8,7 +8,9 @@ export const myChatsSection = (mediumOfSmallType: boolean, isChatListOpen: boole
                 zIndex: 1000,
                 backgroundColor: color || '#121212',
                 overflowY: 'auto',
-                minHeight: '100%'
+                minHeight: '100%',
+                pt: 3,
+
             }
         } else {
             return {
@@ -22,7 +24,9 @@ export const myChatsSection = (mediumOfSmallType: boolean, isChatListOpen: boole
             zIndex: 1000,
             backgroundColor: color || '#121212',
             overflowY: 'auto',
-            pt: 3
+            pt: 3,
+            borderRight: '1px solid #363636',
+
         }
     }
 }
@@ -55,13 +59,17 @@ export const closeButton = {
     ml: 1
 }
 
-export const itemWrapper = {
-    color: 'white',
-    padding: '0 10px',
-    marginBottom: '5px',
-    display: 'flex',
-    alignItems: 'center',
-    textDecoration: 'none'
+export const itemWrapper = (theme: 'dark' | 'light' | '') => {
+
+
+    return ({
+        color: theme === "dark" ? 'white' : 'black',
+        padding: '0 10px',
+        marginBottom: '5px',
+        display: 'flex',
+        alignItems: 'center',
+        textDecoration: 'none'
+    })
 }
 
 export const item = {

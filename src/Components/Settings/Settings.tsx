@@ -137,7 +137,7 @@ const Settings: FC = () => {
         localStorage.setItem(user!.userId, JSON.stringify({
             backgroundColor: userStyles.backgroundColor,
             secondBackgroundColor: userStyles.secondBackgroundColor,
-            theme: 'dark',
+            theme: userStyles.theme,
             messagesBorderRadius: userStyles.messagesBorderRadius,
             backgroundImage: previewBackground
         }))
@@ -221,13 +221,13 @@ const Settings: FC = () => {
                         <Button sx={{ml: 2}} variant='outlined' onClick={handleClick}>Закрыть</Button>
                     </Box>
                 </Snackbar>
-                <Button sx={{mb: 1}} onClick={() => {
+                <Button sx={{mb: 2, width: '90%', mx: 'auto', display: 'flex'}} variant='outlined' onClick={() => {
                     if (userStyles.theme === 'dark') {
                         changeTheme('light')
                     } else {
                         changeTheme('dark')
                     }
-                }}>{userStyles.theme || 'dark'}</Button>
+                }}>Сменить тему</Button>
                 <Box sx={{mb: 2}}>
                     <SliderPicker color={userStyles.backgroundColor} onChange={handleColor} onChangeComplete={handleColor}/>
                 </Box>
@@ -322,7 +322,7 @@ const Settings: FC = () => {
                 </List>
 
             </Box>
-            <Button sx={{mt: 1}} onClick={submitSettings} >Сохранить</Button>
+            <Button sx={{mt: 1}} onClick={submitSettings} variant="contained">Сохранить</Button>
 
         </Box>
     )

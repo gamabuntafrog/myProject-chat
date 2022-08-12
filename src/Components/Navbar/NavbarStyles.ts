@@ -7,11 +7,16 @@ export const appBar = (type: screenTypes, color: string | undefined) => {
         flexGrow: 1,
         background: color ? color : '#0d47a1',
         boxShadow: 3,
-        borderRadius: (type === screenTypes.mediumType || type === screenTypes.smallType) ? '' : '0 0 40px 40px',
-        maxWidth: '1280px',
+        borderRadius: 0,
+        // (type === screenTypes.mediumType || type === screenTypes.smallType) ? '' : '0 0 40px 40px',
+        // maxWidth: '1280px',
         mx: 'auto',
         left: '50%',
-        transform: 'translateX(-50%)'
+        transform: 'translateX(-50%)',
+        header: {
+            px: 0
+
+        }
     })
 }
 
@@ -44,8 +49,15 @@ export const headerMenuWrapper = (color: string) => {
     })
 }
 
+export const chatInfoStyles = {
+    color: 'inherit',
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 5px'
+}
+
 export const linkToUserInfo = {
-    color: 'white',
+    color: 'inherit',
     display: 'flex',
     alignItems: 'center',
     padding: '0 20px'
