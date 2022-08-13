@@ -33,18 +33,21 @@ import '../Messages/Messages.css';
 import {ChromePicker, ColorChangeHandler, SliderPicker} from "react-color";
 import {ThemeContext} from "../../App";
 import '../../App.css'
-const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThisMine: boolean, isMobileType: boolean, borderRadius?: string | number) => {
+
+export const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThisMine: boolean, isMobileType: boolean, borderRadius: string | number, backgroundColor: string, theme: 'light' | 'dark' | '') => {
 
     return ({
         flexGrow: 1,
-        backgroundColor: '#121212',
+        backgroundColor: backgroundColor || '#121212',
         pl: 2,
+        color: theme === 'light' ? 'black' : 'white',
         pr: isMobileType ? 2 : 4,
         pt: 2,
         pb: 3,
         borderRadius: isMessageAfterThisMine ? borderRadius ? `${borderRadius}px` : 1 : `${borderRadius}px ${borderRadius}px ${borderRadius}px 0`
     })
 }
+
 export const messagesList = (isMobileScreen: boolean, background: ArrayBuffer | File | string | null, color: string | undefined) => {
 
     return ({
@@ -286,7 +289,7 @@ const Settings: FC = () => {
                         <Box sx={avatarWrapper}>
                             {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                         </Box>
-                        <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles.messagesBorderRadius)}>
+                        <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}>
                             <Box sx={{alignItems: 'center', display: 'flex'}}>
                                 {!isMessageBeforeIsMine && <>
                                     <Typography sx={{color: subscribedUser ? subscribedUser?.nicknameColor : '', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>

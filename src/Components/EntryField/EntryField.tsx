@@ -1,19 +1,32 @@
-import React, {FC, useContext, useEffect, useRef, useState} from "react";
+import React, {FC, useContext, useEffect, useState} from "react";
 import shortid from 'shortid';
 import {useParams} from "react-router-dom";
 import {arrayUnion, doc, setDoc, updateDoc} from "firebase/firestore";
 import {Context} from "../..";
-import {Alert, AlertTitle, Box, Button, Container, Snackbar, TextField, Typography} from "@mui/material"
+import {
+    Alert,
+    AlertTitle, Avatar,
+    Box,
+    Button,
+    Container,
+    FormControl,
+    FormLabel,
+    Snackbar,
+    TextField,
+    Typography
+} from "@mui/material"
 import ReplyIcon from '@mui/icons-material/Reply';
 import SendIcon from '@mui/icons-material/Send';
 import '../../App.css';
 import ChatInfo from "../ChatInfo";
-import {messagesExemplar, messagesType, messageType, replyMessageType} from '../../types/messages';
+import {messagesExemplar, messagesType} from '../../types/messages';
 import CloseIcon from "@mui/icons-material/Close";
 import EllipsisText from "react-ellipsis-text";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
-import { emojiType } from "../Chat/Chat";
+import {emojiType} from "../Chat/Chat";
 import {ThemeContext} from "../../App";
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import {getDownloadURL, getStorage, ref, uploadBytesResumable} from 'firebase/storage'
 
 type EntryFieldPT = {
     chatName: string,
@@ -27,7 +40,8 @@ type EntryFieldPT = {
     isChatListOpen: boolean,
     showMessageOnReply: (message: messagesType) => void,
     listRef: React.MutableRefObject<HTMLUListElement | null>,
-    emoji: emojiType | null
+    emoji: emojiType | null,
+    inputRef: React.MutableRefObject<HTMLInputElement | null>
 }
 
 const EntryField: FC<EntryFieldPT> = ({
@@ -40,20 +54,22 @@ const EntryField: FC<EntryFieldPT> = ({
     replyMessageInfo,
     setIsReplying,
     showMessageOnReply,
-    emoji
+    emoji,
+    inputRef
 }) => {
 
     const { firestore, user, isUserLoading} = useContext(Context)!
     const {userStyles} = useContext(ThemeContext)!
+    const storage = getStorage()
 
     const {id} = useParams<{ id: string }>()
 
     const [message, setMessage] = useState('');
     const [open, setOpen] = useState(false);
 
-    const inputRef = useRef<null | HTMLInputElement>(null);
 
     const type = useGetTypeOfScreen()
+    const isMobile = type === screenTypes.smallType
 
     useEffect(() => {
         if (isReplying) {
@@ -92,12 +108,51 @@ const EntryField: FC<EntryFieldPT> = ({
             users: arrayUnion(user?.userId)
         })
     }
+    const [urls, setUrls] = useState<any>([]);
+    // console.log(urls)
+    const [messageOnSubmit, setMessageOnSubmit] = useState('');
+
+    const sendMessagesWhenUrlsDone = async (urls: string[] | null, message: string) => {
+        const newMessageId = `${user!.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
+
+        setPreviewImages(null)
+
+        const docRef = await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), {
+            messageType: messagesExemplar.message,
+            userId: user?.userId,
+            message: message,
+            createdAt: Date.now(),
+            messageId: newMessageId,
+            chatId: id,
+            images: urls
+        })
+        await setDoc(doc(firestore, 'chats', `${id}`), {
+            lastMessage: {
+                messageType: messagesExemplar.message,
+                userId: user!.userId,
+                message: message,
+                createdAt: Date.now(),
+                messageId: newMessageId,
+                chatId: id
+            }
+        }, {merge: true})
+    }
+
+    // useEffect(() => {
+    //     if (urls.length === previewImages?.length) {
+    //         console.log(urls)
+    //         sendMessagesWhenUrlsDone(urls)
+    //
+    //     }
+    //
+    // }, [urls]);
+
 
     const submitPost = async () => {
 
         const messageOnSubmit = message
         setMessage('')
-
+        // setMessageOnSubmit(message)
         if (messageOnSubmit.trim() === '') {
             setOpen(true)
             return
@@ -130,25 +185,49 @@ const EntryField: FC<EntryFieldPT> = ({
                 }, {merge: true})
                 setIsReplying(false)
             } else {
-                const docRef = await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), {
-                    messageType: messagesExemplar.message,
-                    userId: user?.userId,
-                    message: messageOnSubmit,
-                    createdAt: Date.now(),
-                    messageId: newMessageId,
-                    chatId: id
-                })
-                await setDoc(doc(firestore, 'chats', `${id}`), {
-                    lastMessage: {
-                        messageType: messagesExemplar.message,
-                        userId: user.userId,
-                        message: messageOnSubmit,
-                        createdAt: Date.now(),
-                        messageId: newMessageId,
-                        chatId: id
+                const now = Date.now()
+                const imagesRef: any = []
+
+                const changeInfo = async (messageOnSubmit: string) => {
+
+                    if (previewImages) {
+                        // console.log(previewImages)
+                        const promisesWithImagesUrlWhenTheseDone = previewImages.map( async (image: any, i: number) => {
+                            return await new Promise((resolve, err) => {
+                                const storageRef = ref(storage, `/${chatId}/${now}${fileImages![i].name}`)
+                                const uploadTask = uploadBytesResumable(storageRef, fileImages![i])
+
+
+                                uploadTask.on('state_changed', (snapshot => {
+                                    const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
+                                    // setProgress(progress)
+                                }), (err) => {
+                                    console.log(err)
+                                }, async () => {
+                                    await getDownloadURL(uploadTask.snapshot.ref)
+                                        .then(url => {
+                                            resolve(url)
+                                        })
+                                })
+                            })
+                        })
+
+                        Promise.all(promisesWithImagesUrlWhenTheseDone).then((imagesRef) => {
+                            console.log(imagesRef)
+                            sendMessagesWhenUrlsDone(imagesRef, messageOnSubmit)
+                        })
+                    } else {
+                        sendMessagesWhenUrlsDone(null, messageOnSubmit)
                     }
-                }, {merge: true})
+
+                }
+                changeInfo(messageOnSubmit)
+
                 // console.log(docRef)
+
+
+
+
 
             }
         }
@@ -162,6 +241,27 @@ const EntryField: FC<EntryFieldPT> = ({
 
         setOpen(false);
     };
+    const [previewImages, setPreviewImages] = useState<null | any>(null);
+    const [fileImages, setFileImages] = useState<null | FileList>(null);
+
+    const imageHandler = (file: any) => {
+        const reader = new FileReader()
+
+        reader.onload = () => {
+            if (reader.readyState === 2) {
+                // console.log(reader.result)
+                setPreviewImages((prev: any) => {
+                    if (prev === null) {
+                        return [reader.result]
+                    }
+                    return [...prev, reader.result]
+                })
+            }
+
+        }
+        reader.readAsDataURL(file)
+    }
+
 
     if (user && !users[user.userId]) {
         return <Container sx={{display: 'flex', alignItems: 'center', justifyContent: 'center', pb: 3}}>
@@ -169,7 +269,7 @@ const EntryField: FC<EntryFieldPT> = ({
         </Container>
     }
 
-    return <Box sx={{position: 'sticky', bottom: '0px', mt: -1, pt: 2, pb: 2, px: 2, backgroundColor: userStyles.secondBackgroundColor || '#121212', zIndex: 100, borderRadius: '8px 8px 0 0', borderTop: '1px solid #363636'}}>
+    return <Box sx={{position: 'sticky', bottom: '0px', mt: -1, pt: 2, pb: 2, px: isMobile ? 1 : 2, backgroundColor: userStyles.secondBackgroundColor || '#121212', zIndex: 100, borderRadius: '8px 8px 0 0', borderTop: '1px solid #363636'}}>
         <Box>
             <ChatInfo
                 id={id}
@@ -195,6 +295,17 @@ const EntryField: FC<EntryFieldPT> = ({
 			        </Button>
 		        </Box>
             }
+            {previewImages &&
+                <Box sx={{display: 'flex', mb: 1, alignItems: 'center'}}>
+                    {previewImages.map((image: File, i:number) => {
+                        // @ts-ignore
+                        return <Avatar sx={{width: '60px', height: '60px', ml: 1, cursor: 'pointer', borderRadius: 3, border: `2px solid ${userStyles.backgroundColor}`}} key={i} src={image}/>
+                    })}
+                    <Button color={'error'} sx={{ml: 'auto',minWidth: '40px'}}>
+	                    <CloseIcon />
+                    </Button>
+                </Box>
+            }
             <Box sx={{display: 'flex', justifyContent: 'center'}}>
                 <TextField
                     id="outlined-name"
@@ -206,11 +317,29 @@ const EntryField: FC<EntryFieldPT> = ({
                     sx={{fieldset: {borderRadius: type === screenTypes.largeType ? '30px 0 0 30px' : '50px',}}}
                     maxRows={10}
                     onKeyPress={(e) => {
-                        if (e.key === "Enter") return submitPost() //submit
+                        if (e.key === "Enter") {
+                            e.preventDefault()
+                            return submitPost()
+                        } //submit
                     }}
-                    ref={inputRef}
+                    inputRef={inputRef}
                 />
-                <Button sx={{ml: 1, borderRadius: type === screenTypes.largeType ? '4px' : '50px'}} variant="outlined" onClick={submitPost}>
+                <Button variant='outlined' sx={{padding: 0, ml: 0.5, borderRadius: type === screenTypes.largeType ? '4px' : '50px', minWidth: '40px'}}>
+                    <FormLabel sx={{color: 'inherit', height: '100%', width: '100%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}} htmlFor='fileInput'>
+                        <AttachFileIcon/>
+                    </FormLabel>
+                </Button>
+                <input id='fileInput' multiple type='file' accept=".jpg, .jpeg, .png" onChange={(e) => {
+                    setFileImages(e.target.files)
+                    if (e.target.files) {
+                        setPreviewImages([])
+                        const files = [...e.target.files]
+                        files.map((file) => {
+                            imageHandler(file)
+                        })
+                    }
+                }}/>
+                <Button sx={{ml: 0.5, borderRadius: type === screenTypes.largeType ? '4px' : '50px', minWidth: '30px'}} variant="outlined" onClick={submitPost}>
                     <SendIcon/>
                 </Button>
             </Box>

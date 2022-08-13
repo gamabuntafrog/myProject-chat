@@ -43,9 +43,6 @@ const MyChats: FC<MyChatsPT> = ({isChatListOpen, handleIsChatListOpen, id}) => {
     const type = useGetTypeOfScreen()
     const mediumOfSmallType = (type === screenTypes.mediumType || type === screenTypes.smallType);
 
-    // const {isChatListOpen, handleIsChatListOpen} = useContext(ChatListContext)!
-
-
     const fetchUsers = async (chatsCollection: chatType[]) => {
         const usersPromiseArray = chatsCollection.map(async (el: chatType) => {
             return await getDoc(doc(firestore, 'users', el.lastMessage.userId))
@@ -82,10 +79,8 @@ const MyChats: FC<MyChatsPT> = ({isChatListOpen, handleIsChatListOpen, id}) => {
     }, [filterValue, chats]);
 
     useEffect(() => {
-        console.log(id)
         if (!id) {
-            handleIsChatListOpen(false)
-
+            handleIsChatListOpen(false) //!false = true
         }
 
     }, [id]);

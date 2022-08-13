@@ -1,7 +1,7 @@
 import React, {FC, useContext, useEffect, useRef, useState,} from "react";
 import {Context} from "../..";
 import {doc, setDoc} from "firebase/firestore";
-import {Avatar, Box, Button, IconButton, List, ListItem, TextField, Typography} from '@mui/material'
+import {Avatar, Box, Button, IconButton, ImageList, ImageListItem, List, ListItem, TextField, Typography} from '@mui/material'
 import Loader from "../Loader";
 import UserModalInfo from "../UserModalInfo";
 import {messagesExemplar, messagesType, replyMessageType} from '../../types/messages';
@@ -36,7 +36,9 @@ type MessagesPropTypes = {
     isChatChanging: boolean,
     showRepliedMessage: (message: replyMessageType) => void,
     listRef: React.MutableRefObject<HTMLUListElement | null>,
-    chatInfo: chatType | undefined
+    chatInfo: chatType | undefined,
+    inputRef: React.MutableRefObject<HTMLInputElement | null>
+
 }
 
 const Messages: FC<MessagesPropTypes> = ({
@@ -48,7 +50,8 @@ const Messages: FC<MessagesPropTypes> = ({
     isChatChanging,
     showRepliedMessage,
     listRef,
-    chatInfo
+    chatInfo,
+    inputRef
 }) => {
 
     const {user: me, firestore} = useContext(Context)!
@@ -204,6 +207,7 @@ const Messages: FC<MessagesPropTypes> = ({
               chatInfo={chatInfo}
               secondLastMessage={secondLastMessage}
               setChangeMessageInputValue={setChangeMessageInputValue}
+              inputRef={inputRef}
             />}
             {isUserModalOpen && <UserModalInfo
               modalInfo={userModalInfo}
@@ -245,7 +249,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                 <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={avatarWrapper}>
                                     {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                                 </Box>
-                                <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor)}>
+                                <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}>
                                     {!isMessageChanging ?
                                             <>
                                                 <Box sx={userWrapper}>
@@ -328,7 +332,9 @@ const Messages: FC<MessagesPropTypes> = ({
                             </ListItem>
                         )
                     }
-
+                if (message.images) {
+                    // console.log(message.images)
+                }
                 return (
                     <ListItem
                         onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
@@ -347,7 +353,7 @@ const Messages: FC<MessagesPropTypes> = ({
                         }} sx={avatarWrapper}>
                             {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                         </Box>
-                        <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor)}>
+                        <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}>
                             {!isMessageChanging ?
                                 <>
                                     <Box sx={{alignItems: 'center', display: 'flex'}}>
@@ -376,6 +382,15 @@ const Messages: FC<MessagesPropTypes> = ({
                                             <ReplyIcon/>
                                         </IconButton>
                                     </Box>
+                                    {message.images &&
+                                        <ImageList sx={{ width: '100%' }} cols={isMobile ? 1 : 3} >
+                                            {message.images.map((image) => {
+                                                return <ImageListItem key={image} sx={{borderRadius: 5, overflow: 'hidden', mt: 1, mx: 0.5}}>
+                                                    <img src={image}/>
+                                                </ImageListItem>
+                                            })}
+                                        </ImageList>
+                                    }
                                     <Typography sx={messageStyles} variant={'body1'}>
                                         {message.message}
                                     </Typography>

@@ -22,6 +22,7 @@ export type messageType = {
     message: string,
     userId: string,
     messageType: messagesExemplar.message,
+    images?: string[]
 }
 
 export type replyMessageType = {
@@ -32,7 +33,8 @@ export type replyMessageType = {
     userId: string,
     isChanging?: boolean,
     messageType: messagesExemplar.replyMessage,
-    replyer: messageType | replyMessageType
+    replyer: messageType | replyMessageType,
+    images?: string[]
 
 }
 

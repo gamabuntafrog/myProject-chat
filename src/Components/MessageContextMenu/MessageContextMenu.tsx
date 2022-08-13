@@ -26,7 +26,8 @@ type MessageContextMenuPT = {
     setChangingMessageId: React.Dispatch<React.SetStateAction<string>>,
     setChangeMessageInputValue: React.Dispatch<React.SetStateAction<string>>,
     chatInfo: chatType | undefined,
-    secondLastMessage: messagesType[] | undefined
+    secondLastMessage: messagesType[] | undefined,
+    inputRef: React.MutableRefObject<HTMLInputElement | null>
 }
 const MessageContextMenu: FC<MessageContextMenuPT> =
     ({
@@ -39,7 +40,8 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
         setChangingMessageId,
         chatInfo,
         secondLastMessage,
-        setChangeMessageInputValue
+        setChangeMessageInputValue,
+        inputRef,
     }) => {
 
     const {firestore, user} = useContext(Context)!;
@@ -93,6 +95,7 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
                 setIsReplying(true)
                 setReplyMessageInfo(modalInfo.message)
                 setIsContextMenuOpen(false)
+                inputRef?.current!.focus()
             }} startIcon={<ReplyIcon/>}  >
                 <Typography>Ответить</Typography>
             </Button>

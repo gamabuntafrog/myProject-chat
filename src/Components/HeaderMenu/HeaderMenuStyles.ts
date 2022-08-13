@@ -25,7 +25,7 @@ export const userInfoAvatar = {
 }
 
 export const navLink = (theme: 'dark' | 'light' | '') => {
-    console.log(theme)
+    // console.log(theme)
     return ({
         display: 'flex',
         alignItems: 'center',

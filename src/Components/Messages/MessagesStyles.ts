@@ -19,13 +19,13 @@ export const avatarWrapper = {
     cursor: 'pointer'
 }
 
-export const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThisMine: boolean, isMobileType: boolean, borderRadius: string | number, backgroundColor: string) => {
+export const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThisMine: boolean, isMobileType: boolean, borderRadius: string | number, backgroundColor: string, theme: 'light' | 'dark' | '') => {
 
     return ({
         flexGrow: 1,
         backgroundColor: backgroundColor || '#121212',
         pl: 2,
-        color: 'white',
+        color: theme === 'light' ? 'black' : 'white',
         pr: isMobileType ? 2 : 4,
         pt: 2,
         pb: 3,
@@ -75,7 +75,8 @@ export const messageListItem = (isMobileType: boolean) => {
 }
 
 export const messageStyles = {
-    wordBreak: 'keep-all'
+    wordBreak: 'keep-all',
+    mt: 1
 }
 
 export const messageLeftLine = {

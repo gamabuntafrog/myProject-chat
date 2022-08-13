@@ -206,6 +206,7 @@ const Chat: FC = () => {
     }
 
     const {userStyles} = useContext(ThemeContext)!
+    const inputRef = useRef<null | HTMLInputElement>(null);
 
     if (isLoading) return (
         <Box sx={chatSection(type)}>
@@ -228,6 +229,7 @@ const Chat: FC = () => {
                             showRepliedMessage={showRepliedMessage}
                             listRef={listRef}
                             chatInfo={chatData}
+                            inputRef={inputRef}
                         />
                         <EntryField
                             users={users}
@@ -241,6 +243,7 @@ const Chat: FC = () => {
                             isChatListOpen={isChatListOpen}
                             showMessageOnReply={showMessageOnReply}
                             listRef={listRef}
+                            inputRef={inputRef}
                             emoji={chosenEmoji}
                         />
                     </Box>
