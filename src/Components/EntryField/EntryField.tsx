@@ -5,11 +5,11 @@ import {arrayUnion, doc, setDoc, updateDoc} from "firebase/firestore";
 import {Context} from "../..";
 import {
     Alert,
-    AlertTitle, Avatar,
+    AlertTitle,
+    Avatar,
     Box,
     Button,
     Container,
-    FormControl,
     FormLabel,
     Snackbar,
     TextField,
@@ -19,7 +19,7 @@ import ReplyIcon from '@mui/icons-material/Reply';
 import SendIcon from '@mui/icons-material/Send';
 import '../../App.css';
 import ChatInfo from "../ChatInfo";
-import {messagesExemplar, messagesType} from '../../types/messages';
+import {messagesExemplar, messagesType, messageType, replyMessageType} from '../../types/messages';
 import CloseIcon from "@mui/icons-material/Close";
 import EllipsisText from "react-ellipsis-text";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
@@ -41,7 +41,10 @@ type EntryFieldPT = {
     showMessageOnReply: (message: messagesType) => void,
     listRef: React.MutableRefObject<HTMLUListElement | null>,
     emoji: emojiType | null,
-    inputRef: React.MutableRefObject<HTMLInputElement | null>
+    inputRef: React.MutableRefObject<HTMLInputElement | null>,
+    setProgress: React.Dispatch<React.SetStateAction<{onImage: number, percent: null | number}>>,
+    setMessagesWhichOnProgress: React.Dispatch<React.SetStateAction<null | (messageType | replyMessageType)[]>>,
+    messagesWhichOnProgress: null | any
 }
 
 const EntryField: FC<EntryFieldPT> = ({
@@ -55,7 +58,10 @@ const EntryField: FC<EntryFieldPT> = ({
     setIsReplying,
     showMessageOnReply,
     emoji,
-    inputRef
+    inputRef,
+    setProgress,
+    setMessagesWhichOnProgress,
+    messagesWhichOnProgress
 }) => {
 
     const { firestore, user, isUserLoading} = useContext(Context)!
@@ -111,41 +117,61 @@ const EntryField: FC<EntryFieldPT> = ({
     const [urls, setUrls] = useState<any>([]);
     // console.log(urls)
     const [messageOnSubmit, setMessageOnSubmit] = useState('');
+    console.log(messagesWhichOnProgress?.filter((el: messageType) => {
+        return el.messageId
+    }))
+    const sendMessagesWhenUrlsDone = async (urls: string[] | null, message: string, newMessageId: string) => {
+        // const newMessageId = `${user!.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
 
-    const sendMessagesWhenUrlsDone = async (urls: string[] | null, message: string) => {
-        const newMessageId = `${user!.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
+        if (isReplying) {
+            const docRef = await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), {
+                messageType: messagesExemplar.replyMessage,
+                userId: user!.userId,
+                message: message,
+                createdAt: Date.now(),
+                replyer: replyMessageInfo,
+                messageId: newMessageId,
+                chatId: id,
+                images: urls
 
-        setPreviewImages(null)
-
-        const docRef = await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), {
-            messageType: messagesExemplar.message,
-            userId: user?.userId,
-            message: message,
-            createdAt: Date.now(),
-            messageId: newMessageId,
-            chatId: id,
-            images: urls
-        })
-        await setDoc(doc(firestore, 'chats', `${id}`), {
-            lastMessage: {
+            })
+            await setDoc(doc(firestore, 'chats', `${id}`), {
+                lastMessage: {
+                    messageType: messagesExemplar.replyMessage,
+                    userId: user!.userId,
+                    message: message,
+                    createdAt: Date.now(),
+                    replyer: replyMessageInfo,
+                    messageId: newMessageId,
+                    chatId: id
+                }
+            }, {merge: true})
+            setIsReplying(false)
+        } else {
+            const docRef = await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), {
                 messageType: messagesExemplar.message,
                 userId: user!.userId,
                 message: message,
                 createdAt: Date.now(),
                 messageId: newMessageId,
-                chatId: id
-            }
-        }, {merge: true})
-    }
+                chatId: id,
+                images: urls
+            })
+            await setDoc(doc(firestore, 'chats', `${id}`), {
+                lastMessage: {
+                    messageType: messagesExemplar.message,
+                    userId: user!.userId,
+                    message: message,
+                    createdAt: Date.now(),
+                    messageId: newMessageId,
+                    chatId: id
+                }
+            }, {merge: true})
+        }
 
-    // useEffect(() => {
-    //     if (urls.length === previewImages?.length) {
-    //         console.log(urls)
-    //         sendMessagesWhenUrlsDone(urls)
-    //
-    //     }
-    //
-    // }, [urls]);
+        // console.log(messagesWhichOnProgress)
+        // console.log(newMessageId)
+    }
 
 
     const submitPost = async () => {
@@ -161,37 +187,38 @@ const EntryField: FC<EntryFieldPT> = ({
         if (user) {
             const newMessageId = `${user.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
 
-            if (isReplying) {
-                const docRef = await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), {
-                    messageType: messagesExemplar.replyMessage,
-                    userId: user.userId,
-                    message: messageOnSubmit,
-                    createdAt: Date.now(),
-                    replyer: replyMessageInfo,
-                    messageId: newMessageId,
-                    chatId: id
 
-                })
-                await setDoc(doc(firestore, 'chats', `${id}`), {
-                    lastMessage: {
-                        messageType: messagesExemplar.replyMessage,
-                        userId: user.userId,
-                        message: messageOnSubmit,
-                        createdAt: Date.now(),
-                        replyer: replyMessageInfo,
-                        messageId: newMessageId,
-                        chatId: id
-                    }
-                }, {merge: true})
-                setIsReplying(false)
-            } else {
                 const now = Date.now()
-                const imagesRef: any = []
 
                 const changeInfo = async (messageOnSubmit: string) => {
 
                     if (previewImages) {
-                        // console.log(previewImages)
+                        const message = isReplying ? {
+                            messageType: messagesExemplar.replyMessage,
+                            replyer: replyMessageInfo,
+                            userId: user?.userId,
+                            message: messageOnSubmit,
+                            createdAt: Date.now(),
+                            messageId: newMessageId,
+                            chatId: id,
+                            images: previewImages
+                        } : {
+                            messageType: messagesExemplar.message,
+                            userId: user?.userId,
+                            message: messageOnSubmit,
+                            createdAt: Date.now(),
+                            messageId: newMessageId,
+                            chatId: id,
+                            images: previewImages
+                        }
+                        setMessagesWhichOnProgress((prev: any) => {
+                            if (prev !== null) {
+                                return [...prev, message]
+                            } else {
+                                return [message]
+                            }
+                        })
+
                         const promisesWithImagesUrlWhenTheseDone = previewImages.map( async (image: any, i: number) => {
                             return await new Promise((resolve, err) => {
                                 const storageRef = ref(storage, `/${chatId}/${now}${fileImages![i].name}`)
@@ -199,8 +226,6 @@ const EntryField: FC<EntryFieldPT> = ({
 
 
                                 uploadTask.on('state_changed', (snapshot => {
-                                    const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100)
-                                    // setProgress(progress)
                                 }), (err) => {
                                     console.log(err)
                                 }, async () => {
@@ -211,13 +236,15 @@ const EntryField: FC<EntryFieldPT> = ({
                                 })
                             })
                         })
+                        setPreviewImages(null)
 
                         Promise.all(promisesWithImagesUrlWhenTheseDone).then((imagesRef) => {
                             console.log(imagesRef)
-                            sendMessagesWhenUrlsDone(imagesRef, messageOnSubmit)
+                            setMessagesWhichOnProgress(null)
+                            sendMessagesWhenUrlsDone(imagesRef, messageOnSubmit, newMessageId)
                         })
                     } else {
-                        sendMessagesWhenUrlsDone(null, messageOnSubmit)
+                        sendMessagesWhenUrlsDone(null, messageOnSubmit, newMessageId)
                     }
 
                 }
@@ -229,7 +256,7 @@ const EntryField: FC<EntryFieldPT> = ({
 
 
 
-            }
+
         }
 
     }
@@ -245,6 +272,7 @@ const EntryField: FC<EntryFieldPT> = ({
     const [fileImages, setFileImages] = useState<null | FileList>(null);
 
     const imageHandler = (file: any) => {
+
         const reader = new FileReader()
 
         reader.onload = () => {
@@ -301,7 +329,7 @@ const EntryField: FC<EntryFieldPT> = ({
                         // @ts-ignore
                         return <Avatar sx={{width: '60px', height: '60px', ml: 1, cursor: 'pointer', borderRadius: 3, border: `2px solid ${userStyles.backgroundColor}`}} key={i} src={image}/>
                     })}
-                    <Button color={'error'} sx={{ml: 'auto',minWidth: '40px'}}>
+                    <Button color={'error'} onClick={() => setPreviewImages(null)} sx={{ml: 'auto',minWidth: '40px'}}>
 	                    <CloseIcon />
                     </Button>
                 </Box>

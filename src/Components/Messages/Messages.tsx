@@ -1,7 +1,18 @@
-import React, {FC, useContext, useEffect, useRef, useState,} from "react";
+import React, {FC, useContext, useEffect, useState,} from "react";
 import {Context} from "../..";
 import {doc, setDoc} from "firebase/firestore";
-import {Avatar, Box, Button, IconButton, ImageList, ImageListItem, List, ListItem, TextField, Typography} from '@mui/material'
+import {
+    Avatar,
+    Box,
+    Button,
+    IconButton,
+    ImageList,
+    ImageListItem,
+    List,
+    ListItem,
+    TextField,
+    Typography
+} from '@mui/material'
 import Loader from "../Loader";
 import UserModalInfo from "../UserModalInfo";
 import {messagesExemplar, messagesType, replyMessageType} from '../../types/messages';
@@ -12,9 +23,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import {user} from "../../types/user";
 import {
     activeUsername,
-    avatarWrapper, dateMessage,
-    messageContainer, messageLeftLine, messageListItem,
-    messagesList, messageStyles,
+    avatarWrapper,
+    dateMessage,
+    messageContainer,
+    messageLeftLine,
+    messageListItem,
+    messagesList,
+    messageStyles,
     messageWrapper,
     userRole,
     userWrapper
@@ -37,7 +52,9 @@ type MessagesPropTypes = {
     showRepliedMessage: (message: replyMessageType) => void,
     listRef: React.MutableRefObject<HTMLUListElement | null>,
     chatInfo: chatType | undefined,
-    inputRef: React.MutableRefObject<HTMLInputElement | null>
+    inputRef: React.MutableRefObject<HTMLInputElement | null>,
+    progress: { onImage: number, percent: null | number },
+    messagesWhichOnProgress: null | messagesType[]
 
 }
 
@@ -51,7 +68,9 @@ const Messages: FC<MessagesPropTypes> = ({
     showRepliedMessage,
     listRef,
     chatInfo,
-    inputRef
+    inputRef,
+    progress,
+    messagesWhichOnProgress
 }) => {
 
     const {user: me, firestore} = useContext(Context)!
@@ -62,7 +81,7 @@ const Messages: FC<MessagesPropTypes> = ({
     const [changeMessageInputValue, setChangeMessageInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [changingMessageId, setChangingMessageId] = useState('');
-    const [replyMessages, setReplyMessages] = useState(null);
+    const [replyMessages, setReplyMessages] = useState<any>(null);
 
     const type = useGetTypeOfScreen()
     const isMobileOrMediumScreen = (type === screenTypes.smallType || type === screenTypes.mediumType)
@@ -283,6 +302,15 @@ const Messages: FC<MessagesPropTypes> = ({
                                                         }
                                                     </Box>
                                                 </Box>
+                                                {message.images &&
+                                                <ImageList sx={isMobile ? { width: '100%' } : {}} cols={isMobile ? 1 : message.images.length > 0 && 1 || message.images.length > 1 && 2 || 3} >
+                                                    {message.images.map((image) => {
+                                                        return <ImageListItem key={image} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', maxHeight: '100%'}}>
+                                                            <img src={image}/>
+                                                        </ImageListItem>
+                                                    })}
+		                                            </ImageList>
+                                                }
                                                 <Typography sx={messageStyles}>
                                                     {message.message}
                                                 </Typography>
@@ -332,9 +360,7 @@ const Messages: FC<MessagesPropTypes> = ({
                             </ListItem>
                         )
                     }
-                if (message.images) {
-                    // console.log(message.images)
-                }
+
                 return (
                     <ListItem
                         onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
@@ -383,9 +409,9 @@ const Messages: FC<MessagesPropTypes> = ({
                                         </IconButton>
                                     </Box>
                                     {message.images &&
-                                        <ImageList sx={{ width: '100%' }} cols={isMobile ? 1 : 3} >
+                                        <ImageList sx={isMobile ? { width: '100%' } : {}} cols={isMobile ? 1 : message.images.length > 2 ? 3 : message.images.length} >
                                             {message.images.map((image) => {
-                                                return <ImageListItem key={image} sx={{borderRadius: 5, overflow: 'hidden', mt: 1, mx: 0.5}}>
+                                                return <ImageListItem key={image} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', maxHeight: '100%'}}>
                                                     <img src={image}/>
                                                 </ImageListItem>
                                             })}
@@ -429,6 +455,62 @@ const Messages: FC<MessagesPropTypes> = ({
 
                     </ListItem>)
 
+            })}
+            {replyMessages && messagesWhichOnProgress && messagesWhichOnProgress.map((message, i) => {
+                if (message.messageType === messagesExemplar.startMessage) return <ListItem/>
+                // console.log(message)
+                const {userId, messageId, messageType} = message
+                const subscribedUser = subscribedUsers[userId]
+                const isMessageBeforeIsMine = messages[i - 1]?.userId === message.userId
+                const isMessageAfterThisMine = messages[i + 1]?.userId === message.userId
+                const isMessageChanging = message.messageId === changingMessageId
+
+                const subscribedReplyerUser = message.messageType === messagesExemplar.replyMessage ? subscribedUsers[message.replyer!.userId] : null
+                const replyMessage = message.messageType === messagesExemplar.replyMessage ? replyMessages[message.replyer!.messageId] : null
+
+                return (
+                    <ListItem
+                        sx={{...messageListItem(isMobile), position: 'relative', py: 2}}
+                        key={message.createdAt}
+                        className={'messageItem'}
+                    >
+                        <Loader background='rgba(18, 18, 18, 0.5)'/>
+                        <Box sx={avatarWrapper}>
+                            {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
+                        </Box>
+
+                        <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}>
+                            {replyMessage &&
+		                        <Box sx={messageContainer}>
+			                        <Box sx={messageLeftLine} />
+			                        <Box sx={{cursor: 'pointer'}}>
+				                        <Typography sx={{color: `${subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || '' : subscribedReplyerUser?.nicknameColor || ''} !important`, cursor: 'pointer' }}>{subscribedReplyerUser?.nickname}</Typography>
+                                  {replyMessage ?
+                                      <EllipsisText sx={messageStyles} text={replyMessage.message} length={30}/>
+                                      :
+                                      <Typography color='error' sx={{}}>Сообщение удалено</Typography>
+                                  }
+			                        </Box>
+		                        </Box>
+                            }
+                            <Typography sx={{color: subscribedUser ? subscribedUser?.nicknameColor : '', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
+                                {subscribedUser?.nickname || userId}
+                            </Typography>
+                            {message.images &&
+		                        <ImageList sx={{ width: '100%' }} cols={isMobile ? 1 : 3} >
+                                {message.images.map((image) => {
+                                    return <ImageListItem key={image} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5}}>
+                                        <img src={image}/>
+                                    </ImageListItem>
+                                })}
+		                        </ImageList>
+                            }
+                            <Typography sx={messageStyles} variant={'body1'}>
+                                {message.message}
+                            </Typography>
+                        </Box>
+                    </ListItem>
+                )
             })}
 
         </List>

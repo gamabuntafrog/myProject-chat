@@ -58,7 +58,7 @@ export const userRole = {
 
 export const messageContainer = {
     display: 'flex',
-    wordBreak: 'keep-all'
+    wordBreak: 'break-word'
 }
 
 export const messageListItem = (isMobileType: boolean) => {
@@ -75,7 +75,7 @@ export const messageListItem = (isMobileType: boolean) => {
 }
 
 export const messageStyles = {
-    wordBreak: 'keep-all',
+    wordBreak: 'break-word',
     mt: 1
 }
 

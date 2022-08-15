@@ -6,7 +6,7 @@ import {Box, Button, Typography} from "@mui/material";
 import EntryField from '../EntryField';
 import Messages from '../Messages';
 import {useCollectionData, useDocumentData} from "react-firebase-hooks/firestore";
-import {messagesExemplar, messagesType, replyMessageType} from '../../types/messages';
+import {messagesExemplar, messagesType, messageType, replyMessageType} from '../../types/messages';
 import MyChats from "../MyChats";
 import './Chat.css';
 import {chatContainer, chatSection, logo} from "./ChatStyles";
@@ -41,7 +41,7 @@ const Chat: FC = () => {
 
     const [chosenEmoji, setChosenEmoji] = useState<null | emojiType>(null);
 
-
+    const [messagesWhichOnProgress, setMessagesWhichOnProgress] = useState<null | (messageType | replyMessageType)[]>(null);
 
     const type = useGetTypeOfScreen()
     const mediumOrSmallType = (type === screenTypes.mediumType || type === screenTypes.smallType);
@@ -110,6 +110,9 @@ const Chat: FC = () => {
         console.log(emojiObject)
         setChosenEmoji(emojiObject);
     };
+
+    const [progress, setProgress] = useState<{ onImage: number, percent: null | number }>({ onImage: 1, percent: null });
+
 
     const getUsers = async (subscribedUsersList: {userId: string, isAdmin: boolean}[]) => {
         // console.log(subscribedUsersList)
@@ -230,6 +233,8 @@ const Chat: FC = () => {
                             listRef={listRef}
                             chatInfo={chatData}
                             inputRef={inputRef}
+                            progress={progress}
+                            messagesWhichOnProgress={messagesWhichOnProgress}
                         />
                         <EntryField
                             users={users}
@@ -245,6 +250,9 @@ const Chat: FC = () => {
                             listRef={listRef}
                             inputRef={inputRef}
                             emoji={chosenEmoji}
+                            setProgress={setProgress}
+                            setMessagesWhichOnProgress={setMessagesWhichOnProgress}
+                            messagesWhichOnProgress={messagesWhichOnProgress}
                         />
                     </Box>
                     <Box sx={{width: smallType ? 0 : mediumType ? '35%' : '20%', borderLeft: '1px solid #363636'}}>
