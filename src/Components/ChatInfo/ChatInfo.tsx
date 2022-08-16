@@ -49,6 +49,8 @@ const ChatInfo: FC<ChatInfoPT> = ({
         }
     }, [users]);
 
+
+
     const unsubscribeFromChat = async () => {
         if (me) {
             await updateDoc(doc(firestore, 'users', `${me.userId}`), {
@@ -158,7 +160,7 @@ const ChatInfo: FC<ChatInfoPT> = ({
                             }
 	                        <Button onClick={unsubscribeFromChat} size='large' color='error'>Выйти с чата</Button>
                         </Box>
-                        <Typography variant='h5'>Пользователи ({usersArray.length}):</Typography>
+                        <Typography variant='h5'>Пользователи ({usersArray?.length}):</Typography>
                         <List sx={{width: '90%', mx: 'auto'}}>
                           {usersArray?.map((el: any, i: number) => {
                               const [docId, user] = el

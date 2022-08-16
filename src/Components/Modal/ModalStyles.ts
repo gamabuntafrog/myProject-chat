@@ -15,10 +15,11 @@ type modalContainerPT = {
     br?: string,
     height?: string,
     jc?: 'center' | 'start',
-    backgroundColor?: string
+    backgroundColor?: string,
+    width?: string
 }
 
-export const modalContainer = ({isMobile, isPadding, br, height, jc, backgroundColor}: modalContainerPT): object => {
+export const modalContainer = ({isMobile, isPadding, br, height, jc, backgroundColor, width}: modalContainerPT): object => {
 
 
     if (isMobile) {
@@ -44,7 +45,7 @@ export const modalContainer = ({isMobile, isPadding, br, height, jc, backgroundC
         padding: isPadding ? '30px' : 0,
         borderRadius: br || '20px',
         overflowY: 'auto',
-        width: '50%',
+        width: width || '50%',
         height: height || '95%',
         position: 'relative'
 

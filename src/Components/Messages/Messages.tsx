@@ -125,6 +125,7 @@ const Messages: FC<MessagesPropTypes> = ({
                 messagesObj[message.messageId] = message
         })
         setReplyMessages(messagesObj)
+        console.log('changed')
     }, [messages]);
 
 
@@ -260,29 +261,32 @@ const Messages: FC<MessagesPropTypes> = ({
                     const replyMessage: replyMessageType = replyMessages[message.replyer.messageId]
                         return (
                             <ListItem
-                                className={'messageItem'}
-                                onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                                sx={messageListItem(isMobile)}
+                                sx={{width: '90%', padding: 0, }}
                                 key={messageId}
+                                onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
                             >
-                                <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={avatarWrapper}>
-                                    {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
-                                </Box>
-                                <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}>
-                                    {!isMessageChanging ?
+                                <Box
+                                    className={'messageWrapper'}
+                                    sx={messageListItem(isMobile)}
+                                >
+                                    <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={avatarWrapper}>
+                                        {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
+                                    </Box>
+                                    <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}>
+                                        {!isMessageChanging ?
                                             <>
                                                 <Box sx={userWrapper}>
                                                     {!isMessageBeforeIsMine &&
-                                                        <>
-	                                                        <Typography onClick={(e) => showUserInfo(e, subscribedUser)} sx={activeUsername(subscribedUser ? subscribedUser?.nicknameColor : '')} variant='subtitle1'>
-                                                              {subscribedUser ? subscribedUser.nickname : userId}
-	                                                        </Typography>
-                                                            {subscribedUser?.isAdmin &&
-		                                                        <Typography variant='subtitle1' sx={userRole}>
-			                                                        Админ
-		                                                        </Typography>
-                                                            }
-                                                        </>
+										                                <>
+											                                <Typography onClick={(e) => showUserInfo(e, subscribedUser)} sx={activeUsername(subscribedUser ? subscribedUser?.nicknameColor : '')} variant='subtitle1'>
+                                                          {subscribedUser ? subscribedUser.nickname : userId}
+											                                </Typography>
+                                                        {subscribedUser?.isAdmin &&
+												                                <Typography variant='subtitle1' sx={userRole}>
+													                                Админ
+												                                </Typography>
+                                                        }
+										                                </>
                                                     }
                                                     <IconButton className='miniContextmenu' onClick={() => {
                                                         setIsReplying(true)
@@ -303,13 +307,13 @@ const Messages: FC<MessagesPropTypes> = ({
                                                     </Box>
                                                 </Box>
                                                 {message.images &&
-                                                <ImageList sx={isMobile ? { width: '100%' } : {}} cols={isMobile ? 1 : message.images.length > 0 && 1 || message.images.length > 1 && 2 || 3} >
+								                                <ImageList sx={isMobile ? { width: '100%' } : {}} cols={isMobile ? 1 : message.images.length > 0 && 1 || message.images.length > 1 && 2 || 3} >
                                                     {message.images.map((image) => {
                                                         return <ImageListItem key={image} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', maxHeight: '100%'}}>
                                                             <img src={image}/>
                                                         </ImageListItem>
                                                     })}
-		                                            </ImageList>
+								                                </ImageList>
                                                 }
                                                 <Typography sx={messageStyles}>
                                                     {message.message}
@@ -318,13 +322,13 @@ const Messages: FC<MessagesPropTypes> = ({
                                                     <Typography sx={dateMessage}>
                                                         изменено в {changedAtFormatted}
                                                     </Typography>
-                                                :
+                                                    :
                                                     <Typography sx={dateMessage}>
                                                         {createdAtFormatted}
                                                     </Typography>
                                                 }
                                             </>
-                                        :
+                                            :
                                             <Box>
                                                 <Box onClick={() => showRepliedMessage(message)} sx={{display: 'flex', wordBreak: 'break-all', cursor: 'pointer' }}>
                                                     <Box sx={messageLeftLine}/>
@@ -355,7 +359,8 @@ const Messages: FC<MessagesPropTypes> = ({
                                                 </Button>
 
                                             </Box>
-                                    }
+                                        }
+                                    </Box>
                                 </Box>
                             </ListItem>
                         )
@@ -363,96 +368,98 @@ const Messages: FC<MessagesPropTypes> = ({
 
                 return (
                     <ListItem
+                        sx={{width: '90%', padding: 0, }}
+                        key={messageId}
                         onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-                        sx={messageListItem(isMobile)}
-                        key={message.createdAt}
-                        className={'messageItem'}
-                        id={message.messageId}
                     >
-                        <Box onClick={(e) => {
-                            const {pageX, pageY} = e
-                            if (subscribedUser) {
-                                setIsUserModalOpen(true)
-                                setUserModalInfo({user: subscribedUser, pageX, pageY})
-                            }
-                            setIsContextMenuOpen(false)
-                        }} sx={avatarWrapper}>
-                            {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
-                        </Box>
-                        <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}>
-                            {!isMessageChanging ?
-                                <>
-                                    <Box sx={{alignItems: 'center', display: 'flex'}}>
-                                        {!isMessageBeforeIsMine && <>
-                                            <Typography onClick={(e) => {
-                                              const {pageX, pageY} = e
-                                              if (subscribedUser) {
-                                                  setIsUserModalOpen(true)
-                                                  setUserModalInfo({user: subscribedUser, pageX, pageY})
-                                              }
-                                          }} sx={{color: subscribedUser ? subscribedUser?.nicknameColor : '', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
-                                              {subscribedUser?.nickname || userId}
-                                        </Typography>
-                                            {subscribedUser?.isAdmin &&
-                                                <Typography variant={'subtitle1'} sx={{display: 'inline-block', ml: 1, fontSize: '12px', cursor: 'default'}}>
-                                                    Админ
-                                                </Typography>
+                        <Box
+                            className={'messageWrapper'}
+                            sx={messageListItem(isMobile)}
+                        >
+                            <Box onClick={(e) => {
+                                const {pageX, pageY} = e
+                                if (subscribedUser) {
+                                    setIsUserModalOpen(true)
+                                    setUserModalInfo({user: subscribedUser, pageX, pageY})
+                                }
+                                setIsContextMenuOpen(false)
+                            }} sx={avatarWrapper}>
+                                {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
+                            </Box>
+                            <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}>
+                                {!isMessageChanging ?
+                                    <>
+                                        <Box sx={{alignItems: 'center', display: 'flex'}}>
+                                            {!isMessageBeforeIsMine && <>
+                                                <Typography onClick={(e) => {
+                                                  const {pageX, pageY} = e
+                                                  if (subscribedUser) {
+                                                      setIsUserModalOpen(true)
+                                                      setUserModalInfo({user: subscribedUser, pageX, pageY})
+                                                  }
+                                              }} sx={{color: subscribedUser ? subscribedUser?.nicknameColor : '', cursor: 'pointer', display: 'inline-block', wordBreak: 'break-all'}} variant={'subtitle1'}>
+                                                  {subscribedUser?.nickname || userId}
+                                            </Typography>
+                                                {subscribedUser?.isAdmin &&
+                                                    <Typography variant={'subtitle1'} sx={{display: 'inline-block', ml: 1, fontSize: '12px', cursor: 'default'}}>
+                                                        Админ
+                                                    </Typography>
+                                                }
+                                                    </>
                                             }
-                                                </>
+
+                                            <IconButton className='miniContextmenu' onClick={() => {
+                                                setIsReplying(true)
+                                                setReplyMessageInfo(message)
+                                            }} sx={{color: subscribedUser?.nicknameColor || ''}}>
+                                                <ReplyIcon/>
+                                            </IconButton>
+                                        </Box>
+                                        {message.images &&
+                                            <ImageList sx={isMobile ? { width: '100%' } : {}} cols={isMobile ? 1 : message.images.length > 2 ? 3 : message.images.length} >
+                                                {message.images.map((image) => {
+                                                    return <ImageListItem key={image} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', maxHeight: '100%'}}>
+                                                        <img src={image}/>
+                                                    </ImageListItem>
+                                                })}
+                                            </ImageList>
                                         }
+                                        <Typography sx={messageStyles} variant={'body1'}>
+                                            {message.message}
+                                        </Typography>
+                                        {changedAtFormatted ?
+                                            <Typography sx={dateMessage}>
+                                                изменено в {changedAtFormatted}
+                                            </Typography>
+                                            :
+                                            <Typography sx={dateMessage}>
+                                                {createdAtFormatted}
+                                            </Typography>
+                                        }
+                                    </>
+                                    :
+                                    <Box>
+                                        <TextField fullWidth sx={{div: {px: 1, mb: 1}}} variant={'standard'}
+                                                   onChange={(e) => setChangeMessageInputValue(e.target.value)}
+                                                   multiline defaultValue={message.message}
+                                        />
+                                        <Button sx={{mx: 1}} color={'success'} onClick={() => {
+                                            setIsLoading(true)
+                                            changeMessage(message)
+                                        }}>
+                                            <DoneIcon/>
+                                        </Button>
+                                        <Button color={'error'} onClick={() => {
+                                            setChangingMessageId('')
+                                            setChangeMessageInputValue('')
+                                        }}>
+                                            <CloseIcon/>
+                                        </Button>
 
-                                        <IconButton className='miniContextmenu' onClick={() => {
-                                            setIsReplying(true)
-                                            setReplyMessageInfo(message)
-                                        }} sx={{color: subscribedUser?.nicknameColor || ''}}>
-                                            <ReplyIcon/>
-                                        </IconButton>
                                     </Box>
-                                    {message.images &&
-                                        <ImageList sx={isMobile ? { width: '100%' } : {}} cols={isMobile ? 1 : message.images.length > 2 ? 3 : message.images.length} >
-                                            {message.images.map((image) => {
-                                                return <ImageListItem key={image} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', maxHeight: '100%'}}>
-                                                    <img src={image}/>
-                                                </ImageListItem>
-                                            })}
-                                        </ImageList>
-                                    }
-                                    <Typography sx={messageStyles} variant={'body1'}>
-                                        {message.message}
-                                    </Typography>
-                                    {changedAtFormatted ?
-                                        <Typography sx={dateMessage}>
-                                            изменено в {changedAtFormatted}
-                                        </Typography>
-                                        :
-                                        <Typography sx={dateMessage}>
-                                            {createdAtFormatted}
-                                        </Typography>
-                                    }
-                                </>
-                                :
-                                <Box>
-                                    <TextField fullWidth sx={{div: {px: 1, mb: 1}}} variant={'standard'}
-                                               onChange={(e) => setChangeMessageInputValue(e.target.value)}
-                                               multiline defaultValue={message.message}
-                                    />
-                                    <Button sx={{mx: 1}} color={'success'} onClick={() => {
-                                        setIsLoading(true)
-                                        changeMessage(message)
-                                    }}>
-                                        <DoneIcon/>
-                                    </Button>
-                                    <Button color={'error'} onClick={() => {
-                                        setChangingMessageId('')
-                                        setChangeMessageInputValue('')
-                                    }}>
-                                        <CloseIcon/>
-                                    </Button>
-
-                                </Box>
-                            }
+                                }
+                            </Box>
                         </Box>
-
                     </ListItem>)
 
             })}

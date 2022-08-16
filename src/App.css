@@ -126,3 +126,13 @@ input[type="file"] {
 .chrome-picker {
     width: 100% !important;
 }
+
+@import "~react-image-gallery/styles/css/image-gallery.css";
+
+.image-gallery-slides {
+    width: 100% !important;
+}
+
+.image-gallery-content.left .image-gallery-slide .image-gallery-image, .image-gallery-content.right .image-gallery-slide .image-gallery-image {
+    max-height: 90vh !important;
+}

@@ -34,7 +34,6 @@ const Chat: FC = () => {
     const [messages, setMessages] = useState<messagesType[] | null>(null);
     const [users, setUsers] = useState<null | any>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    // const [isChatListOpen, setIsChatListOpen] = useState(false);
     const [replyMessageInfo, setReplyMessageInfo] = useState(null);
     const [isReplying, setIsReplying] = useState(false);
     const [isChatChanging, setIsChatChanging] = useState(false);

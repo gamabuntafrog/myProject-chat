@@ -10,7 +10,7 @@ import {
     Box,
     Button,
     Container,
-    FormLabel,
+    FormLabel, ImageList, ImageListItem,
     Snackbar,
     TextField,
     Typography
@@ -27,6 +27,8 @@ import {emojiType} from "../Chat/Chat";
 import {ThemeContext} from "../../App";
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import {getDownloadURL, getStorage, ref, uploadBytesResumable} from 'firebase/storage'
+import Modal from "../Modal";
+import ImageGallery from 'react-image-gallery';
 
 type EntryFieldPT = {
     chatName: string,
@@ -80,7 +82,7 @@ const EntryField: FC<EntryFieldPT> = ({
     useEffect(() => {
         if (isReplying) {
             inputRef.current!.focus()
-            console.log(inputRef)
+            // console.log(inputRef)
         }
 
     }, [isReplying]);
@@ -114,12 +116,7 @@ const EntryField: FC<EntryFieldPT> = ({
             users: arrayUnion(user?.userId)
         })
     }
-    const [urls, setUrls] = useState<any>([]);
-    // console.log(urls)
-    const [messageOnSubmit, setMessageOnSubmit] = useState('');
-    console.log(messagesWhichOnProgress?.filter((el: messageType) => {
-        return el.messageId
-    }))
+
     const sendMessagesWhenUrlsDone = async (urls: string[] | null, message: string, newMessageId: string) => {
         // const newMessageId = `${user!.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
 
@@ -289,7 +286,8 @@ const EntryField: FC<EntryFieldPT> = ({
         }
         reader.readAsDataURL(file)
     }
-
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [previewImageIndex, setPreviewImageIndex] = useState(0);
 
     if (user && !users[user.userId]) {
         return <Container sx={{display: 'flex', alignItems: 'center', justifyContent: 'center', pb: 3}}>
@@ -297,98 +295,138 @@ const EntryField: FC<EntryFieldPT> = ({
         </Container>
     }
 
-    return <Box sx={{position: 'sticky', bottom: '0px', mt: -1, pt: 2, pb: 2, px: isMobile ? 1 : 2, backgroundColor: userStyles.secondBackgroundColor || '#121212', zIndex: 100, borderRadius: '8px 8px 0 0', borderTop: '1px solid #363636'}}>
-        <Box>
-            <ChatInfo
-                id={id}
-                chatName={chatName}
-                users={users}
-                chatImage={chatImage}
-                chatDescription={chatDescription}
-            />
-            {isReplying &&
-		        <Box sx={{display: 'flex', mb: 1, alignItems: 'center', cursor: 'pointer'}}>
-                    <Box sx={{display: 'flex', alignItems: 'center', width: '100%'}} onClick={() => showMessageOnReply(replyMessageInfo)}>
-	                    <ReplyIcon sx={{width: '30px', height: '30px', mr: 1}}/>
-	                    <Box>
-		                    <Typography>{users[replyMessageInfo.userId].nickname}</Typography>
-		                    <Typography >
-			                    <EllipsisText text={replyMessageInfo.message} length={150}/>
-		                    </Typography>
-	                    </Box>
-                    </Box>
 
-			        <Button color={'error'} sx={{ml: 'auto'}} onClick={() => setIsReplying(false)}>
-				        <CloseIcon />
-			        </Button>
-		        </Box>
-            }
-            {previewImages &&
-                <Box sx={{display: 'flex', mb: 1, alignItems: 'center'}}>
-                    {previewImages.map((image: File, i:number) => {
-                        // @ts-ignore
-                        return <Avatar sx={{width: '60px', height: '60px', ml: 1, cursor: 'pointer', borderRadius: 3, border: `2px solid ${userStyles.backgroundColor}`}} key={i} src={image}/>
-                    })}
-                    <Button color={'error'} onClick={() => setPreviewImages(null)} sx={{ml: 'auto',minWidth: '40px'}}>
-	                    <CloseIcon />
-                    </Button>
+    return (
+        <>
+            <Modal width='70%' height='90%' buttonPosition='absolute' isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                <Box sx={{
+                    width: '100%',
+                    // height: '95vh'
+                }}>
+                    <ImageGallery
+                        showPlayButton={false} startIndex={previewImageIndex} showFullscreenButton={false} fullscreen thumbnailPosition='left' sizes='100px' infinite={false} thumbnailWidth='100%' thumbnailHeight='600px' originalWidth='100%' items={previewImages?.map((img: File) => {
+                        return {original: img, thumbnail: img}
+                    }) || []}/>
+                        {/*{previewImages?.map((image: File, i:number) => {*/}
+                        {/*    return (*/}
+                        {/*        <Box*/}
+                        {/*            onClick={() => {*/}
+                        {/*                setIsModalOpen(true)*/}
+                        {/*            }}*/}
+                        {/*            key={i} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, width: '100px', height: '100px'}}>*/}
+                        {/*            <img style={{*/}
+                        {/*                width: '100px',*/}
+                        {/*                height: '100px'*/}
+                        {/*            }}*/}
+                        {/*                 // @ts-ignore*/}
+                        {/*                 src={image}/>*/}
+                        {/*        </Box>*/}
+                        {/*    )*/}
+                        {/*})}*/}
                 </Box>
-            }
-            <Box sx={{display: 'flex', justifyContent: 'center'}}>
-                <TextField
-                    id="outlined-name"
-                    label="Сообщение"
-                    value={message}
-                    onChange={(e) => setMessage(e.currentTarget.value)}
-                    fullWidth
-                    multiline
-                    sx={{fieldset: {borderRadius: type === screenTypes.largeType ? '30px 0 0 30px' : '50px',}}}
-                    maxRows={10}
-                    onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                            e.preventDefault()
-                            return submitPost()
-                        } //submit
-                    }}
-                    inputRef={inputRef}
-                />
-                <Button variant='outlined' sx={{padding: 0, ml: 0.5, borderRadius: type === screenTypes.largeType ? '4px' : '50px', minWidth: '40px'}}>
-                    <FormLabel sx={{color: 'inherit', height: '100%', width: '100%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}} htmlFor='fileInput'>
-                        <AttachFileIcon/>
-                    </FormLabel>
-                </Button>
-                <input id='fileInput' multiple type='file' accept=".jpg, .jpeg, .png" onChange={(e) => {
-                    setFileImages(e.target.files)
-                    if (e.target.files) {
-                        setPreviewImages([])
-                        const files = [...e.target.files]
-                        files.map((file) => {
-                            imageHandler(file)
-                        })
+            </Modal>
+            <Box sx={{position: 'sticky', bottom: '0px', mt: -1, pt: 2, pb: 2, px: isMobile ? 1 : 2, backgroundColor: userStyles.secondBackgroundColor || '#121212', zIndex: 100, borderRadius: '8px 8px 0 0', borderTop: '1px solid #363636'}}>
+                <Box>
+                    <ChatInfo
+                        id={id}
+                        chatName={chatName}
+                        users={users}
+                        chatImage={chatImage}
+                        chatDescription={chatDescription}
+                    />
+                    {isReplying &&
+						        <Box sx={{display: 'flex', mb: 1, alignItems: 'center', cursor: 'pointer'}}>
+							        <Box sx={{display: 'flex', alignItems: 'center', width: '100%'}} onClick={() => showMessageOnReply(replyMessageInfo)}>
+								        <ReplyIcon sx={{width: '30px', height: '30px', mr: 1}}/>
+								        <Box>
+									        <Typography>{users[replyMessageInfo.userId].nickname}</Typography>
+									        <Typography >
+										        <EllipsisText text={replyMessageInfo.message} length={150}/>
+									        </Typography>
+								        </Box>
+							        </Box>
+
+							        <Button color={'error'} sx={{ml: 'auto'}} onClick={() => setIsReplying(false)}>
+								        <CloseIcon />
+							        </Button>
+						        </Box>
                     }
-                }}/>
-                <Button sx={{ml: 0.5, borderRadius: type === screenTypes.largeType ? '4px' : '50px', minWidth: '30px'}} variant="outlined" onClick={submitPost}>
-                    <SendIcon/>
-                </Button>
+                    {previewImages &&
+                        <Box sx={{display: 'flex', mb: 1, alignItems: 'center'}}>
+                            {previewImages.map((image: File, i:number) => {
+                                return <Avatar
+                                    sx={{width: '60px', height: '60px', ml: 1, cursor: 'pointer', borderRadius: 3, border: `2px solid ${userStyles.backgroundColor}`}}
+                                    key={i}
+                                    // @ts-ignore
+                                    src={image}
+                                    onClick={() => {
+                                        setPreviewImageIndex(i)
+                                        setIsModalOpen(true)
+                                    }}
+                                />
+                            })}
+                            <Button color={'error'} onClick={() => setPreviewImages(null)} sx={{ml: 'auto',minWidth: '40px'}}>
+                                <CloseIcon />
+                            </Button>
+                        </Box>
+                    }
+                    <Box sx={{display: 'flex', justifyContent: 'center'}}>
+                        <TextField
+                            id="outlined-name"
+                            label="Сообщение"
+                            value={message}
+                            onChange={(e) => setMessage(e.currentTarget.value)}
+                            fullWidth
+                            multiline
+                            sx={{fieldset: {borderRadius: type === screenTypes.largeType ? '30px 0 0 30px' : '50px',}}}
+                            maxRows={10}
+                            onKeyPress={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault()
+                                    return submitPost()
+                                } //submit
+                            }}
+                            inputRef={inputRef}
+                        />
+                        <Button variant='outlined' sx={{padding: 0, ml: 0.5, borderRadius: type === screenTypes.largeType ? '4px' : '50px', minWidth: '40px'}}>
+                            <FormLabel sx={{color: 'inherit', height: '100%', width: '100%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}} htmlFor='fileInput'>
+                                <AttachFileIcon/>
+                            </FormLabel>
+                        </Button>
+                        <input id='fileInput' multiple type='file' accept=".jpg, .jpeg, .png" onChange={(e) => {
+                            setFileImages(e.target.files)
+                            if (e.target.files) {
+                                setPreviewImages([])
+                                const files = [...e.target.files]
+                                files.map((file) => {
+                                    imageHandler(file)
+                                })
+                            }
+                        }}/>
+                        <Button sx={{ml: 0.5, borderRadius: type === screenTypes.largeType ? '4px' : '50px', minWidth: '30px'}} variant="outlined" onClick={submitPost}>
+                            <SendIcon/>
+                        </Button>
+                    </Box>
+                </Box>
+
+                <Snackbar
+                    anchorOrigin={{vertical: 'top', horizontal: 'center'}}
+                    open={open}
+                    autoHideDuration={6000}
+                    onClose={() => setOpen(false)}
+                >
+                    <Alert variant={'filled'} severity="error">
+                        <AlertTitle sx={{mt: -0.5, flexGrow: 1}}>Введите сообщение </AlertTitle>
+                        {/* @ts-ignore */}
+                        <Button sx={{ml: 9}} color={'error'} size="small" onClick={handleClose}>
+                            Закрыть
+                        </Button>
+                    </Alert>
+                </Snackbar>
+
             </Box>
-        </Box>
-
-        <Snackbar
-            anchorOrigin={{vertical: 'top', horizontal: 'center'}}
-            open={open}
-            autoHideDuration={6000}
-            onClose={() => setOpen(false)}
-        >
-            <Alert variant={'filled'} severity="error">
-                <AlertTitle sx={{mt: -0.5, flexGrow: 1}}>Введите сообщение </AlertTitle>
-                {/* @ts-ignore */}
-                <Button sx={{ml: 9}} color={'error'} size="small" onClick={handleClose}>
-                    Закрыть
-                </Button>
-            </Alert>
-        </Snackbar>
-
-    </Box>
+        </>
+    )
 
 
 }

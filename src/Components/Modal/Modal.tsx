@@ -14,7 +14,8 @@ type ModalPT = {
     buttonPosition?: 'relative' | 'absolute',
     br?: string,
     height?: string,
-    jc?: 'center' | 'start'
+    jc?: 'center' | 'start',
+    width?: string
 }
 
 
@@ -26,7 +27,8 @@ const Modal: FC<ModalPT> = ({
     buttonPosition,
     br,
     height,
-    jc
+    jc,
+    width
 }) => {
     const {userStyles} = useContext(ThemeContext)!
 
@@ -36,7 +38,7 @@ const Modal: FC<ModalPT> = ({
 
     return (
         <MUIModal onClose={onClose} open={isModalOpen} sx={{...modalBackdrop, ...justifyColumnCenter}}>
-            <Box sx={modalContainer({isMobile, isPadding: isPadding, br, height, jc, backgroundColor: userStyles.secondBackgroundColor})}>
+            <Box sx={modalContainer({isMobile, isPadding: isPadding, br, height, jc, backgroundColor: userStyles.secondBackgroundColor, width})}>
                 <Button color={'error'} sx={modalCloseButton(buttonPosition)} onClick={onClose}>
                     <CloseIcon/>
                 </Button>

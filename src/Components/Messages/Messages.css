@@ -14,7 +14,7 @@
     display: none !important;
 }
 
-.messageItem:hover .miniContextmenu {
+.messageWrapper:hover .miniContextmenu {
     display: flex !important;
     position: absolute;
     top: 0;
@@ -23,7 +23,7 @@
 }
 
 @media screen and (max-width: 600px) {
-    .messageItem:hover .miniContextmenu {
+    .messageWrapper:hover .miniContextmenu {
         display: flex !important;
         position: absolute;
         top: 0;
