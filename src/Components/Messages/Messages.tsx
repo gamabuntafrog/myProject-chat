@@ -15,7 +15,7 @@ import {
 } from '@mui/material'
 import Loader from "../Loader";
 import UserModalInfo from "../UserModalInfo";
-import {messagesExemplar, messagesType, replyMessageType} from '../../types/messages';
+import {messagesExemplar, messagesType, messagesWhichOnProgressType, replyMessageType} from '../../types/messages';
 import MessageContextMenu from "../MessageContextMenu";
 import EllipsisText from "react-ellipsis-text";
 import DoneIcon from '@mui/icons-material/Done';
@@ -41,6 +41,9 @@ import {useHistory} from "react-router-dom";
 import {chatType} from "../../types/chatType";
 import {format} from 'date-fns'
 import {ThemeContext} from "../../App";
+import Modal from "../Modal";
+import ImageGallery from 'react-image-gallery';
+
 
 type MessagesPropTypes = {
     chatId: string,
@@ -54,7 +57,7 @@ type MessagesPropTypes = {
     chatInfo: chatType | undefined,
     inputRef: React.MutableRefObject<HTMLInputElement | null>,
     progress: { onImage: number, percent: null | number },
-    messagesWhichOnProgress: null | messagesType[]
+    messagesWhichOnProgress: null | messagesWhichOnProgressType[]
 
 }
 
@@ -100,6 +103,9 @@ const Messages: FC<MessagesPropTypes> = ({
         listRef.current!.scrollTo({top: listRef.current!.scrollHeight})
     }
 
+    const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+    const [galleryImages, setGalleryImages] = useState<{original: string, thumbnail: string}[] | null>(null);
+    const [indexOfOpenedImage, setIndexOfOpenedImage] = useState(0);
 
     useEffect(() => {
         if (isUserModalOpen) {
@@ -213,8 +219,30 @@ const Messages: FC<MessagesPropTypes> = ({
 
     const secondLastMessage = messages?.slice(messages?.length - 2, messages?.length - 1)
 
+
     return (
         <>
+            <Modal width={isMobile ? '100%' : '70%'} jc='center' height={isMobile ? '100%' : '90%'} buttonPosition='absolute' isModalOpen={isGalleryOpen} onClose={() => setIsGalleryOpen(false)}>
+                <Box sx={{
+                    width: '100%',
+                    pr: isMobile ? 0 : 2
+                }}>
+                    <ImageGallery
+                        showPlayButton={false}
+                        showThumbnails={isMobile ? false : galleryImages && galleryImages?.length > 1}
+                        startIndex={indexOfOpenedImage}
+                        showFullscreenButton={false}
+                        fullscreen
+                        thumbnailPosition='left'
+                        sizes='100px'
+                        infinite={false}
+                        thumbnailWidth='100%'
+                        thumbnailHeight='600px'
+                        originalWidth='100%'
+                        items={galleryImages || []}
+                    />
+                </Box>
+            </Modal>
             {isChatChanging && <Loader spinColor={me?.nicknameColor}/>}
             {(me && isContextMenuOpen) && <MessageContextMenu
               modalInfo={contextMenuInfo}
@@ -261,7 +289,7 @@ const Messages: FC<MessagesPropTypes> = ({
                     const replyMessage: replyMessageType = replyMessages[message.replyer.messageId]
                         return (
                             <ListItem
-                                sx={{width: '90%', padding: 0, }}
+                                sx={{padding: 0, }}
                                 key={messageId}
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
                             >
@@ -307,13 +335,21 @@ const Messages: FC<MessagesPropTypes> = ({
                                                     </Box>
                                                 </Box>
                                                 {message.images &&
-								                                <ImageList sx={isMobile ? { width: '100%' } : {}} cols={isMobile ? 1 : message.images.length > 0 && 1 || message.images.length > 1 && 2 || 3} >
-                                                    {message.images.map((image) => {
-                                                        return <ImageListItem key={image} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', maxHeight: '100%'}}>
-                                                            <img src={image}/>
-                                                        </ImageListItem>
-                                                    })}
-								                                </ImageList>
+                                                    <ImageList sx={isMobile ? { width: '100%' } : {}} cols={isMobile ? 1 : message.images.length > 2 ? 3 : message.images.length} >
+                                                        {message.images.map(({imageRef, url}, i) => {
+                                                            return <ImageListItem
+                                                                onClick={() => {
+                                                                    setIndexOfOpenedImage(i)
+                                                                    setGalleryImages(message.images!.map(({url}) => {
+                                                                        return {original: url, thumbnail: url}
+                                                                    }))
+                                                                    setIsGalleryOpen(true)
+                                                                }}
+                                                                key={url} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', maxHeight: '100%', cursor: 'pointer'}}>
+                                                                <img src={url}/>
+                                                            </ImageListItem>
+                                                        })}
+                                                    </ImageList>
                                                 }
                                                 <Typography sx={messageStyles}>
                                                     {message.message}
@@ -368,7 +404,7 @@ const Messages: FC<MessagesPropTypes> = ({
 
                 return (
                     <ListItem
-                        sx={{width: '90%', padding: 0, }}
+                        sx={{padding: 0, }}
                         key={messageId}
                         onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
                     >
@@ -417,9 +453,17 @@ const Messages: FC<MessagesPropTypes> = ({
                                         </Box>
                                         {message.images &&
                                             <ImageList sx={isMobile ? { width: '100%' } : {}} cols={isMobile ? 1 : message.images.length > 2 ? 3 : message.images.length} >
-                                                {message.images.map((image) => {
-                                                    return <ImageListItem key={image} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', maxHeight: '100%'}}>
-                                                        <img src={image}/>
+                                                {message.images.map(({imageRef, url}, i) => {
+                                                    return <ImageListItem
+                                                        onClick={() => {
+                                                            setIndexOfOpenedImage(i)
+                                                            setGalleryImages(message.images!.map(({url}) => {
+                                                                return {original: url, thumbnail: url}
+                                                            }))
+                                                            setIsGalleryOpen(true)
+                                                        }}
+                                                        key={url} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', maxHeight: '100%', cursor: 'pointer'}}>
+                                                        <img src={url}/>
                                                     </ImageListItem>
                                                 })}
                                             </ImageList>
@@ -464,8 +508,7 @@ const Messages: FC<MessagesPropTypes> = ({
 
             })}
             {replyMessages && messagesWhichOnProgress && messagesWhichOnProgress.map((message, i) => {
-                if (message.messageType === messagesExemplar.startMessage) return <ListItem/>
-                // console.log(message)
+                console.log(message)
                 const {userId, messageId, messageType} = message
                 const subscribedUser = subscribedUsers[userId]
                 const isMessageBeforeIsMine = messages[i - 1]?.userId === message.userId

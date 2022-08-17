@@ -6,7 +6,13 @@ import {Box, Button, Typography} from "@mui/material";
 import EntryField from '../EntryField';
 import Messages from '../Messages';
 import {useCollectionData, useDocumentData} from "react-firebase-hooks/firestore";
-import {messagesExemplar, messagesType, messageType, replyMessageType} from '../../types/messages';
+import {
+    messagesExemplar,
+    messagesType,
+    messagesWhichOnProgressType,
+    messageType,
+    replyMessageType
+} from '../../types/messages';
 import MyChats from "../MyChats";
 import './Chat.css';
 import {chatContainer, chatSection, logo} from "./ChatStyles";
@@ -40,7 +46,7 @@ const Chat: FC = () => {
 
     const [chosenEmoji, setChosenEmoji] = useState<null | emojiType>(null);
 
-    const [messagesWhichOnProgress, setMessagesWhichOnProgress] = useState<null | (messageType | replyMessageType)[]>(null);
+    const [messagesWhichOnProgress, setMessagesWhichOnProgress] = useState<null | messagesWhichOnProgressType[]>(null);
 
     const type = useGetTypeOfScreen()
     const mediumOrSmallType = (type === screenTypes.mediumType || type === screenTypes.smallType);

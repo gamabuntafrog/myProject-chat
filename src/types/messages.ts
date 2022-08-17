@@ -22,7 +22,7 @@ export type messageType = {
     message: string,
     userId: string,
     messageType: messagesExemplar.message,
-    images?: string[]
+    images?: {url: string, imageRef: string}[]
 }
 
 export type replyMessageType = {
@@ -34,10 +34,19 @@ export type replyMessageType = {
     isChanging?: boolean,
     messageType: messagesExemplar.replyMessage,
     replyer: messageType | replyMessageType,
-    images?: string[]
+    images?: {url: string, imageRef: string}[]
 
 }
 
 export type messagesType = (messageType | startMessageType | replyMessageType)
 
-
+export type messagesWhichOnProgressType = {
+    messageId: string,
+    createdAt: number,
+    changedAt?: number
+    message: string,
+    userId: string,
+    messageType: messagesExemplar.replyMessage | messagesExemplar.message,
+    replyer?: messageType | replyMessageType,
+    images?: string[]
+}

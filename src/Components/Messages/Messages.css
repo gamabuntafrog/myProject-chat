@@ -38,6 +38,10 @@
         -ms-user-select: none;       /* Internet Explorer/Edge */
         user-select: none;           /* Non-prefixed version, currently */
     }
+
+    .image-gallery-slide-wrapper.left {
+        width: 100% !important;
+    }
 }
 
 
@@ -62,3 +66,9 @@
     color: black !important;
     transition: 0.2s ease-in;
 }
+
+.image-gallery-content {
+    display: flex;
+    justify-content: center;
+}
+

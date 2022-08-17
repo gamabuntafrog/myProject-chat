@@ -19,7 +19,13 @@ import ReplyIcon from '@mui/icons-material/Reply';
 import SendIcon from '@mui/icons-material/Send';
 import '../../App.css';
 import ChatInfo from "../ChatInfo";
-import {messagesExemplar, messagesType, messageType, replyMessageType} from '../../types/messages';
+import {
+    messagesExemplar,
+    messagesType,
+    messagesWhichOnProgressType,
+    messageType,
+    replyMessageType
+} from '../../types/messages';
 import CloseIcon from "@mui/icons-material/Close";
 import EllipsisText from "react-ellipsis-text";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
@@ -45,7 +51,7 @@ type EntryFieldPT = {
     emoji: emojiType | null,
     inputRef: React.MutableRefObject<HTMLInputElement | null>,
     setProgress: React.Dispatch<React.SetStateAction<{onImage: number, percent: null | number}>>,
-    setMessagesWhichOnProgress: React.Dispatch<React.SetStateAction<null | (messageType | replyMessageType)[]>>,
+    setMessagesWhichOnProgress: React.Dispatch<React.SetStateAction<null | messagesWhichOnProgressType[]>>,
     messagesWhichOnProgress: null | any
 }
 
@@ -117,7 +123,7 @@ const EntryField: FC<EntryFieldPT> = ({
         })
     }
 
-    const sendMessagesWhenUrlsDone = async (urls: string[] | null, message: string, newMessageId: string) => {
+    const sendMessagesWhenUrlsDone = async (urls: {url: string, imageRef: string}[] | null, message: string, newMessageId: string) => {
         // const newMessageId = `${user!.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
 
         if (isReplying) {
@@ -176,7 +182,7 @@ const EntryField: FC<EntryFieldPT> = ({
         const messageOnSubmit = message
         setMessage('')
         // setMessageOnSubmit(message)
-        if (messageOnSubmit.trim() === '') {
+        if (previewImages?.length < 1 && messageOnSubmit.trim() === '') {
             setOpen(true)
             return
         }
@@ -185,69 +191,70 @@ const EntryField: FC<EntryFieldPT> = ({
             const newMessageId = `${user.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
 
 
-                const now = Date.now()
+            const now = Date.now()
 
-                const changeInfo = async (messageOnSubmit: string) => {
+            const changeInfo = async (messageOnSubmit: string) => {
 
-                    if (previewImages) {
-                        const message = isReplying ? {
-                            messageType: messagesExemplar.replyMessage,
-                            replyer: replyMessageInfo,
-                            userId: user?.userId,
-                            message: messageOnSubmit,
-                            createdAt: Date.now(),
-                            messageId: newMessageId,
-                            chatId: id,
-                            images: previewImages
-                        } : {
-                            messageType: messagesExemplar.message,
-                            userId: user?.userId,
-                            message: messageOnSubmit,
-                            createdAt: Date.now(),
-                            messageId: newMessageId,
-                            chatId: id,
-                            images: previewImages
+                if (previewImages) {
+                    const message = isReplying ? {
+                        messageType: messagesExemplar.replyMessage,
+                        replyer: replyMessageInfo,
+                        userId: user?.userId,
+                        message: messageOnSubmit,
+                        createdAt: Date.now(),
+                        messageId: newMessageId,
+                        chatId: id,
+                        images: previewImages
+                    } : {
+                        messageType: messagesExemplar.message,
+                        userId: user?.userId,
+                        message: messageOnSubmit,
+                        createdAt: Date.now(),
+                        messageId: newMessageId,
+                        chatId: id,
+                        images: previewImages
+                    }
+                    setMessagesWhichOnProgress((prev: any) => {
+                        if (prev !== null) {
+                            return [...prev, message]
+                        } else {
+                            return [message]
                         }
-                        setMessagesWhichOnProgress((prev: any) => {
-                            if (prev !== null) {
-                                return [...prev, message]
-                            } else {
-                                return [message]
-                            }
-                        })
+                    })
 
-                        const promisesWithImagesUrlWhenTheseDone = previewImages.map( async (image: any, i: number) => {
-                            return await new Promise((resolve, err) => {
-                                const storageRef = ref(storage, `/${chatId}/${now}${fileImages![i].name}`)
-                                const uploadTask = uploadBytesResumable(storageRef, fileImages![i])
+                    const promisesWithImagesUrlWhenTheseDone = previewImages.map( async (image: any, i: number) => {
+                        return await new Promise((resolve, err) => {
+                            const imageRef = `/${chatId}/${now}${fileImages![i].name}`
+                            const storageRef = ref(storage, imageRef)
+                            const uploadTask = uploadBytesResumable(storageRef, fileImages![i])
 
 
-                                uploadTask.on('state_changed', (snapshot => {
-                                }), (err) => {
-                                    console.log(err)
-                                }, async () => {
-                                    await getDownloadURL(uploadTask.snapshot.ref)
-                                        .then(url => {
-                                            resolve(url)
-                                        })
-                                })
+                            uploadTask.on('state_changed', (snapshot => {
+                            }), (err) => {
+                                console.log(err)
+                            }, async () => {
+                                await getDownloadURL(uploadTask.snapshot.ref)
+                                    .then(url => {
+                                        resolve({url, imageRef})
+                                    })
                             })
                         })
-                        setPreviewImages(null)
+                    })
+                    setPreviewImages(null)
 
-                        Promise.all(promisesWithImagesUrlWhenTheseDone).then((imagesRef) => {
-                            console.log(imagesRef)
-                            setMessagesWhichOnProgress(null)
-                            sendMessagesWhenUrlsDone(imagesRef, messageOnSubmit, newMessageId)
-                        })
-                    } else {
-                        sendMessagesWhenUrlsDone(null, messageOnSubmit, newMessageId)
-                    }
-
+                    Promise.all(promisesWithImagesUrlWhenTheseDone).then((imagesRef) => {
+                        console.log(imagesRef)
+                        setMessagesWhichOnProgress(null)
+                        sendMessagesWhenUrlsDone(imagesRef, messageOnSubmit, newMessageId)
+                    })
+                } else {
+                    sendMessagesWhenUrlsDone(null, messageOnSubmit, newMessageId)
                 }
-                changeInfo(messageOnSubmit)
 
-                // console.log(docRef)
+            }
+            changeInfo(messageOnSubmit)
+
+            // console.log(docRef)
 
 
 
@@ -269,7 +276,7 @@ const EntryField: FC<EntryFieldPT> = ({
     const [fileImages, setFileImages] = useState<null | FileList>(null);
 
     const imageHandler = (file: any) => {
-
+        console.log(file)
         const reader = new FileReader()
 
         reader.onload = () => {
@@ -307,22 +314,6 @@ const EntryField: FC<EntryFieldPT> = ({
                         showPlayButton={false} startIndex={previewImageIndex} showFullscreenButton={false} fullscreen thumbnailPosition='left' sizes='100px' infinite={false} thumbnailWidth='100%' thumbnailHeight='600px' originalWidth='100%' items={previewImages?.map((img: File) => {
                         return {original: img, thumbnail: img}
                     }) || []}/>
-                        {/*{previewImages?.map((image: File, i:number) => {*/}
-                        {/*    return (*/}
-                        {/*        <Box*/}
-                        {/*            onClick={() => {*/}
-                        {/*                setIsModalOpen(true)*/}
-                        {/*            }}*/}
-                        {/*            key={i} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, width: '100px', height: '100px'}}>*/}
-                        {/*            <img style={{*/}
-                        {/*                width: '100px',*/}
-                        {/*                height: '100px'*/}
-                        {/*            }}*/}
-                        {/*                 // @ts-ignore*/}
-                        {/*                 src={image}/>*/}
-                        {/*        </Box>*/}
-                        {/*    )*/}
-                        {/*})}*/}
                 </Box>
             </Modal>
             <Box sx={{position: 'sticky', bottom: '0px', mt: -1, pt: 2, pb: 2, px: isMobile ? 1 : 2, backgroundColor: userStyles.secondBackgroundColor || '#121212', zIndex: 100, borderRadius: '8px 8px 0 0', borderTop: '1px solid #363636'}}>
@@ -351,8 +342,8 @@ const EntryField: FC<EntryFieldPT> = ({
 							        </Button>
 						        </Box>
                     }
-                    {previewImages &&
-                        <Box sx={{display: 'flex', mb: 1, alignItems: 'center'}}>
+                    {previewImages?.length > 0 &&
+                        <Box sx={{display: 'flex', flexWrap: 'wrap', mb: 1, alignItems: 'center'}}>
                             {previewImages.map((image: File, i:number) => {
                                 return <Avatar
                                     sx={{width: '60px', height: '60px', ml: 1, cursor: 'pointer', borderRadius: 3, border: `2px solid ${userStyles.backgroundColor}`}}

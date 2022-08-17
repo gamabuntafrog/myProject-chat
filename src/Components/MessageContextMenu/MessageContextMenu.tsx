@@ -1,19 +1,20 @@
 import React, {useState, useEffect, FC, useContext} from "react"
 import {Box, Button, ListItem, Typography} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import {addDoc, arrayRemove, collection, deleteDoc, doc, setDoc, updateDoc} from "firebase/firestore";
+import {deleteDoc, doc, setDoc, updateDoc} from "firebase/firestore";
 import {Context} from "../../index";
 import ReplyIcon from "@mui/icons-material/Reply";
 import EditIcon from '@mui/icons-material/Edit';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import {messagesExemplar, messagesType} from "../../types/messages";
+import {messagesType, messageType, replyMessageType} from "../../types/messages";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import {chatType} from "../../types/chatType";
 import shortid from "shortid";
+import {getStorage, ref, deleteObject} from 'firebase/storage'
 
 type MessageContextMenuPT = {
     modalInfo: {
-        message: messagesType,
+        message: messageType | replyMessageType,
         pageY: number,
         pageX: number,
         isMe: boolean,
@@ -46,6 +47,8 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
 
     const {firestore, user} = useContext(Context)!;
 
+    const storage = getStorage()
+
     const type = useGetTypeOfScreen()
     const isMobileScreen = (type === screenTypes.smallType)
 
@@ -57,13 +60,18 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
     }
 
 
-    const onDelete = async (messageId: string) => {
+    const onDelete = async ({messageId, images}: {messageId: string, images: { url: string, imageRef: string }[] | null | undefined}) => {
         await deleteDoc(doc(firestore, 'chats', `${chatId}`, 'messages', `${messageId}`))
         setIsContextMenuOpen(false)
 
-        if (chatInfo!.lastMessage.messageId === messageId) {
-            const newMessageId = `${user!.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
+        if (images) {
+            // console.log(images)
+            images.forEach( async ({imageRef}) => {
+                await deleteObject(ref(storage, `${imageRef}`))
+            })
+        }
 
+        if (chatInfo!.lastMessage.messageId === messageId) {
             const chatRef = doc(firestore, 'chats', `${chatId}`)
             await setDoc(chatRef, {
                 lastMessage: secondLastMessage![0]
@@ -112,7 +120,7 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
                 Копировать текст
             </Button>
             {modalInfo.isMe &&
-		        <Button color={'error'}  onClick={() => onDelete(modalInfo.message.messageId)} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
+		        <Button color={'error'}  onClick={() => onDelete({messageId: modalInfo.message.messageId, images: modalInfo.message.images})} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
                     <Typography>Удалить</Typography>
                 </Button>
             }

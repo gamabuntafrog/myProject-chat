@@ -47,8 +47,8 @@ export const modalContainer = ({isMobile, isPadding, br, height, jc, backgroundC
         overflowY: 'auto',
         width: width || '50%',
         height: height || '95%',
-        position: 'relative'
-
+        position: 'relative',
+        justifyContent: jc
     })
 }
 
