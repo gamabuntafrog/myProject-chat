@@ -6,5 +6,6 @@ export type chatType = {
     chatImage: string,
     chatName: string,
     createdAt: number,
-    lastMessage: messagesType
+    lastMessage: messagesType,
+    users: string[]
 }

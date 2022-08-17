@@ -67,7 +67,12 @@ const Navbar: FC = () => {
                 {chatInfo &&
                     <Box sx={{mx: 'auto', ...chatInfoStyles, cursor: 'pointer'}} onClick={() => handleChatInfoIsOpen(isChatInfoOpen)}>
                         <Avatar sx={isMobileOrMedium ? {width: '40px', height: '40px', mr: 1} : {width: '50px', height: '50px', mr: 2}} src={chatInfo.chatImage} alt="avatar" />
-                        <Typography variant={isMobileOrMedium ? 'h6' : 'h5'} ><EllipsisText text={chatInfo.chatName} length={30}/></Typography>
+                        <Box sx={{textAlign: 'center'}}>
+	                        <Typography sx={{mb: -0.5}} variant={isMobileOrMedium ? 'h6' : 'h5'} ><EllipsisText text={chatInfo.chatName} length={30}/></Typography>
+                            <Typography variant='body2' >
+                                {chatInfo.users.length} участников
+                            </Typography>
+                        </Box>
                     </Box>
                 }
                 {user && !chatInfo &&

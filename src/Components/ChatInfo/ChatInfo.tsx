@@ -1,14 +1,12 @@
 import React, {FC, useContext, useEffect, useState} from "react"
-import {Avatar, Box, Button, IconButton, List, ListItem, TextField, Typography} from "@mui/material";
+import {Avatar, Box, Button, ImageList, ImageListItem, List, ListItem, TextField, Typography} from "@mui/material";
 import Modal from "../Modal";
 import {NavLink, useHistory} from "react-router-dom";
-import {arrayRemove, deleteDoc, doc, setDoc, updateDoc, collection} from "firebase/firestore";
+import {arrayRemove, deleteDoc, doc, setDoc, updateDoc} from "firebase/firestore";
 import {Context} from "../../index";
-import {entryFieldInfo} from "./chatInfoStyles";
-import InfoIcon from "@mui/icons-material/Info";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
-import {userAvatar} from "../Navbar/NavbarStyles";
 import {ChatInfoContext} from "../../App";
+import {messagesExemplar, messagesType, messageType, replyMessageType} from "../../types/messages";
 
 type ChatInfoPT = {
     id: string,
@@ -16,6 +14,7 @@ type ChatInfoPT = {
     chatImage: string,
     chatDescription: string,
     users: any,
+    messages: messagesType[]
 }
 
 const ChatInfo: FC<ChatInfoPT> = ({
@@ -24,10 +23,12 @@ const ChatInfo: FC<ChatInfoPT> = ({
         users,
         chatImage,
         chatDescription,
+        messages
     }) => {
 
     const {firestore, user: me} = useContext(Context)!
     const {isChatInfoOpen, handleChatInfoIsOpen} = useContext(ChatInfoContext)!
+
 
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -102,20 +103,33 @@ const ChatInfo: FC<ChatInfoPT> = ({
 
     const isUserAdmin = (me && users[me.userId].isAdmin)
     // console.log(isChatInfoOpen)
+    const [messagesWithImages, setMessagesWithImages] = useState<null | (messageType | replyMessageType)[]>(null);
+    const [imagesAmount, setImagesAmount] = useState(0);
+
+    useEffect(() => {
+        if (messages) {
+            let imagesAmount = 0
+            const messagesWithImages = messages.reduce((prevMsg: any, currentMsg, i, array) => {
+                if (currentMsg.messageType === messagesExemplar.startMessage) {
+                    return prevMsg
+                } else {
+                    if (currentMsg.images) {
+                        imagesAmount += currentMsg.images.length
+                        return [...prevMsg, currentMsg]
+                    } else {
+                        return prevMsg
+                    }
+                }
+            }, [])
+            setImagesAmount(imagesAmount)
+            setMessagesWithImages(messagesWithImages)
+        }
+
+    }, [messages.length]);
+
+
     return (
         <Box>
-            {/*<Box sx={entryFieldInfo} >*/}
-            {/*    {type !== screenTypes.largeType &&*/}
-            {/*        <Button sx={{mr: 2}} onClick={() => setIsChatListOpen(true)}>*/}
-            {/*            Ваши чаты*/}
-            {/*        </Button>*/}
-            {/*    }*/}
-            {/*    /!*<Avatar sx={userAvatar} src={chatImage} alt="avatar" />*!/*/}
-            {/*    /!*<Typography variant={'body1'}>{chatName}</Typography>*!/*/}
-            {/*    <IconButton sx={{ml: 1}}  color="primary" onClick={() => setIsModalOpen(true)}>*/}
-            {/*        <InfoIcon/>*/}
-            {/*    </IconButton>*/}
-            {/*</Box>*/}
             {isChatInfoOpen &&
 		        <Modal jc={'start'} br={'10px 0 0 10px'} buttonPosition={'absolute'} isModalOpen={isChatInfoOpen} onClose={() => handleChatInfoIsOpen(isChatInfoOpen)}>
 			        <Box sx={{textAlign: 'center', width: isChangingChatInfo ? '95%' : 'auto'}}>
@@ -147,43 +161,88 @@ const ChatInfo: FC<ChatInfoPT> = ({
                                 <Typography variant={'subtitle1'} sx={{my: 3}}>{chatDescription}</Typography>
                             </>
                         }
-                        <Box sx={{display: 'flex', flexDirection: 'column', my: 1}}>
-                            {(isUserAdmin && !isChangingChatInfo) &&
-                                <>
-	                                <Button onClick={() => setIsChangingChatInfo(true)}>
-		                                Изменить информацию
-	                                </Button>
-                                    <Button color='error' onClick={deleteChat} >
-                                        Удалить чат
-                                    </Button>
-                                </>
+                            <Box sx={{display: 'flex', flexDirection: 'column', my: 1}}>
+                                {(isUserAdmin && !isChangingChatInfo) &&
+                                    <>
+                                        <Button onClick={() => setIsChangingChatInfo(true)}>
+                                            Изменить информацию
+                                        </Button>
+                                        <Button color='error' onClick={deleteChat} >
+                                            Удалить чат
+                                        </Button>
+                                    </>
+                                }
+                                <Button onClick={unsubscribeFromChat} size='large' color='error'>Выйти с чата</Button>
+                            </Box>
+                            {messagesWithImages && messagesWithImages.length > 0 &&
+                                <Box sx={{my: 2}}>
+	                                <Typography sx={{mb: 1}} variant='h5'>Картинки ({imagesAmount}):</Typography>
+	                                <ImageList sx={isMobile ? { width: '100%', height: '400px', overflowY: 'auto' } : {px: 1, height: '400px', overflowY: 'auto'}} cols={isMobile ? 2 : 4} >
+                                      {messagesWithImages.map(({images}: any, i: number) => {
+                                          return (
+                                              images.map((image: any, i: number) => {
+                                                  if (image.url) {
+                                                      return (
+                                                          <ImageListItem
+                                                              key={image.url}
+                                                              sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', height: '200px !important', cursor: 'pointer'}}
+                                                          >
+                                                              <img src={image.url}/>
+                                                          </ImageListItem>
+                                                      )
+                                                  } else {
+                                                      return <div style={{display: 'none'}} key={i}/>
+                                                  }
+                                              })
+                                          )
+                                      })}
+	                                </ImageList>
+                                </Box>
                             }
-	                        <Button onClick={unsubscribeFromChat} size='large' color='error'>Выйти с чата</Button>
-                        </Box>
-                        <Typography variant='h5'>Пользователи ({usersArray?.length}):</Typography>
-                        <List sx={{width: '90%', mx: 'auto'}}>
-                          {usersArray?.map((el: any, i: number) => {
-                              const [docId, user] = el
-                              const {nickname, photoURL} = user
 
-                              return (
-                                  <ListItem className={'typography'} onClick={() => {
-                                      setUserModalInfo(user)
-                                      setIsUserModalOpen(true)
-                                  }} sx={{display: 'flex',  justifyContent: 'center'}} key={i}>
-                                      <Avatar sx={{width: '50px', height: '50px'}} src={photoURL}/>
-                                      <Typography sx={{ml: 1}} >
-                                          {nickname}
-                                      </Typography>
-                                  </ListItem>
-                              )
-                          })}
-                        </List>
-                    </Box>
+                            <Typography variant='h5'>Пользователи ({usersArray?.length}):</Typography>
+                            <List sx={{width: '90%', mx: 'auto'}}>
+                              {usersArray?.map((el: any, i: number) => {
+                                  const [docId, user] = el
+                                  const {nickname, photoURL} = user
+
+                                  return (
+                                      <ListItem className={'typography'} onClick={() => {
+                                          setUserModalInfo(user)
+                                          setIsUserModalOpen(true)
+                                      }} sx={{display: 'flex',  justifyContent: 'center'}} key={i}>
+                                          <Avatar sx={{width: '50px', height: '50px'}} src={photoURL}/>
+                                          <Typography sx={{ml: 1}} >
+                                              {nickname}
+                                          </Typography>
+                                      </ListItem>
+                                  )
+                              })}
+                            </List>
+                            <Box sx={{
+                                width: '100%',
+                                pr: isMobile ? 0 : 2
+                            }}>
+                                {/*<ImageGallery*/}
+                                {/*showPlayButton={false}*/}
+                                {/*// showThumbnails={isMobile ? false : galleryImages && galleryImages?.length > 1}*/}
+                                {/*// startIndex={indexOfOpenedImage}*/}
+                                {/*showFullscreenButton={false}*/}
+                                {/*fullscreen*/}
+                                {/*thumbnailPosition='left'*/}
+                                {/*sizes='100px'*/}
+                                {/*infinite={false}*/}
+                                {/*thumbnailWidth='100%'*/}
+                                {/*thumbnailHeight='600px'*/}
+                                {/*originalWidth='100%'*/}
+                                {/*items={messagesWithImages || []}*/}
+                                {/*/>*/}
+                            </Box>
+                        </Box>
 		        </Modal>
             }
             {isUserModalOpen &&
-		        <Modal isPadding height={'auto'} isModalOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)}>
+		        <Modal width={isMobile ? '100%' : '30%'} isPadding height={'auto'} isModalOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)}>
 			        <Avatar sx={{width: 200, height: 200}} src={`${userModalInfo.photoURL}`} alt="avatar"/>
 			        <NavLink style={{color: 'white'}} to={`/user/${userModalInfo.userId}`}>
 				        <Typography sx={{mt: 1}} variant={'h5'}>{userModalInfo.nickname}</Typography>

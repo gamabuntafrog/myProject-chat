@@ -11,6 +11,7 @@ import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import {chatType} from "../../types/chatType";
 import shortid from "shortid";
 import {getStorage, ref, deleteObject} from 'firebase/storage'
+import {ThemeContext} from "../../App";
 
 type MessageContextMenuPT = {
     modalInfo: {
@@ -46,6 +47,7 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
     }) => {
 
     const {firestore, user} = useContext(Context)!;
+    const {userStyles} = useContext(ThemeContext)!
 
     const storage = getStorage()
 
@@ -85,15 +87,28 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
     return (
         <Box display='flex' textAlign='center' flexDirection='column' justifyContent='center'
              position='fixed'
-             sx={{
-                 top: modalInfo.pageY > staticTop ? staticTop : `${modalInfo.pageY + 10}px`,
-                 left: isMobileScreen ? mobileStaticLeft : `${modalInfo.pageX + 10}px`,
-                 padding: '10px',
-                 backgroundColor: '#242424',
-                 zIndex: 101,
-                 borderRadius: '5px',
-                 wordBreak: 'normal'
-             }}>
+             sx={isMobileScreen ?
+                 {
+                     bottom: 0,
+                     left: 0,
+                     width: '100%',
+                     padding: '10px',
+                     backgroundColor: userStyles.secondBackgroundColor,
+                     zIndex: 101,
+                     borderRadius: '5px',
+                     wordBreak: 'normal'
+                 }
+                 :
+                 {
+                     top: modalInfo.pageY > staticTop ? staticTop : `${modalInfo.pageY + 10}px`,
+                     left: isMobileScreen ? mobileStaticLeft : `${modalInfo.pageX + 10}px`,
+                     padding: '10px',
+                     backgroundColor: userStyles.secondBackgroundColor,
+                     zIndex: 101,
+                     borderRadius: '5px',
+                     wordBreak: 'normal'
+                 }
+             }>
             <Button color={'error'} onClick={() => {
                 setIsContextMenuOpen(false)
             }}>

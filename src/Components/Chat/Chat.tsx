@@ -62,7 +62,6 @@ const Chat: FC = () => {
     const usersRef = collection(firestore, 'chats',  `${id}`, 'users')
     const [subscribedUsersCollection] = useCollectionData<any>(usersRef)
 
-
     const listRef = useRef<null | HTMLUListElement>(null);
 
     useEffect(() => {
@@ -258,6 +257,7 @@ const Chat: FC = () => {
                             setProgress={setProgress}
                             setMessagesWhichOnProgress={setMessagesWhichOnProgress}
                             messagesWhichOnProgress={messagesWhichOnProgress}
+                            messages={messages}
                         />
                     </Box>
                     <Box sx={{width: smallType ? 0 : mediumType ? '35%' : '20%', borderLeft: '1px solid #363636'}}>

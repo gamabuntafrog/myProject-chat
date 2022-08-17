@@ -52,7 +52,8 @@ type EntryFieldPT = {
     inputRef: React.MutableRefObject<HTMLInputElement | null>,
     setProgress: React.Dispatch<React.SetStateAction<{onImage: number, percent: null | number}>>,
     setMessagesWhichOnProgress: React.Dispatch<React.SetStateAction<null | messagesWhichOnProgressType[]>>,
-    messagesWhichOnProgress: null | any
+    messagesWhichOnProgress: null | any,
+    messages: messagesType[]
 }
 
 const EntryField: FC<EntryFieldPT> = ({
@@ -69,7 +70,8 @@ const EntryField: FC<EntryFieldPT> = ({
     inputRef,
     setProgress,
     setMessagesWhichOnProgress,
-    messagesWhichOnProgress
+    messagesWhichOnProgress,
+    messages
 }) => {
 
     const { firestore, user, isUserLoading} = useContext(Context)!
@@ -324,23 +326,24 @@ const EntryField: FC<EntryFieldPT> = ({
                         users={users}
                         chatImage={chatImage}
                         chatDescription={chatDescription}
+                        messages={messages}
                     />
                     {isReplying &&
-						        <Box sx={{display: 'flex', mb: 1, alignItems: 'center', cursor: 'pointer'}}>
-							        <Box sx={{display: 'flex', alignItems: 'center', width: '100%'}} onClick={() => showMessageOnReply(replyMessageInfo)}>
-								        <ReplyIcon sx={{width: '30px', height: '30px', mr: 1}}/>
-								        <Box>
-									        <Typography>{users[replyMessageInfo.userId].nickname}</Typography>
-									        <Typography >
-										        <EllipsisText text={replyMessageInfo.message} length={150}/>
-									        </Typography>
-								        </Box>
-							        </Box>
+                        <Box sx={{display: 'flex', mb: 1, alignItems: 'center', cursor: 'pointer'}}>
+                            <Box sx={{display: 'flex', alignItems: 'center', width: '100%'}} onClick={() => showMessageOnReply(replyMessageInfo)}>
+                                <ReplyIcon sx={{width: '30px', height: '30px', mr: 1}}/>
+                                <Box>
+                                    <Typography>{users[replyMessageInfo.userId].nickname}</Typography>
+                                    <Typography >
+                                        <EllipsisText text={replyMessageInfo.message} length={150}/>
+                                    </Typography>
+                                </Box>
+                            </Box>
 
-							        <Button color={'error'} sx={{ml: 'auto'}} onClick={() => setIsReplying(false)}>
-								        <CloseIcon />
-							        </Button>
-						        </Box>
+                            <Button color={'error'} sx={{ml: 'auto'}} onClick={() => setIsReplying(false)}>
+                                <CloseIcon />
+                            </Button>
+                        </Box>
                     }
                     {previewImages?.length > 0 &&
                         <Box sx={{display: 'flex', flexWrap: 'wrap', mb: 1, alignItems: 'center'}}>
