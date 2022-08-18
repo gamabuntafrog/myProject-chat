@@ -7,7 +7,7 @@ export const searchSection = {
     alignItems: 'center',
     justifyContent: 'center',
     height: '100vh',
-    pt: '20%'
+    pt: '55vh'
 }
 
 export const searchContainer = (type: screenTypes) => {

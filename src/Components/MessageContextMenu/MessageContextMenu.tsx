@@ -9,7 +9,6 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import {messagesType, messageType, replyMessageType} from "../../types/messages";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import {chatType} from "../../types/chatType";
-import shortid from "shortid";
 import {getStorage, ref, deleteObject} from 'firebase/storage'
 import {ThemeContext} from "../../App";
 
@@ -26,10 +25,10 @@ type MessageContextMenuPT = {
     setIsContextMenuOpen: React.Dispatch<React.SetStateAction<boolean>>,
     myId: string,
     setChangingMessageId: React.Dispatch<React.SetStateAction<string>>,
-    setChangeMessageInputValue: React.Dispatch<React.SetStateAction<string>>,
+    setMessageInputValue: React.Dispatch<React.SetStateAction<string>>,
     chatInfo: chatType | undefined,
     secondLastMessage: messagesType[] | undefined,
-    inputRef: React.MutableRefObject<HTMLInputElement | null>
+    focusOnInput: () => void,
 }
 const MessageContextMenu: FC<MessageContextMenuPT> =
     ({
@@ -42,8 +41,8 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
         setChangingMessageId,
         chatInfo,
         secondLastMessage,
-        setChangeMessageInputValue,
-        inputRef,
+         setMessageInputValue,
+         focusOnInput,
     }) => {
 
     const {firestore, user} = useContext(Context)!;
@@ -67,7 +66,6 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
         setIsContextMenuOpen(false)
 
         if (images) {
-            // console.log(images)
             images.forEach( async ({imageRef}) => {
                 await deleteObject(ref(storage, `${imageRef}`))
             })
@@ -118,14 +116,14 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
                 setIsReplying(true)
                 setReplyMessageInfo(modalInfo.message)
                 setIsContextMenuOpen(false)
-                inputRef?.current!.focus()
+                focusOnInput()
             }} startIcon={<ReplyIcon/>}  >
                 <Typography>Ответить</Typography>
             </Button>
             {modalInfo.isMe &&
                 <Button startIcon={<EditIcon/>} sx={{ my: 1}} onClick={() => {
                     setChangingMessageId(modalInfo.message.messageId)
-                    setChangeMessageInputValue(modalInfo.message.message)
+                    setMessageInputValue(modalInfo.message.message)
                     setIsContextMenuOpen(false)
                 }}>
                     <Typography>Редактировать</Typography>

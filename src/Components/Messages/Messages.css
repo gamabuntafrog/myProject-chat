@@ -41,6 +41,7 @@
 
     .image-gallery-slide-wrapper.left {
         width: 100% !important;
+        border-radius: 20px;
     }
 }
 
@@ -72,3 +73,6 @@
     justify-content: center;
 }
 
+.image-gallery-image {
+    border-radius: 20px;
+}

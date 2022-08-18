@@ -15,7 +15,13 @@ import {
 } from '@mui/material'
 import Loader from "../Loader";
 import UserModalInfo from "../UserModalInfo";
-import {messagesExemplar, messagesType, messagesWhichOnProgressType, replyMessageType} from '../../types/messages';
+import {
+    messagesExemplar,
+    messagesType,
+    messagesWhichOnProgressType,
+    messageType,
+    replyMessageType
+} from '../../types/messages';
 import MessageContextMenu from "../MessageContextMenu";
 import EllipsisText from "react-ellipsis-text";
 import DoneIcon from '@mui/icons-material/Done';
@@ -43,6 +49,7 @@ import {format} from 'date-fns'
 import {ThemeContext} from "../../App";
 import Modal from "../Modal";
 import ImageGallery from 'react-image-gallery';
+import {showRepliedMessageActionTypes} from "../Chat/Chat";
 
 
 type MessagesPropTypes = {
@@ -52,11 +59,10 @@ type MessagesPropTypes = {
     setIsReplying: React.Dispatch<React.SetStateAction<boolean>>
     setReplyMessageInfo: React.Dispatch<React.SetStateAction<any>>,
     isChatChanging: boolean,
-    showRepliedMessage: (message: replyMessageType) => void,
+    showRepliedMessage: (message: replyMessageType | messageType, actionType: showRepliedMessageActionTypes) => void,
     listRef: React.MutableRefObject<HTMLUListElement | null>,
     chatInfo: chatType | undefined,
-    inputRef: React.MutableRefObject<HTMLInputElement | null>,
-    progress: { onImage: number, percent: null | number },
+    focusOnInput: () => void,
     messagesWhichOnProgress: null | messagesWhichOnProgressType[]
 
 }
@@ -71,8 +77,7 @@ const Messages: FC<MessagesPropTypes> = ({
     showRepliedMessage,
     listRef,
     chatInfo,
-    inputRef,
-    progress,
+    focusOnInput,
     messagesWhichOnProgress
 }) => {
 
@@ -81,8 +86,7 @@ const Messages: FC<MessagesPropTypes> = ({
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
     const [contextMenuInfo, setContextMenuInfo] = useState<any>(null);
-    const [changeMessageInputValue, setChangeMessageInputValue] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [messageInputValue, setMessageInputValue] = useState('');
     const [changingMessageId, setChangingMessageId] = useState('');
     const [replyMessages, setReplyMessages] = useState<any>(null);
 
@@ -131,13 +135,11 @@ const Messages: FC<MessagesPropTypes> = ({
                 messagesObj[message.messageId] = message
         })
         setReplyMessages(messagesObj)
-        console.log('changed')
     }, [messages]);
 
 
 
     const onOpenContextMenu = (e: React.MouseEvent<HTMLButtonElement> | React.MouseEvent<HTMLLIElement, MouseEvent> , message: messagesType, subscribedUser: user) => {
-        console.log(e)
 
         const openContextMenu = () => {
             const {pageX, pageY} = e
@@ -151,8 +153,6 @@ const Messages: FC<MessagesPropTypes> = ({
 
             setIsContextMenuOpen(true)
         }
-
-        console.log(e.type)
 
         switch (e.type) {
             case 'contextmenu':
@@ -180,45 +180,45 @@ const Messages: FC<MessagesPropTypes> = ({
     }
 
     const changeMessage = async (message: messagesType) => {
-        console.log(chatInfo)
-
-        const newMessage = {...message, message: changeMessageInputValue, changedAt: Date.now()}
-        console.log(newMessage)
+        const newMessage = {...message, message: messageInputValue, changedAt: Date.now()}
 
         try {
             const messageRef = doc(firestore, 'chats', `${chatId}`, 'messages', `${message.messageId}`)
             await setDoc(messageRef, newMessage)
-
 
             if (chatInfo && chatInfo.lastMessage.messageId === message.messageId) {
                 const chatRef = doc(firestore, 'chats', `${chatId}`)
                 await setDoc(chatRef, {
                     lastMessage: newMessage
                 }, {merge: true})
-
             }
         } catch (e) {
             console.log(e)
         } finally {
-            setIsLoading(false)
             setChangingMessageId('')
-            setChangeMessageInputValue('')
+            setMessageInputValue('')
         }
     }
-    const {userStyles, changeColor, changeBorderRadius} = useContext(ThemeContext)!
+    const {userStyles} = useContext(ThemeContext)!
 
 
 
-    if (!messages && !subscribedUsers && !me) {
-        return <List sx={{minHeight: '90vh'}}>
-            <Loader/>
-        </List>
-    }
 
-    const blackBackground = 'https://www.tynker.com/minecraft/api/block?id=5993332e76f2936e3f8b4586&w=400&h=400&width=400&height=400&mode=contain&format=jpg&quality=75&cache=max&v=1502819118'
+
 
     const secondLastMessage = messages?.slice(messages?.length - 2, messages?.length - 1)
 
+    const replyOnMessage = (message: messageType | replyMessageType) => {
+        setIsReplying(true)
+        setReplyMessageInfo(message)
+        focusOnInput()
+    }
+
+    if (!messages && !subscribedUsers && !me) {
+        return <List sx={{minHeight: '100vh'}}>
+            <Loader/>
+        </List>
+    }
 
     return (
         <>
@@ -254,8 +254,8 @@ const Messages: FC<MessagesPropTypes> = ({
               setChangingMessageId={setChangingMessageId}
               chatInfo={chatInfo}
               secondLastMessage={secondLastMessage}
-              setChangeMessageInputValue={setChangeMessageInputValue}
-              inputRef={inputRef}
+              setMessageInputValue={setMessageInputValue}
+              focusOnInput={focusOnInput}
             />}
             {isUserModalOpen && <UserModalInfo
               modalInfo={userModalInfo}
@@ -280,7 +280,7 @@ const Messages: FC<MessagesPropTypes> = ({
 
                 const {userId, messageId, messageType} = message
                 const subscribedUser = subscribedUsers[userId]
-                const isMessageBeforeIsMine = messages[i - 1].userId === message.userId
+                const isMessageBeforeIsMine = messages[i - 1]?.userId === message.userId
                 const isMessageAfterThisMine = messages[i + 1]?.userId === message.userId
                 const isMessageChanging = message.messageId === changingMessageId
 
@@ -316,16 +316,13 @@ const Messages: FC<MessagesPropTypes> = ({
                                                         }
 										                                </>
                                                     }
-                                                    <IconButton className='miniContextmenu' onClick={() => {
-                                                        setIsReplying(true)
-                                                        setReplyMessageInfo(message)
-                                                    }} sx={{color: subscribedUser?.nicknameColor || ''}}>
+                                                    <IconButton className='miniContextmenu' onClick={() => {replyOnMessage(message)}} sx={{color: subscribedUser?.nicknameColor || ''}}>
                                                         <ReplyIcon/>
                                                     </IconButton>
                                                 </Box>
                                                 <Box sx={messageContainer}>
                                                     <Box sx={messageLeftLine} />
-                                                    <Box onClick={() => showRepliedMessage(message)} sx={{cursor: 'pointer'}}>
+                                                    <Box onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)} sx={{cursor: 'pointer'}}>
                                                         <Typography sx={{color: `${subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || '' : subscribedReplyerUser?.nicknameColor || ''} !important`, cursor: 'pointer' }}>{subscribedReplyerUser?.nickname}</Typography>
                                                         {replyMessage ?
                                                             <EllipsisText sx={messageStyles} text={replyMessage.message} length={30}/>
@@ -366,7 +363,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                             </>
                                             :
                                             <Box>
-                                                <Box onClick={() => showRepliedMessage(message)} sx={{display: 'flex', wordBreak: 'break-all', cursor: 'pointer' }}>
+                                                <Box onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)} sx={{display: 'flex', wordBreak: 'break-all', cursor: 'pointer' }}>
                                                     <Box sx={messageLeftLine}/>
                                                     <Box >
                                                         <Typography  sx={{color: subscribedReplyerUser?.userId === me?.userId ? me!.nicknameColor : '', wordBreak: 'break-all' }}>
@@ -378,18 +375,17 @@ const Messages: FC<MessagesPropTypes> = ({
                                                     </Box>
                                                 </Box>
                                                 <TextField fullWidth sx={{div: {px: 1, mb: 1}}} variant={'standard'}
-                                                           onChange={(e) => setChangeMessageInputValue(e.target.value)}
+                                                           onChange={(e) => setMessageInputValue(e.target.value)}
                                                            multiline defaultValue={message.message}
                                                 />
                                                 <Button sx={{mx: 1}} color={'success'} onClick={() => {
-                                                    setIsLoading(true)
                                                     changeMessage(message)
                                                 }}>
                                                     <DoneIcon/>
                                                 </Button>
                                                 <Button color={'error'} onClick={() => {
                                                     setChangingMessageId('')
-                                                    setChangeMessageInputValue('')
+                                                    setMessageInputValue('')
                                                 }}>
                                                     <CloseIcon/>
                                                 </Button>
@@ -444,10 +440,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                                     </>
                                             }
 
-                                            <IconButton className='miniContextmenu' onClick={() => {
-                                                setIsReplying(true)
-                                                setReplyMessageInfo(message)
-                                            }} sx={{color: subscribedUser?.nicknameColor || ''}}>
+                                            <IconButton className='miniContextmenu' onClick={() => replyOnMessage(message)} sx={{color: subscribedUser?.nicknameColor || ''}}>
                                                 <ReplyIcon/>
                                             </IconButton>
                                         </Box>
@@ -484,18 +477,17 @@ const Messages: FC<MessagesPropTypes> = ({
                                     :
                                     <Box>
                                         <TextField fullWidth sx={{div: {px: 1, mb: 1}}} variant={'standard'}
-                                                   onChange={(e) => setChangeMessageInputValue(e.target.value)}
+                                                   onChange={(e) => setMessageInputValue(e.target.value)}
                                                    multiline defaultValue={message.message}
                                         />
                                         <Button sx={{mx: 1}} color={'success'} onClick={() => {
-                                            setIsLoading(true)
                                             changeMessage(message)
                                         }}>
                                             <DoneIcon/>
                                         </Button>
                                         <Button color={'error'} onClick={() => {
                                             setChangingMessageId('')
-                                            setChangeMessageInputValue('')
+                                            setMessageInputValue('')
                                         }}>
                                             <CloseIcon/>
                                         </Button>

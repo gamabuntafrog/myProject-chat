@@ -2,36 +2,35 @@ import React, {FC, useContext, useEffect, useState} from "react"
 import {Avatar, Box, Button, ImageList, ImageListItem, List, ListItem, TextField, Typography} from "@mui/material";
 import Modal from "../Modal";
 import {NavLink, useHistory} from "react-router-dom";
-import {arrayRemove, deleteDoc, doc, setDoc, updateDoc} from "firebase/firestore";
+import {arrayRemove, collection, deleteDoc, doc, query, setDoc, updateDoc, where} from "firebase/firestore";
 import {Context} from "../../index";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import {ChatInfoContext} from "../../App";
-import {messagesExemplar, messagesType, messageType, replyMessageType} from "../../types/messages";
+import {messagesExemplar, messageType, replyMessageType} from "../../types/messages";
+import {useCollectionData} from "react-firebase-hooks/firestore";
+import {showRepliedMessageActionTypes} from "../Chat/Chat";
+import {chatType} from "../../types/chatType";
 
 type ChatInfoPT = {
-    id: string,
-    chatName: string,
-    chatImage: string,
-    chatDescription: string,
+    chatData: chatType
     users: any,
-    messages: messagesType[]
+    showRepliedMessage: (message: messageType | replyMessageType, actionType: showRepliedMessageActionTypes) => void,
 }
 
 const ChatInfo: FC<ChatInfoPT> = ({
-        id,
-        chatName,
         users,
-        chatImage,
-        chatDescription,
-        messages
+        chatData,
+        showRepliedMessage
     }) => {
+
+    const {chatName, chatImage, chatId, chatDescription} = chatData
 
     const {firestore, user: me} = useContext(Context)!
     const {isChatInfoOpen, handleChatInfoIsOpen} = useContext(ChatInfoContext)!
 
+    const messagesRef = collection(firestore, 'chats',  `${chatId}`, 'messages') // , orderBy('createdAt')
+    const [messagesCollection] = useCollectionData<any>(query(messagesRef, where('images', '!=', null)))
 
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [usersArray, setUsersArray] = useState<any | null>(null);
     const [userModalInfo, setUserModalInfo] = useState<null | any>(null);
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -50,66 +49,10 @@ const ChatInfo: FC<ChatInfoPT> = ({
         }
     }, [users]);
 
-
-
-    const unsubscribeFromChat = async () => {
-        if (me) {
-            await updateDoc(doc(firestore, 'users', `${me.userId}`), {
-                subscribedChats: arrayRemove(id)
-            })
-            await deleteDoc(doc(firestore, 'chats', `${id}`, 'users', `${me.userId}`))
-            await updateDoc(doc(firestore, 'chats', `${id}`), {
-                users: arrayRemove(me.userId)
-            })
-
-            history.push('/search')
-        }
-    }
-
-    const removeAdmin = async (userId: string) => {
-        await setDoc(doc(firestore, 'chats', `${id}`, 'users', `${userId}`), {
-            isAdmin: false
-        }, {merge: true})
-        setIsUserModalOpen(false)
-
-    }
-
-    const addAdmin = async (userId: string) => {
-        await setDoc(doc(firestore, 'chats', `${id}`, 'users', `${userId}`), {
-            isAdmin: true
-        }, {merge: true})
-        setIsUserModalOpen(false)
-
-    }
-
-    const submitChatInfo = async () => {
-        console.log(newChatInfo)
-        const {chatImage, chatName, chatDescription} = newChatInfo
-        await setDoc(doc(firestore, 'chats', `${id}`), {
-            chatName: chatName,
-            chatDescription,
-            chatImage
-        }, {merge: true})
-        setIsChangingChatInfo(false)
-
-    }
-
-    const deleteChat = async () => {
-        await deleteDoc(doc(firestore, 'chats', `${id}`))
-        setIsUserModalOpen(false)
-
-        history.push('/search')
-    }
-
-    const isUserAdmin = (me && users[me.userId].isAdmin)
-    // console.log(isChatInfoOpen)
-    const [messagesWithImages, setMessagesWithImages] = useState<null | (messageType | replyMessageType)[]>(null);
-    const [imagesAmount, setImagesAmount] = useState(0);
-
     useEffect(() => {
-        if (messages) {
+        if (messagesCollection) {
             let imagesAmount = 0
-            const messagesWithImages = messages.reduce((prevMsg: any, currentMsg, i, array) => {
+            const messagesWithImages = messagesCollection.reduce((prevMsg: any, currentMsg, i, array) => {
                 if (currentMsg.messageType === messagesExemplar.startMessage) {
                     return prevMsg
                 } else {
@@ -120,17 +63,77 @@ const ChatInfo: FC<ChatInfoPT> = ({
                         return prevMsg
                     }
                 }
-            }, [])
+            }, []).sort((a: any, b: any) => {
+                return a.createdAt - b.createdAt
+            })
             setImagesAmount(imagesAmount)
             setMessagesWithImages(messagesWithImages)
         }
 
-    }, [messages.length]);
+    }, [messagesCollection?.length]);
+
+    const unsubscribeFromChat = async () => {
+        if (me) {
+            await updateDoc(doc(firestore, 'users', `${me.userId}`), {
+                subscribedChats: arrayRemove(chatId)
+            })
+            await deleteDoc(doc(firestore, 'chats', `${chatId}`, 'users', `${me.userId}`))
+            await updateDoc(doc(firestore, 'chats', `${chatId}`), {
+                users: arrayRemove(me.userId)
+            })
+
+            history.push('/search')
+        }
+    }
+
+    const removeAdmin = async (userId: string) => {
+        await setDoc(doc(firestore, 'chats', `${chatId}`, 'users', `${userId}`), {
+            isAdmin: false
+        }, {merge: true})
+        setIsUserModalOpen(false)
+
+    }
+
+    const addAdmin = async (userId: string) => {
+        await setDoc(doc(firestore, 'chats', `${chatId}`, 'users', `${userId}`), {
+            isAdmin: true
+        }, {merge: true})
+        setIsUserModalOpen(false)
+
+    }
+
+    const submitChatInfo = async () => {
+        console.log(newChatInfo)
+        const {chatImage, chatName, chatDescription} = newChatInfo
+        await setDoc(doc(firestore, 'chats', `${chatId}`), {
+            chatName: chatName,
+            chatDescription,
+            chatImage
+        }, {merge: true})
+        setIsChangingChatInfo(false)
+
+    }
+
+    const deleteChat = async () => {
+        await deleteDoc(doc(firestore, 'chats', `${chatId}`))
+        setIsUserModalOpen(false)
+
+        history.push('/search')
+    }
+
+    const isUserAdmin = (me && users[me.userId].isAdmin)
+    // console.log(isChatInfoOpen)
+    const [messagesWithImages, setMessagesWithImages] = useState<null | (messageType | replyMessageType)[]>(null);
+    const [imagesAmount, setImagesAmount] = useState(0);
+
+    const seeAMessage = (message: replyMessageType | messageType) => {
+        handleChatInfoIsOpen(isChatInfoOpen)
+        showRepliedMessage(message, showRepliedMessageActionTypes.showMessage)
+    }
 
 
     return (
         <Box>
-            {isChatInfoOpen &&
 		        <Modal jc={'start'} br={'10px 0 0 10px'} buttonPosition={'absolute'} isModalOpen={isChatInfoOpen} onClose={() => handleChatInfoIsOpen(isChatInfoOpen)}>
 			        <Box sx={{textAlign: 'center', width: isChangingChatInfo ? '95%' : 'auto'}}>
                         {isChangingChatInfo ?
@@ -178,12 +181,15 @@ const ChatInfo: FC<ChatInfoPT> = ({
                                 <Box sx={{my: 2}}>
 	                                <Typography sx={{mb: 1}} variant='h5'>Картинки ({imagesAmount}):</Typography>
 	                                <ImageList sx={isMobile ? { width: '100%', height: '400px', overflowY: 'auto' } : {px: 1, height: '400px', overflowY: 'auto'}} cols={isMobile ? 2 : 4} >
-                                      {messagesWithImages.map(({images}: any, i: number) => {
+                                      {messagesWithImages.map((message: messageType | replyMessageType, i: number) => {
+                                          const {images} = message
+
                                           return (
-                                              images.map((image: any, i: number) => {
+                                              images!.map((image: any, i: number) => {
                                                   if (image.url) {
                                                       return (
                                                           <ImageListItem
+                                                              onClick={() => seeAMessage(message)}
                                                               key={image.url}
                                                               sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', height: '200px !important', cursor: 'pointer'}}
                                                           >
@@ -223,24 +229,9 @@ const ChatInfo: FC<ChatInfoPT> = ({
                                 width: '100%',
                                 pr: isMobile ? 0 : 2
                             }}>
-                                {/*<ImageGallery*/}
-                                {/*showPlayButton={false}*/}
-                                {/*// showThumbnails={isMobile ? false : galleryImages && galleryImages?.length > 1}*/}
-                                {/*// startIndex={indexOfOpenedImage}*/}
-                                {/*showFullscreenButton={false}*/}
-                                {/*fullscreen*/}
-                                {/*thumbnailPosition='left'*/}
-                                {/*sizes='100px'*/}
-                                {/*infinite={false}*/}
-                                {/*thumbnailWidth='100%'*/}
-                                {/*thumbnailHeight='600px'*/}
-                                {/*originalWidth='100%'*/}
-                                {/*items={messagesWithImages || []}*/}
-                                {/*/>*/}
                             </Box>
                         </Box>
 		        </Modal>
-            }
             {isUserModalOpen &&
 		        <Modal width={isMobile ? '100%' : '30%'} isPadding height={'auto'} isModalOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)}>
 			        <Avatar sx={{width: 200, height: 200}} src={`${userModalInfo.photoURL}`} alt="avatar"/>

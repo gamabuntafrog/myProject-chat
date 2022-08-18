@@ -29,7 +29,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import EllipsisText from "react-ellipsis-text";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
-import {emojiType} from "../Chat/Chat";
+import {emojiType, showRepliedMessageActionTypes} from "../Chat/Chat";
 import {ThemeContext} from "../../App";
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import {getDownloadURL, getStorage, ref, uploadBytesResumable} from 'firebase/storage'
@@ -37,41 +37,27 @@ import Modal from "../Modal";
 import ImageGallery from 'react-image-gallery';
 
 type EntryFieldPT = {
-    chatName: string,
     chatId: string,
-    chatDescription: string,
-    chatImage: string,
     users: any,
     isReplying: boolean,
     setIsReplying: React.Dispatch<React.SetStateAction<boolean>>
     replyMessageInfo: any,
-    isChatListOpen: boolean,
-    showMessageOnReply: (message: messagesType) => void,
-    listRef: React.MutableRefObject<HTMLUListElement | null>,
+    showRepliedMessage: (message: messageType | replyMessageType, actionType: showRepliedMessageActionTypes) => void,
     emoji: emojiType | null,
     inputRef: React.MutableRefObject<HTMLInputElement | null>,
-    setProgress: React.Dispatch<React.SetStateAction<{onImage: number, percent: null | number}>>,
     setMessagesWhichOnProgress: React.Dispatch<React.SetStateAction<null | messagesWhichOnProgressType[]>>,
-    messagesWhichOnProgress: null | any,
-    messages: messagesType[]
 }
 
 const EntryField: FC<EntryFieldPT> = ({
-    chatName,
     users,
     chatId,
-    chatDescription,
-    chatImage,
     isReplying,
     replyMessageInfo,
     setIsReplying,
-    showMessageOnReply,
+    showRepliedMessage,
     emoji,
     inputRef,
-    setProgress,
     setMessagesWhichOnProgress,
-    messagesWhichOnProgress,
-    messages
 }) => {
 
     const { firestore, user, isUserLoading} = useContext(Context)!
@@ -88,27 +74,16 @@ const EntryField: FC<EntryFieldPT> = ({
     const isMobile = type === screenTypes.smallType
 
     useEffect(() => {
-        if (isReplying) {
-            inputRef.current!.focus()
-            // console.log(inputRef)
-        }
-
-    }, [isReplying]);
-
-
-    useEffect(() => {
         setIsReplying(false)
         setMessage('')
     }, [id]);
 
     useEffect(() => {
         if (emoji) {
-            console.log(emoji)
             setMessage(prev => {
                 return prev + emoji.emoji
             })
         }
-
     }, [emoji]);
 
 
@@ -320,17 +295,10 @@ const EntryField: FC<EntryFieldPT> = ({
             </Modal>
             <Box sx={{position: 'sticky', bottom: '0px', mt: -1, pt: 2, pb: 2, px: isMobile ? 1 : 2, backgroundColor: userStyles.secondBackgroundColor || '#121212', zIndex: 100, borderRadius: '8px 8px 0 0', borderTop: '1px solid #363636'}}>
                 <Box>
-                    <ChatInfo
-                        id={id}
-                        chatName={chatName}
-                        users={users}
-                        chatImage={chatImage}
-                        chatDescription={chatDescription}
-                        messages={messages}
-                    />
+
                     {isReplying &&
                         <Box sx={{display: 'flex', mb: 1, alignItems: 'center', cursor: 'pointer'}}>
-                            <Box sx={{display: 'flex', alignItems: 'center', width: '100%'}} onClick={() => showMessageOnReply(replyMessageInfo)}>
+                            <Box sx={{display: 'flex', alignItems: 'center', width: '100%'}} onClick={() => showRepliedMessage(replyMessageInfo, showRepliedMessageActionTypes.showMessage)}>
                                 <ReplyIcon sx={{width: '30px', height: '30px', mr: 1}}/>
                                 <Box>
                                     <Typography>{users[replyMessageInfo.userId].nickname}</Typography>

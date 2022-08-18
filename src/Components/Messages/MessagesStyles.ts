@@ -24,9 +24,9 @@ export const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThi
     return ({
         flexGrow: 1,
         backgroundColor: backgroundColor || '#121212',
-        pl: 2,
+        px: 2,
         color: theme === 'light' ? 'black' : 'white',
-        pr: isMobileType ? 2 : 4,
+        // pr: isMobileType ? 2 : 4,
         pt: 2,
         pb: 3,
         borderRadius: isMessageAfterThisMine ? borderRadius ? `${borderRadius}px` : 1 : `${borderRadius}px ${borderRadius}px ${borderRadius}px 0`

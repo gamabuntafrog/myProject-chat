@@ -2,7 +2,7 @@ import {collection, doc, getDoc, orderBy, query,} from 'firebase/firestore';
 import React, {FC, useContext, useEffect, useRef, useState} from 'react';
 import {NavLink, useParams} from 'react-router-dom';
 import {Context} from '../..';
-import {Box, Button, Typography} from "@mui/material";
+import {Box, Button, ImageList, ImageListItem, Typography} from "@mui/material";
 import EntryField from '../EntryField';
 import Messages from '../Messages';
 import {useCollectionData, useDocumentData} from "react-firebase-hooks/firestore";
@@ -15,13 +15,13 @@ import {
 } from '../../types/messages';
 import MyChats from "../MyChats";
 import './Chat.css';
-import {chatContainer, chatSection, logo} from "./ChatStyles";
+import {chatContainer, chatSection} from "./ChatStyles";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import Loader from "../Loader";
 import {justifyColumnCenter} from "../GeneralStyles";
-import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import Picker, {SKIN_TONE_MEDIUM_DARK} from 'emoji-picker-react';
 import {ChatInfoContext, ChatListContext, ThemeContext} from "../../App";
+import ChatInfo from "../ChatInfo";
 
 export type emojiType = {
     activeSkinTone: string,
@@ -29,6 +29,11 @@ export type emojiType = {
     names: string[]
     originalUnified: string,
     unified: string
+}
+
+export enum showRepliedMessageActionTypes {
+    showRepliedMessage,
+    showMessage
 }
 
 const Chat: FC = () => {
@@ -64,6 +69,9 @@ const Chat: FC = () => {
 
     const listRef = useRef<null | HTMLUListElement>(null);
 
+    const {userStyles} = useContext(ThemeContext)!
+    const inputRef = useRef<null | HTMLInputElement>(null);
+
     useEffect(() => {
         if (messagesCollection && chatData) {
             try {
@@ -79,7 +87,6 @@ const Chat: FC = () => {
         if (chatData) {
             changeChatInfo(chatData)
         }
-
     }, [chatData]);
 
 
@@ -105,18 +112,17 @@ const Chat: FC = () => {
 
     useEffect(() => {
         setIsChatChanging(true)
-
     }, [id]);
+
+    type gitType = {id: string, itemurl: string, media_formats: any, tags: string, title: string, url: string}
+    const [gifs, setGifs] = useState<null | gitType[]>(null);
+
 
 
 
     const onEmojiClick = (_: any, emojiObject: emojiType) => {
-        console.log(emojiObject)
         setChosenEmoji(emojiObject);
     };
-
-    const [progress, setProgress] = useState<{ onImage: number, percent: null | number }>({ onImage: 1, percent: null });
-
 
     const getUsers = async (subscribedUsersList: {userId: string, isAdmin: boolean}[]) => {
         // console.log(subscribedUsersList)
@@ -141,11 +147,13 @@ const Chat: FC = () => {
         return usersData
     }
 
-    const showRepliedMessage = (repliedMessage: replyMessageType | messagesType) => {
+
+
+    const showRepliedMessage = (repliedMessage: replyMessageType | messageType, actionType: showRepliedMessageActionTypes) => {
         let indexOfReplyerMessage
-        if (repliedMessage.messageType === messagesExemplar.replyMessage) {
+        if (actionType === showRepliedMessageActionTypes.showRepliedMessage && repliedMessage.messageType === messagesExemplar.replyMessage) {
             indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
-                return repliedMessage.replyer.messageId === message.messageId
+                return repliedMessage!.replyer.messageId === message.messageId
             })
         } else {
             indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
@@ -155,7 +163,9 @@ const Chat: FC = () => {
 
         if (indexOfReplyerMessage && indexOfReplyerMessage >= 0) {
             const child = listRef.current!.children[indexOfReplyerMessage]
+
             child.scrollIntoView({block: 'center', behavior: "smooth"})
+
             const focusMessage = () => {
                 if (isInViewport(child)) {
                     child.classList.add('focus')
@@ -169,7 +179,7 @@ const Chat: FC = () => {
             focusMessage()
             listRef.current!.addEventListener('scroll', focusMessage)
         }
-        function isInViewport(element: any) {
+        function isInViewport(element: Element) {
             const rect = element.getBoundingClientRect();
             return (
                 rect.top >= 0 &&
@@ -180,40 +190,27 @@ const Chat: FC = () => {
         }
     }
 
-    const showMessageOnReply = (repliedMessage: messagesType) => {
-        const indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
-            return repliedMessage.messageId === message.messageId
-        })
-
-        if (indexOfReplyerMessage && indexOfReplyerMessage >= 0) {
-            const child = listRef.current!.children[indexOfReplyerMessage]
-            child.scrollIntoView({block: 'center', behavior: "smooth"})
-            const focusMessage = () => {
-                if (isInViewport(child)) {
-                    child.classList.add('focus')
-
-                    setTimeout(() => {
-                        child.classList.remove('focus')
-                        listRef.current!.removeEventListener('scroll', focusMessage)
-                    }, 1500)
-                }
-            }
-            focusMessage()
-            listRef.current!.addEventListener('scroll', focusMessage)
-        }
-        function isInViewport(element: any) {
-            const rect = element.getBoundingClientRect();
-            return (
-                rect.top >= 0 &&
-                rect.left >= 0 &&
-                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-            );
-        }
+    const focusOnInput = () => {
+        inputRef?.current!.focus()
     }
+    const {isChatInfoOpen, handleChatInfoIsOpen} = useContext(ChatInfoContext)!
 
-    const {userStyles} = useContext(ThemeContext)!
-    const inputRef = useRef<null | HTMLInputElement>(null);
+
+    useEffect(() => {
+        // AIzaSyBNi2GDdp3ksixybEfxpNQM-Y0cs-fI8Ds
+        const fetchGifs = async () => {
+
+            await fetch("https://tenor.googleapis.com/v2/search?q=excited&key=AIzaSyBNi2GDdp3ksixybEfxpNQM-Y0cs-fI8Ds&client_key=my_test_app&limit=14")
+                .then(data => data.json())
+                .then(data => {
+                    console.log(data)
+                    setGifs(data.results)
+                })
+
+        }
+        fetchGifs()
+
+    }, []);
 
     if (isLoading) return (
         <Box sx={chatSection(type)}>
@@ -226,6 +223,13 @@ const Chat: FC = () => {
                 <Box sx={chatSection(type)}>
                     <MyChats id={id} handleIsChatListOpen={handleIsChatListOpen} isChatListOpen={isChatListOpen} />
                     <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage ,  userStyles.backgroundColor)}>
+                        {isChatInfoOpen &&
+                            <ChatInfo
+                                chatData={chatData}
+                                users={users}
+                                showRepliedMessage={showRepliedMessage}
+                            />
+                        }
                         <Messages
                             chatId={id}
                             subscribedUsers={users}
@@ -236,41 +240,46 @@ const Chat: FC = () => {
                             showRepliedMessage={showRepliedMessage}
                             listRef={listRef}
                             chatInfo={chatData}
-                            inputRef={inputRef}
-                            progress={progress}
+                            focusOnInput={focusOnInput}
                             messagesWhichOnProgress={messagesWhichOnProgress}
                         />
                         <EntryField
                             users={users}
-                            chatName={chatData?.chatName}
-                            chatDescription={chatData?.chatDescription}
                             chatId={id}
-                            chatImage={chatData?.chatImage}
                             isReplying={isReplying}
                             setIsReplying={setIsReplying}
                             replyMessageInfo={replyMessageInfo}
-                            isChatListOpen={isChatListOpen}
-                            showMessageOnReply={showMessageOnReply}
-                            listRef={listRef}
+                            showRepliedMessage={showRepliedMessage}
                             inputRef={inputRef}
                             emoji={chosenEmoji}
-                            setProgress={setProgress}
                             setMessagesWhichOnProgress={setMessagesWhichOnProgress}
-                            messagesWhichOnProgress={messagesWhichOnProgress}
-                            messages={messages}
                         />
                     </Box>
-                    <Box sx={{width: smallType ? 0 : mediumType ? '35%' : '20%', borderLeft: '1px solid #363636'}}>
-                        <Picker
-                            onEmojiClick={onEmojiClick}
-                            disableAutoFocus={true}
-                            skinTone={SKIN_TONE_MEDIUM_DARK}
-                            groupNames={{ smileys_people: 'PEOPLE' }}
-                            native
-                            pickerStyle={{width: '100%', height: '100%', overflowX: 'hidden', border: 'none', background: userStyles.secondBackgroundColor || '#121212', color: 'white', }}
-                        />
-                        {/*    <img src={'https://media0.giphy.com/media/UO5elnTqo4vSg/giphy.gif?cid=790b761149852ac594a94121e9ce7bca2c034d663fc5b726&rid=giphy.gif&ct=g'}/>*/}
+                    <Box sx={{width: smallType ? 0 : mediumType ? '35%' : '20%', borderLeft: '1px solid #363636', height: 'auto', overflowY: 'auto'}}>
+                        {/*
+                            Зробити новий тип gifMessage
+                            Щоб був одинокий як в телезі
+                        */}
 
+                        {gifs &&
+                            <ImageList cols={2} gap={6} sx={{padding: 1, overflowY: 'auto'}}>
+                                {gifs.map((gif) => {
+                                    return (
+                                        <ImageListItem sx={{overflow: 'hidden', borderRadius: 1}} key={gif.id}>
+                                            <img src={gif.media_formats.gif.url}/>
+                                        </ImageListItem>
+                                    )
+                                })}
+                            </ImageList>
+                        }
+                        {/*<Picker*/}
+                        {/*    onEmojiClick={onEmojiClick}*/}
+                        {/*    disableAutoFocus={true}*/}
+                        {/*    skinTone={SKIN_TONE_MEDIUM_DARK}*/}
+                        {/*    groupNames={{ smileys_people: 'PEOPLE' }}*/}
+                        {/*    native*/}
+                        {/*    pickerStyle={{width: '100%', height: '100%', overflowX: 'hidden', border: 'none', background: userStyles.secondBackgroundColor || '#121212', color: 'white', }}*/}
+                        {/*/>*/}
                     </Box>
                 </Box>
         );
