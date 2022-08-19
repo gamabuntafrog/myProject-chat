@@ -3,7 +3,8 @@ export enum messagesExemplar {
     message,
     dateMessage,
     replyMessage,
-    forwardMessages
+    forwardMessages,
+    gifMessage
 }
 
 export type startMessageType = {
@@ -22,7 +23,7 @@ export type messageType = {
     message: string,
     userId: string,
     messageType: messagesExemplar.message,
-    images?: {url: string, imageRef: string}[]
+    images?: {url: string, imageRef: string}[],
 }
 
 export type replyMessageType = {
@@ -38,7 +39,18 @@ export type replyMessageType = {
 
 }
 
-export type messagesType = (messageType | startMessageType | replyMessageType)
+export type gifMessageType = {
+    messageId: string,
+    createdAt: number,
+    changedAt?: number,
+    // message: 'GIF',
+    userId: string,
+    gifInfo: any,
+    messageType: messagesExemplar.gifMessage,
+    replyer: messageType | replyMessageType | gifMessageType
+}
+
+export type messagesType = (messageType | startMessageType | replyMessageType | gifMessageType)
 
 export type messagesWhichOnProgressType = {
     messageId: string,

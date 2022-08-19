@@ -123,7 +123,9 @@ const EntryField: FC<EntryFieldPT> = ({
                     createdAt: Date.now(),
                     replyer: replyMessageInfo,
                     messageId: newMessageId,
-                    chatId: id
+                    chatId: id,
+                    images: urls
+
                 }
             }, {merge: true})
             setIsReplying(false)
@@ -144,7 +146,9 @@ const EntryField: FC<EntryFieldPT> = ({
                     message: message,
                     createdAt: Date.now(),
                     messageId: newMessageId,
-                    chatId: id
+                    chatId: id,
+                    images: urls
+
                 }
             }, {merge: true})
         }

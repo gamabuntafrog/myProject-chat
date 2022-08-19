@@ -1,63 +1,61 @@
 .open-chat-button {
-    display: none !important;
-
+  display: none !important;
 }
 
 .chat {
 }
 
 .chat__container {
-    margin: 16px 0px 16px 6px;
-    border-radius: 30px 0 0 30px;
+  margin: 16px 0px 16px 6px;
+  border-radius: 30px 0 0 30px;
 }
-
 
 @media screen and (max-width: 1280px) {
+  .open-chat-button {
+    display: block !important;
+  }
 
-    .open-chat-button {
-        display: block !important;
-    }
-
-    .chat__container {
-        margin: 0;
-        border-radius: 0;
-    }
-
+  .chat__container {
+    margin: 0;
+    border-radius: 0;
+  }
 }
 
-
 @media screen and (max-width: 600px) {
-    .chat {
-        padding-top: 56px;
-    }
+  .chat {
+    padding-top: 56px;
+  }
 }
 
 .emoji-picker-react .emoji-scroll-wrapper {
-    overflow-x: hidden;
-    background-color: var(--secondBackgroundColor);
+  overflow-x: hidden;
+  background-color: var(--secondBackgroundColor);
 }
 
 .emoji-picker-react .emoji-group:before {
-    background-color: var(--secondBackgroundColor) !important;
-
+  background-color: var(--secondBackgroundColor) !important;
 }
 
 .emoji-picker-react input.emoji-search {
-    background-color: var(--secondBackgroundColor) !important;
-    border: 1px solid #363636 !important;
-    margin-top: 10px;
-    color: lightgrey;
+  background-color: var(--secondBackgroundColor) !important;
+  border: 1px solid #363636 !important;
+  margin-top: 10px;
+  color: lightgrey;
 }
 aside.emoji-picker-react {
-    box-shadow: none !important;
+  box-shadow: none !important;
 }
 .emoji-picker-react div.skin-tones-list {
-    top: 24px !important;
+  top: 24px !important;
 }
 .emoji-picker-react .emoji-categories {
-    display: none !important;
+  display: none !important;
 }
 
 /*p, span {*/
 /*    color: lightgrey !important;*/
 /*}*/
+
+aside.emoji-picker-react {
+  height: auto !important;
+}

@@ -7,5 +7,5 @@ export type chatType = {
     chatName: string,
     createdAt: number,
     lastMessage: messagesType,
-    users: string[]
+    users: string[],
 }

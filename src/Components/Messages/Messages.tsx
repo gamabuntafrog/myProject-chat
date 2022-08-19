@@ -16,6 +16,7 @@ import {
 import Loader from "../Loader";
 import UserModalInfo from "../UserModalInfo";
 import {
+    gifMessageType,
     messagesExemplar,
     messagesType,
     messagesWhichOnProgressType,
@@ -208,7 +209,7 @@ const Messages: FC<MessagesPropTypes> = ({
 
     const secondLastMessage = messages?.slice(messages?.length - 2, messages?.length - 1)
 
-    const replyOnMessage = (message: messageType | replyMessageType) => {
+    const replyOnMessage = (message: messageType | replyMessageType | gifMessageType) => {
         setIsReplying(true)
         setReplyMessageInfo(message)
         focusOnInput()
@@ -282,6 +283,53 @@ const Messages: FC<MessagesPropTypes> = ({
                 const subscribedUser = subscribedUsers[userId]
                 const isMessageBeforeIsMine = messages[i - 1]?.userId === message.userId
                 const isMessageAfterThisMine = messages[i + 1]?.userId === message.userId
+
+
+                if (message.messageType === messagesExemplar.gifMessage) {
+
+
+                    return (
+                        <ListItem
+                            sx={{padding: 0, }}
+                            key={messageId}
+                            onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
+                        >
+                            <Box
+                                className={'messageWrapper'}
+                                sx={messageListItem(isMobile)}
+                            >
+                                <Box onClick={(e) => {
+                                    const {pageX, pageY} = e
+                                    if (subscribedUser) {
+                                        setIsUserModalOpen(true)
+                                        setUserModalInfo({user: subscribedUser, pageX, pageY})
+                                    }
+                                    setIsContextMenuOpen(false)
+                                }} sx={avatarWrapper}>
+                                    {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
+                                </Box>
+                                <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}>
+                                    <Box sx={{padding: 0}} onClick={() => {
+                                        setGalleryImages([{original: message.gifInfo.media_formats.gif.url, thumbnail: message.gifInfo.media_formats.gif.url}])
+                                        setIsGalleryOpen(true)
+                                    }}>
+                                        <img style={{borderRadius: `${userStyles.messagesBorderRadius}px`, cursor: 'pointer', width: '300px'}} src={message.gifInfo.media_formats.mediumgif.url}/>
+                                    </Box>
+                                    <Typography sx={dateMessage}>
+                                        {createdAtFormatted}
+                                    </Typography>
+                                    <IconButton className='miniContextmenu' onClick={() => {replyOnMessage(message)}} sx={{color: subscribedUser?.nicknameColor || ''}}>
+                                        <ReplyIcon/>
+                                    </IconButton>
+                                </Box>
+
+                            </Box>
+                        </ListItem>
+                    )
+
+                }
+
+
                 const isMessageChanging = message.messageId === changingMessageId
 
                 if (messageType === messagesExemplar.replyMessage) {

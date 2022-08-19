@@ -1,11 +1,10 @@
 import React, {FC, useContext, useEffect, useState} from "react"
 import {Context} from "../../index";
-import {Avatar, Box, Button, List, ListItem, TextField, Typography} from "@mui/material";
+import {Avatar, Box, List, ListItem, TextField, Typography} from "@mui/material";
 import '../../App.css';
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import {
     chatList,
-    closeButton,
     item,
     itemMessagesWrapper,
     itemWrapper,
@@ -155,7 +154,10 @@ const MyChats: FC<MyChatsPT> = ({isChatListOpen, handleIsChatListOpen, id}) => {
                                                 <EllipsisText text={`${user?.nickname}:`} length={30}/>
                                             </Typography>
                                             <Typography variant={'body2'} sx={{mr: 1, color: 'whitesmoke'}}>
-                                                <EllipsisText text={lastMessage?.message} length={30}/>
+                                                {lastMessage.messageType === messagesExemplar.gifMessage && <EllipsisText text='GIF' length={30}/>}
+                                                {lastMessage.messageType !== messagesExemplar.gifMessage &&
+                                                <EllipsisText text={lastMessage?.message || lastMessage.messageType !== messagesExemplar.startMessage && `(${lastMessage.images?.length}) image` || ''} length={30}/>
+                                                }
                                             </Typography>
                                         </Box>
                                     </Box>

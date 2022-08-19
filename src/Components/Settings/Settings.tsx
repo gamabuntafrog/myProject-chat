@@ -23,7 +23,7 @@ import {
      userRole,
     userWrapper
 } from "../Messages/MessagesStyles";
-import {messagesExemplar, messagesType, replyMessageType} from "../../types/messages";
+import {messagesExemplar, messagesType, messageType, replyMessageType, startMessageType} from "../../types/messages";
 import {format} from "date-fns";
 import ReplyIcon from "@mui/icons-material/Reply";
 import DoneIcon from "@mui/icons-material/Done";
@@ -258,7 +258,7 @@ const Settings: FC = () => {
                 }} fullWidth value={userStyles.messagesBorderRadius} componentsProps={{input: {max: '50'}}} sx={{mb: 2}} type='range'/>
                 <List sx={messagesList(isMobileOrMediumScreen, userStyles.backgroundImage, userStyles.backgroundColor)}>
 
-                {messages && messages.map((message: messagesType, i: number) => {
+                {messages && messages.map((message: messageType | replyMessageType | startMessageType, i: number) => {
                     const createdAtFormatted = format(message.createdAt, 'HH mm').split(' ').join(':')
 
                     if (message.messageType === messagesExemplar.startMessage) {

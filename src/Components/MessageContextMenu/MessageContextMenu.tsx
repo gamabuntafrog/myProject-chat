@@ -6,7 +6,7 @@ import {Context} from "../../index";
 import ReplyIcon from "@mui/icons-material/Reply";
 import EditIcon from '@mui/icons-material/Edit';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import {messagesType, messageType, replyMessageType} from "../../types/messages";
+import {gifMessageType, messagesExemplar, messagesType, messageType, replyMessageType} from "../../types/messages";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import {chatType} from "../../types/chatType";
 import {getStorage, ref, deleteObject} from 'firebase/storage'
@@ -14,7 +14,7 @@ import {ThemeContext} from "../../App";
 
 type MessageContextMenuPT = {
     modalInfo: {
-        message: messageType | replyMessageType,
+        message: messageType | replyMessageType | gifMessageType,
         pageY: number,
         pageX: number,
         isMe: boolean,
@@ -82,6 +82,8 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
     const staticTop = (window.innerHeight / 1.4)
     const mobileStaticLeft = (window.innerWidth / 2.4)
 
+        const isNotGifMessage = modalInfo.message.messageType !== messagesExemplar.gifMessage
+
     return (
         <Box display='flex' textAlign='center' flexDirection='column' justifyContent='center'
              position='fixed'
@@ -120,23 +122,28 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
             }} startIcon={<ReplyIcon/>}  >
                 <Typography>Ответить</Typography>
             </Button>
-            {modalInfo.isMe &&
-                <Button startIcon={<EditIcon/>} sx={{ my: 1}} onClick={() => {
-                    setChangingMessageId(modalInfo.message.messageId)
-                    setMessageInputValue(modalInfo.message.message)
-                    setIsContextMenuOpen(false)
-                }}>
-                    <Typography>Редактировать</Typography>
-                </Button>
-            }
-            <Button startIcon={<ContentCopyIcon/>} onClick={() => copyText(modalInfo.message.message)}>
-                Копировать текст
-            </Button>
-            {modalInfo.isMe &&
-		        <Button color={'error'}  onClick={() => onDelete({messageId: modalInfo.message.messageId, images: modalInfo.message.images})} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
-                    <Typography>Удалить</Typography>
-                </Button>
-            }
+                {modalInfo.isMe && isNotGifMessage &&
+                    <>
+	                    <Button startIcon={<EditIcon/>} sx={{ my: 1}} onClick={() => {
+                          setChangingMessageId(modalInfo.message.messageId)
+                            // @ts-ignore
+                          setMessageInputValue(modalInfo.message.message)
+                          setIsContextMenuOpen(false)
+                        }}>
+		                    <Typography>Редактировать</Typography>
+	                    </Button>
+                        {/* @ts-ignore */}
+	                    <Button startIcon={<ContentCopyIcon/>} onClick={() => copyText(modalInfo.message?.message)}>
+		                    Копировать текст
+	                    </Button>
+                        {modalInfo.isMe &&
+                            // @ts-ignore
+                            <Button color={'error'}  onClick={() => onDelete({messageId: modalInfo.message.messageId, images: modalInfo.message.images})} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
+			                    <Typography>Удалить</Typography>
+		                    </Button>
+                        }
+                    </>
+                }
         </Box>
     )
 }

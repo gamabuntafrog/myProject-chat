@@ -1,12 +1,13 @@
-import {collection, doc, getDoc, orderBy, query,} from 'firebase/firestore';
+import {collection, doc, getDoc, orderBy, query, setDoc,} from 'firebase/firestore';
 import React, {FC, useContext, useEffect, useRef, useState} from 'react';
 import {NavLink, useParams} from 'react-router-dom';
 import {Context} from '../..';
-import {Box, Button, ImageList, ImageListItem, Typography} from "@mui/material";
+import {Box, Button, ImageList, ImageListItem, TextField, Typography} from "@mui/material";
 import EntryField from '../EntryField';
 import Messages from '../Messages';
 import {useCollectionData, useDocumentData} from "react-firebase-hooks/firestore";
 import {
+    gifMessageType,
     messagesExemplar,
     messagesType,
     messagesWhichOnProgressType,
@@ -22,6 +23,10 @@ import {justifyColumnCenter} from "../GeneralStyles";
 import Picker, {SKIN_TONE_MEDIUM_DARK} from 'emoji-picker-react';
 import {ChatInfoContext, ChatListContext, ThemeContext} from "../../App";
 import ChatInfo from "../ChatInfo";
+import shortid from "shortid";
+// @ts-ignore
+import {debounce} from 'lodash-es'
+
 
 export type emojiType = {
     activeSkinTone: string,
@@ -39,7 +44,7 @@ export enum showRepliedMessageActionTypes {
 const Chat: FC = () => {
 
     const {id} = useParams<{ id: string }>()
-    const {firestore} = useContext(Context)!
+    const {firestore, user} = useContext(Context)!
     const {changeChatInfo} = useContext(ChatInfoContext)!
     const {handleIsChatListOpen, isChatListOpen} = useContext(ChatListContext)!
     const [messages, setMessages] = useState<messagesType[] | null>(null);
@@ -114,10 +119,20 @@ const Chat: FC = () => {
         setIsChatChanging(true)
     }, [id]);
 
-    type gitType = {id: string, itemurl: string, media_formats: any, tags: string, title: string, url: string}
-    const [gifs, setGifs] = useState<null | gitType[]>(null);
-
-
+    type gifType = {
+        id: string,
+        itemurl: string,
+        media_formats: {
+            gif: { url: string, dims: string[], duration: number, size: number},
+            nanogif: { url: string, dims: string[], duration: number, size: number},
+            mediumgif: { url: string, dims: string[], duration: number, size: number}
+        },
+        tags: string,
+        title: string,
+        url: string
+    }
+    const [gifs, setGifs] = useState<null | gifType[]>(null);
+    const [showGifs, setShowGifs] = useState<boolean>(false);
 
 
     const onEmojiClick = (_: any, emojiObject: emojiType) => {
@@ -195,12 +210,50 @@ const Chat: FC = () => {
     }
     const {isChatInfoOpen, handleChatInfoIsOpen} = useContext(ChatInfoContext)!
 
+    const [limitOfGifs, setLimitOfGifs] = useState(10);
+
+    const fetchGifs = async () => {
+
+        await fetch(`https://tenor.googleapis.com/v2/search?q=excited&key=AIzaSyBNi2GDdp3ksixybEfxpNQM-Y0cs-fI8Ds&client_key=my_test_app&limit=10`)
+            .then(data => data.json())
+            .then(data => {
+                console.log(data)
+                setGifs(data.results)
+            })
+
+    }
 
     useEffect(() => {
         // AIzaSyBNi2GDdp3ksixybEfxpNQM-Y0cs-fI8Ds
-        const fetchGifs = async () => {
 
-            await fetch("https://tenor.googleapis.com/v2/search?q=excited&key=AIzaSyBNi2GDdp3ksixybEfxpNQM-Y0cs-fI8Ds&client_key=my_test_app&limit=14")
+        fetchGifs()
+
+    }, []);
+
+    const submitGifMessage = async (gif: gifType) => {
+        const newMessageId = `${user?.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
+
+        console.log(gif)
+
+        const message = {
+            messageType: messagesExemplar.gifMessage,
+            userId: user?.userId,
+            message: 'GIF',
+            createdAt: Date.now(),
+            messageId: newMessageId,
+            chatId: id,
+            gifInfo: gif
+        }
+
+        await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), message)
+    }
+
+    const [searchGifInputValue, setSearchGifInputValue] = useState<string>('hi');
+
+
+    const updateQuery = (searchGifInputValue: string, limitOfGifs: number) => {
+        const fetchGifs = async () => {
+            await fetch(`https://tenor.googleapis.com/v2/search?q=${searchGifInputValue || 'hello'}&key=AIzaSyBNi2GDdp3ksixybEfxpNQM-Y0cs-fI8Ds&client_key=my_test_app&limit=${limitOfGifs}`)
                 .then(data => data.json())
                 .then(data => {
                     console.log(data)
@@ -210,7 +263,11 @@ const Chat: FC = () => {
         }
         fetchGifs()
 
-    }, []);
+
+    }
+
+    const debouncedUpdateQuery = React.useCallback(debounce(updateQuery, 300), []);
+
 
     if (isLoading) return (
         <Box sx={chatSection(type)}>
@@ -255,31 +312,62 @@ const Chat: FC = () => {
                             setMessagesWhichOnProgress={setMessagesWhichOnProgress}
                         />
                     </Box>
-                    <Box sx={{width: smallType ? 0 : mediumType ? '35%' : '20%', borderLeft: '1px solid #363636', height: 'auto', overflowY: 'auto'}}>
+                    <Box sx={{
+                        width: smallType ? 0 : mediumType ? '35%' : '20%',
+                        borderLeft: '1px solid #363636',
+                        height: 'auto',
+                        overflowY: 'auto',
+                        // display: 'flex'
+                    }}>
                         {/*
                             Зробити новий тип gifMessage
                             Щоб був одинокий як в телезі
                         */}
-
-                        {gifs &&
-                            <ImageList cols={2} gap={6} sx={{padding: 1, overflowY: 'auto'}}>
-                                {gifs.map((gif) => {
-                                    return (
-                                        <ImageListItem sx={{overflow: 'hidden', borderRadius: 1}} key={gif.id}>
-                                            <img src={gif.media_formats.gif.url}/>
-                                        </ImageListItem>
-                                    )
-                                })}
-                            </ImageList>
+                        <Box sx={{display: 'flex', justifyContent: 'space-evenly'}}>
+                            <Button sx={{width: '50%', borderRadius: 0}} variant={!showGifs ? 'contained' : 'text'} onClick={() => setShowGifs(false)}>EMOJI</Button>
+                            <Button sx={{width: '50%', borderRadius: 0}} variant={showGifs ? 'contained' : 'text'} onClick={() => setShowGifs(true)}>GIF</Button>
+                        </Box>
+                        {showGifs && gifs &&
+                            <>
+	                            <Box sx={{px: 1, my: 1}}>
+	                                <TextField fullWidth placeholder='search GIF'
+                                        value={searchGifInputValue}
+                                        onChange={(e) => {
+                                            setSearchGifInputValue(e.target.value)
+                                            setLimitOfGifs(10)
+                                            debouncedUpdateQuery(e.target.value, 10)
+                                        }}
+                                    />
+	                            </Box>
+	                            <ImageList cols={2} gap={6} sx={{padding: 1, overflowY: 'auto'}}>
+                                  {gifs.map((gif) => {
+                                      return (
+                                          <ImageListItem onClick={() => {
+                                              submitGifMessage(gif)
+                                          }} sx={{overflow: 'hidden', borderRadius: 1, cursor: 'pointer'}} key={gif.id}>
+                                              <img src={gif.media_formats.nanogif.url}/>
+                                          </ImageListItem>
+                                      )
+                                  })}
+	                            </ImageList>
+                                <Box>
+                                    <Button fullWidth sx={{borderRadius: 0}} variant='contained' onClick={() => {
+                                        setLimitOfGifs(prev => prev + 10)
+                                        debouncedUpdateQuery(searchGifInputValue, limitOfGifs + 10)
+                                    }}>Ещё</Button>
+                                </Box>
+                            </>
                         }
-                        {/*<Picker*/}
-                        {/*    onEmojiClick={onEmojiClick}*/}
-                        {/*    disableAutoFocus={true}*/}
-                        {/*    skinTone={SKIN_TONE_MEDIUM_DARK}*/}
-                        {/*    groupNames={{ smileys_people: 'PEOPLE' }}*/}
-                        {/*    native*/}
-                        {/*    pickerStyle={{width: '100%', height: '100%', overflowX: 'hidden', border: 'none', background: userStyles.secondBackgroundColor || '#121212', color: 'white', }}*/}
-                        {/*/>*/}
+                        {!showGifs &&
+                            <Picker
+                                onEmojiClick={onEmojiClick}
+                                disableAutoFocus={true}
+                                skinTone={SKIN_TONE_MEDIUM_DARK}
+                                groupNames={{ smileys_people: 'PEOPLE' }}
+                                native
+                                pickerStyle={{width: '100%', height: '100%', overflowX: 'hidden', border: 'none', background: userStyles.secondBackgroundColor || '#121212', color: 'white', }}
+                            />
+                        }
                     </Box>
                 </Box>
         );
