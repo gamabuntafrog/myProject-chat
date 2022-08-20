@@ -26,6 +26,7 @@ import ChatInfo from "../ChatInfo";
 import shortid from "shortid";
 // @ts-ignore
 import {debounce} from 'lodash-es'
+import Media from "../Media";
 
 
 export type emojiType = {
@@ -39,6 +40,24 @@ export type emojiType = {
 export enum showRepliedMessageActionTypes {
     showRepliedMessage,
     showMessage
+}
+
+export type gifType = {
+    id: string,
+    itemurl: string,
+    media_formats: {
+        gif: { url: string, dims: string[], duration: number, size: number},
+        nanogif: { url: string, dims: string[], duration: number, size: number},
+        mediumgif: { url: string, dims: string[], duration: number, size: number}
+    },
+    tags: string,
+    title: string,
+    url: string
+}
+
+export enum updateQueryActionTypes {
+    makeNewQuery,
+    getMoreGifs
 }
 
 const Chat: FC = () => {
@@ -119,18 +138,7 @@ const Chat: FC = () => {
         setIsChatChanging(true)
     }, [id]);
 
-    type gifType = {
-        id: string,
-        itemurl: string,
-        media_formats: {
-            gif: { url: string, dims: string[], duration: number, size: number},
-            nanogif: { url: string, dims: string[], duration: number, size: number},
-            mediumgif: { url: string, dims: string[], duration: number, size: number}
-        },
-        tags: string,
-        title: string,
-        url: string
-    }
+
     const [gifs, setGifs] = useState<null | gifType[]>(null);
     const [showGifs, setShowGifs] = useState<boolean>(false);
 
@@ -212,26 +220,16 @@ const Chat: FC = () => {
 
     const [limitOfGifs, setLimitOfGifs] = useState(10);
 
-    const fetchGifs = async () => {
-
-        await fetch(`https://tenor.googleapis.com/v2/search?q=excited&key=AIzaSyBNi2GDdp3ksixybEfxpNQM-Y0cs-fI8Ds&client_key=my_test_app&limit=10`)
-            .then(data => data.json())
-            .then(data => {
-                console.log(data)
-                setGifs(data.results)
-            })
-
-    }
-
     useEffect(() => {
-        // AIzaSyBNi2GDdp3ksixybEfxpNQM-Y0cs-fI8Ds
-
-        fetchGifs()
-
+        updateQuery(searchGifInputValue, 10, updateQueryActionTypes.makeNewQuery)
     }, []);
 
     const submitGifMessage = async (gif: gifType) => {
         const newMessageId = `${user?.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
+
+        if (smallType) {
+            setShowMedia(false)
+        }
 
         console.log(gif)
 
@@ -248,10 +246,17 @@ const Chat: FC = () => {
         await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), message)
     }
 
-    const [searchGifInputValue, setSearchGifInputValue] = useState<string>('hi');
+    const [searchGifInputValue, setSearchGifInputValue] = useState<string>('');
 
 
-    const updateQuery = (searchGifInputValue: string, limitOfGifs: number) => {
+
+    const updateQuery = (searchGifInputValue: string, limitOfGifs: number, actionType: updateQueryActionTypes) => {
+
+        if (actionType === updateQueryActionTypes.makeNewQuery) {
+            limitOfGifs = 10
+            setLimitOfGifs(10)
+        }
+
         const fetchGifs = async () => {
             await fetch(`https://tenor.googleapis.com/v2/search?q=${searchGifInputValue || 'hello'}&key=AIzaSyBNi2GDdp3ksixybEfxpNQM-Y0cs-fI8Ds&client_key=my_test_app&limit=${limitOfGifs}`)
                 .then(data => data.json())
@@ -267,7 +272,7 @@ const Chat: FC = () => {
     }
 
     const debouncedUpdateQuery = React.useCallback(debounce(updateQuery, 300), []);
-
+    const [showMedia, setShowMedia] = useState(false);
 
     if (isLoading) return (
         <Box sx={chatSection(type)}>
@@ -279,7 +284,7 @@ const Chat: FC = () => {
         return (
                 <Box sx={chatSection(type)}>
                     <MyChats id={id} handleIsChatListOpen={handleIsChatListOpen} isChatListOpen={isChatListOpen} />
-                    <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage ,  userStyles.backgroundColor)}>
+                    <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage ,  userStyles.backgroundColor, false, showMedia)}>
                         {isChatInfoOpen &&
                             <ChatInfo
                                 chatData={chatData}
@@ -310,79 +315,40 @@ const Chat: FC = () => {
                             inputRef={inputRef}
                             emoji={chosenEmoji}
                             setMessagesWhichOnProgress={setMessagesWhichOnProgress}
+                            setShowMedia={setShowMedia}
                         />
                     </Box>
-                    <Box sx={{
-                        width: smallType ? 0 : mediumType ? '35%' : '20%',
-                        borderLeft: '1px solid #363636',
-                        height: 'auto',
-                        overflowY: 'auto',
-                        // display: 'flex'
-                    }}>
-                        {/*
-                            Зробити новий тип gifMessage
-                            Щоб був одинокий як в телезі
-                        */}
-                        <Box sx={{display: 'flex', justifyContent: 'space-evenly'}}>
-                            <Button sx={{width: '50%', borderRadius: 0}} variant={!showGifs ? 'contained' : 'text'} onClick={() => setShowGifs(false)}>EMOJI</Button>
-                            <Button sx={{width: '50%', borderRadius: 0}} variant={showGifs ? 'contained' : 'text'} onClick={() => setShowGifs(true)}>GIF</Button>
-                        </Box>
-                        {showGifs && gifs &&
-                            <>
-	                            <Box sx={{px: 1, my: 1}}>
-	                                <TextField fullWidth placeholder='search GIF'
-                                        value={searchGifInputValue}
-                                        onChange={(e) => {
-                                            setSearchGifInputValue(e.target.value)
-                                            setLimitOfGifs(10)
-                                            debouncedUpdateQuery(e.target.value, 10)
-                                        }}
-                                    />
-	                            </Box>
-	                            <ImageList cols={2} gap={6} sx={{padding: 1, overflowY: 'auto'}}>
-                                  {gifs.map((gif) => {
-                                      return (
-                                          <ImageListItem onClick={() => {
-                                              submitGifMessage(gif)
-                                          }} sx={{overflow: 'hidden', borderRadius: 1, cursor: 'pointer'}} key={gif.id}>
-                                              <img src={gif.media_formats.nanogif.url}/>
-                                          </ImageListItem>
-                                      )
-                                  })}
-	                            </ImageList>
-                                <Box>
-                                    <Button fullWidth sx={{borderRadius: 0}} variant='contained' onClick={() => {
-                                        setLimitOfGifs(prev => prev + 10)
-                                        debouncedUpdateQuery(searchGifInputValue, limitOfGifs + 10)
-                                    }}>Ещё</Button>
-                                </Box>
-                            </>
-                        }
-                        {!showGifs &&
-                            <Picker
-                                onEmojiClick={onEmojiClick}
-                                disableAutoFocus={true}
-                                skinTone={SKIN_TONE_MEDIUM_DARK}
-                                groupNames={{ smileys_people: 'PEOPLE' }}
-                                native
-                                pickerStyle={{width: '100%', height: '100%', overflowX: 'hidden', border: 'none', background: userStyles.secondBackgroundColor || '#121212', color: 'white', }}
-                            />
-                        }
-                    </Box>
+                    {showMedia &&
+                        <Media
+                            showGifs={showGifs}
+                            setShowGifs={setShowGifs}
+                            searchGifInputValue={searchGifInputValue}
+                            setSearchGifInputValue={setSearchGifInputValue}
+                            setLimitOfGifs={setLimitOfGifs}
+                            debouncedUpdateQuery={debouncedUpdateQuery}
+                            gifs={gifs}
+                            onEmojiClick={onEmojiClick}
+                            userStyles={userStyles}
+                            limitOfGifs={limitOfGifs}
+                            submitGifMessage={submitGifMessage}
+                            setShowMedia={setShowMedia}
+                        />
+                    }
                 </Box>
+
         );
     } else if (!id) {
         return (
             <Box sx={chatSection(type)}>
                 <MyChats id={id} handleIsChatListOpen={handleIsChatListOpen} isChatListOpen={isChatListOpen} />
-                <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage, userStyles.backgroundColor, true)}/>
+                <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage, userStyles.backgroundColor, true, showMedia)}/>
             </Box>
         )
     } else {
         return (
             <Box sx={chatSection(type)}>
                 <MyChats handleIsChatListOpen={handleIsChatListOpen} isChatListOpen={isChatListOpen} />
-                <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage, userStyles.backgroundColor, true)}>
+                <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage, userStyles.backgroundColor, true, showMedia)}>
                     <Box sx={{maxWidth: '75%', mx: 'auto', ...justifyColumnCenter}}>
                         <Typography
                             sx={{mt: '20%'}}

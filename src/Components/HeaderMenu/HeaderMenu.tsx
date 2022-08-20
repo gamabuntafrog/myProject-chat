@@ -15,9 +15,6 @@ import TelegramIcon from '@mui/icons-material/Telegram';
 import SearchIcon from '@mui/icons-material/Search';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import SettingsIcon from '@mui/icons-material/Settings';
-import {useCollectionData} from "react-firebase-hooks/firestore";
-import {collection, query, where} from "firebase/firestore";
-import {chatType} from "../../types/chatType";
 import {ThemeContext} from "../../App";
 
 type HeaderMenuPropTypes = {

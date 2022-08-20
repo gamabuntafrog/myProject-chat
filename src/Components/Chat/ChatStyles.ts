@@ -1,7 +1,7 @@
 import {screenTypes} from "../../hooks/useGetTypeOfScreen";
 
 
-export const chatContainer = (mediumOrSmallType: boolean, background: string | File | ArrayBuffer, backgroundColor: string, chatNoExisting?: boolean): object => {
+export const chatContainer = (mediumOrSmallType: boolean, background: string | File | ArrayBuffer, backgroundColor: string, chatNoExisting: boolean, showMedia: boolean): object => {
 
 
     if (mediumOrSmallType) {
@@ -21,12 +21,11 @@ export const chatContainer = (mediumOrSmallType: boolean, background: string | F
             background: background ? `url(${background})` : backgroundColor,
             backgroundPositionX: 'center',
             backgroundSize: 'cover',
-            maxWidth: chatNoExisting ? '80%' : '60%',
             zIndex: '100',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            width: chatNoExisting ? '80%' : '75%',
+            width: chatNoExisting ? '80%' : showMedia ? '60%' : '80%' ,
             position: 'relative',
             margin: '0 auto',
         }

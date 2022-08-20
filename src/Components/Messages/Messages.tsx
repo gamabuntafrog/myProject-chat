@@ -64,7 +64,7 @@ type MessagesPropTypes = {
     listRef: React.MutableRefObject<HTMLUListElement | null>,
     chatInfo: chatType | undefined,
     focusOnInput: () => void,
-    messagesWhichOnProgress: null | messagesWhichOnProgressType[]
+    messagesWhichOnProgress: null | messagesWhichOnProgressType[],
 
 }
 
@@ -79,7 +79,7 @@ const Messages: FC<MessagesPropTypes> = ({
     listRef,
     chatInfo,
     focusOnInput,
-    messagesWhichOnProgress
+    messagesWhichOnProgress,
 }) => {
 
     const {user: me, firestore} = useContext(Context)!
@@ -313,7 +313,7 @@ const Messages: FC<MessagesPropTypes> = ({
                                         setGalleryImages([{original: message.gifInfo.media_formats.gif.url, thumbnail: message.gifInfo.media_formats.gif.url}])
                                         setIsGalleryOpen(true)
                                     }}>
-                                        <img style={{borderRadius: `${userStyles.messagesBorderRadius}px`, cursor: 'pointer', width: '300px'}} src={message.gifInfo.media_formats.mediumgif.url}/>
+                                        <img style={{borderRadius: `${userStyles.messagesBorderRadius}px`, cursor: 'pointer', minWidth: isMobile ? '100px' : '200px', maxWidth: isMobile ? '100%' : '300px'}} src={message.gifInfo.media_formats.mediumgif.url}/>
                                     </Box>
                                     <Typography sx={dateMessage}>
                                         {createdAtFormatted}

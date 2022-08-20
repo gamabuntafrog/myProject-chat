@@ -1,78 +1,68 @@
-
-
 .messageItem {
-    /*background-color: #121212;*/
-    position: relative;
-    transition: 0.2s ease-out;
+  /*background-color: #121212;*/
+  position: relative;
+  transition: 0.2s ease-out;
 }
 
 .myMessage:hover {
-
 }
 
 .miniContextmenu {
-    display: none !important;
+  display: none !important;
 }
 
 .messageWrapper:hover .miniContextmenu {
-    display: flex !important;
-    position: absolute;
-    top: 0;
-    right: -45px;
-
+  display: flex !important;
+  position: absolute;
+  top: 0;
+  right: -45px;
 }
 
 @media screen and (max-width: 600px) {
-    .messageWrapper:hover .miniContextmenu {
-        display: flex !important;
-        position: absolute;
-        top: 0;
-        right: 0px;
-        background-color: #121212;
-    }
-    .message {
-        -webkit-touch-callout: none; /* iOS Safari */
-        -webkit-user-select: none;   /* Chrome/Safari/Opera */
-        -khtml-user-select: none;    /* Konqueror */
-        -moz-user-select: none;      /* Firefox */
-        -ms-user-select: none;       /* Internet Explorer/Edge */
-        user-select: none;           /* Non-prefixed version, currently */
-    }
+  .messageWrapper:hover .miniContextmenu {
+    display: flex !important;
+    position: absolute;
+    top: 0;
+    right: 0px;
+    background-color: #121212;
+  }
+  .message {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Chrome/Safari/Opera */
+    -khtml-user-select: none; /* Konqueror */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently */
+  }
 
-    .image-gallery-slide-wrapper.left {
-        width: 100% !important;
-        border-radius: 20px;
-    }
+  .image-gallery-slide-wrapper.left {
+    width: 100% !important;
+    border-radius: 20px;
+  }
 }
-
-
-
 
 .message {
-    transition: 0.2s ease-out;
-    position: relative;
-    min-width: 140px;
-    padding-bottom: 20px;
-
+  transition: 0.2s ease-out;
+  position: relative;
+  min-width: 140px;
+  padding-bottom: 20px;
 }
-
-
 
 .focus .message {
-    background-color: lightgrey !important;
-    color: black !important;
-    transition: 0.2s ease-in;
+  background-color: lightgrey !important;
+  color: black !important;
+  transition: 0.2s ease-in;
 }
 .focus .message p {
-    color: black !important;
-    transition: 0.2s ease-in;
+  color: black !important;
+  transition: 0.2s ease-in;
 }
 
 .image-gallery-content {
-    display: flex;
-    justify-content: center;
+  display: flex;
+  justify-content: center;
 }
 
-.image-gallery-image {
-    border-radius: 20px;
-}
+/*.image-gallery-image {*/
+/*    border-radius: 20px;*/
+/*}*/

@@ -10,7 +10,8 @@ export const messagesList = (isMobileScreen: boolean, background: ArrayBuffer | 
         backgroundSize: 'cover',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'start'
+        alignItems: 'start',
+
     })
 }
 

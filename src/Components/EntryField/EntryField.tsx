@@ -1,4 +1,4 @@
-import React, {FC, useContext, useEffect, useState} from "react";
+import React, {Dispatch, FC, SetStateAction, useContext, useEffect, useState} from "react";
 import shortid from 'shortid';
 import {useParams} from "react-router-dom";
 import {arrayUnion, doc, setDoc, updateDoc} from "firebase/firestore";
@@ -35,6 +35,7 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 import {getDownloadURL, getStorage, ref, uploadBytesResumable} from 'firebase/storage'
 import Modal from "../Modal";
 import ImageGallery from 'react-image-gallery';
+import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 
 type EntryFieldPT = {
     chatId: string,
@@ -46,6 +47,7 @@ type EntryFieldPT = {
     emoji: emojiType | null,
     inputRef: React.MutableRefObject<HTMLInputElement | null>,
     setMessagesWhichOnProgress: React.Dispatch<React.SetStateAction<null | messagesWhichOnProgressType[]>>,
+    setShowMedia: Dispatch<SetStateAction<boolean>>,
 }
 
 const EntryField: FC<EntryFieldPT> = ({
@@ -58,6 +60,7 @@ const EntryField: FC<EntryFieldPT> = ({
     emoji,
     inputRef,
     setMessagesWhichOnProgress,
+    setShowMedia
 }) => {
 
     const { firestore, user, isUserLoading} = useContext(Context)!
@@ -299,7 +302,6 @@ const EntryField: FC<EntryFieldPT> = ({
             </Modal>
             <Box sx={{position: 'sticky', bottom: '0px', mt: -1, pt: 2, pb: 2, px: isMobile ? 1 : 2, backgroundColor: userStyles.secondBackgroundColor || '#121212', zIndex: 100, borderRadius: '8px 8px 0 0', borderTop: '1px solid #363636'}}>
                 <Box>
-
                     {isReplying &&
                         <Box sx={{display: 'flex', mb: 1, alignItems: 'center', cursor: 'pointer'}}>
                             <Box sx={{display: 'flex', alignItems: 'center', width: '100%'}} onClick={() => showRepliedMessage(replyMessageInfo, showRepliedMessageActionTypes.showMessage)}>
@@ -337,6 +339,13 @@ const EntryField: FC<EntryFieldPT> = ({
                         </Box>
                     }
                     <Box sx={{display: 'flex', justifyContent: 'center'}}>
+                        <Button
+                            variant='outlined'
+                            sx={{padding: 0, mr: 0.5, borderRadius: type === screenTypes.largeType ? '4px' : '50px', minWidth: '40px'}}
+                            onClick={() => setShowMedia(true)}
+                        >
+                            <InsertEmoticonIcon/>
+                        </Button>
                         <TextField
                             id="outlined-name"
                             label="Сообщение"
@@ -344,7 +353,6 @@ const EntryField: FC<EntryFieldPT> = ({
                             onChange={(e) => setMessage(e.currentTarget.value)}
                             fullWidth
                             multiline
-                            sx={{fieldset: {borderRadius: type === screenTypes.largeType ? '30px 0 0 30px' : '50px',}}}
                             maxRows={10}
                             onKeyPress={(e) => {
                                 if (e.key === "Enter") {
