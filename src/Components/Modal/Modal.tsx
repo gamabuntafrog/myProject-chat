@@ -33,8 +33,7 @@ const Modal: FC<ModalPT> = ({
     const {userStyles} = useContext(ThemeContext)!
 
 
-    const type = useGetTypeOfScreen()
-    const isMobile = type === screenTypes.smallType;
+    const {isMobile} = useGetTypeOfScreen()
 
     return (
         <MUIModal onClose={onClose} open={isModalOpen} sx={{...modalBackdrop, ...justifyColumnCenter}}>

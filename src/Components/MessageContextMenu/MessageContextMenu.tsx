@@ -1,4 +1,4 @@
-import React, {useState, useEffect, FC, useContext} from "react"
+import React, {useState, useEffect, FC, useContext, memo} from "react"
 import {Box, Button, ListItem, Typography} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {deleteDoc, doc, setDoc, updateDoc} from "firebase/firestore";
@@ -31,7 +31,7 @@ type MessageContextMenuPT = {
     focusOnInput: () => void,
 }
 const MessageContextMenu: FC<MessageContextMenuPT> =
-    ({
+    memo(({
         modalInfo,
         setIsReplying,
         setReplyMessageInfo,
@@ -50,8 +50,7 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
 
     const storage = getStorage()
 
-    const type = useGetTypeOfScreen()
-    const isMobileScreen = (type === screenTypes.smallType)
+    const {isMobile} = useGetTypeOfScreen()
 
     const copyText = (text: string) => {
         const data = [new ClipboardItem({ "text/plain": new Blob([text], { type: "text/plain" }) })];
@@ -87,7 +86,7 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
     return (
         <Box display='flex' textAlign='center' flexDirection='column' justifyContent='center'
              position='fixed'
-             sx={isMobileScreen ?
+             sx={isMobile ?
                  {
                      bottom: 0,
                      left: 0,
@@ -101,7 +100,7 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
                  :
                  {
                      top: modalInfo.pageY > staticTop ? staticTop : `${modalInfo.pageY + 10}px`,
-                     left: isMobileScreen ? mobileStaticLeft : `${modalInfo.pageX + 10}px`,
+                     left: isMobile ? mobileStaticLeft : `${modalInfo.pageX + 10}px`,
                      padding: '10px',
                      backgroundColor: userStyles.secondBackgroundColor,
                      zIndex: 101,
@@ -146,6 +145,6 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
                 }
         </Box>
     )
-}
+})
 
 export default MessageContextMenu

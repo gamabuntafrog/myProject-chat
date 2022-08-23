@@ -1,5 +1,5 @@
 import {Box, IconButton, Typography} from "@mui/material"
-import React, {FC} from "react"
+import React, {FC, memo} from "react"
 import Avatar from "@mui/material/Avatar";
 import {NavLink} from "react-router-dom";
 import {user} from "../../types/user";
@@ -15,17 +15,16 @@ type UserModalInfoPT = {
     setIsUserModalOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const UserModalInfo: FC<UserModalInfoPT> = ({modalInfo, setIsUserModalOpen}) => {
+const UserModalInfo: FC<UserModalInfoPT> = memo(({modalInfo, setIsUserModalOpen}) => {
 
-    const type = useGetTypeOfScreen()
-    const isMobileScreen = type === screenTypes.smallType
+    const {isMobile} = useGetTypeOfScreen()
 
     const maxTopOfModal = (window.innerHeight / 2)
 
     return (
         <Box display='flex' textAlign='center' flexDirection='column' justifyContent='center'
              position='fixed'
-             sx={isMobileScreen ?
+             sx={isMobile ?
                  {
                      bottom: 0,
                      left: 0,
@@ -33,7 +32,7 @@ const UserModalInfo: FC<UserModalInfoPT> = ({modalInfo, setIsUserModalOpen}) => 
                      padding: '20px',
                      backgroundColor: modalInfo.user?.nicknameColor || '#121212',
                      zIndex: 101,
-                     borderRadius: isMobileScreen ? '40px 40px 0px 0px' : '5px'
+                     borderRadius: isMobile ? '40px 40px 0px 0px' : '5px'
 
                  }
                  :
@@ -56,6 +55,6 @@ const UserModalInfo: FC<UserModalInfoPT> = ({modalInfo, setIsUserModalOpen}) => 
             <Typography  variant={'subtitle1'}>{modalInfo.user?.bio}</Typography>
         </Box>
     )
-}
+})
 
 export default UserModalInfo

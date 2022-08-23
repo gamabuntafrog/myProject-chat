@@ -35,7 +35,7 @@ const Search: FC = () => {
         newChatImage: ''
     });
     const history = useHistory();
-    const type = useGetTypeOfScreen()
+    const {screenType} = useGetTypeOfScreen()
 
     // console.log(value)
     const createChat = async () => {
@@ -106,7 +106,7 @@ const Search: FC = () => {
 
     return (
         <Box component={'section'} sx={searchSection}>
-            <Box sx={searchContainer(type)}>
+            <Box sx={searchContainer(screenType)}>
                 <Typography sx={searchExample} variant={'subtitle1'}>Например: o76iyZ1tU</Typography>
                 <FormControl fullWidth>
                     <FormLabel>

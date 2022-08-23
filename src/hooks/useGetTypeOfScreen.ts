@@ -27,5 +27,11 @@ export const useGetTypeOfScreen = () => {
         }
     }, []);
 
-    return screenType
+    const isMobile = screenType === screenTypes.smallType;
+    const isTablet = screenType === screenTypes.mediumType;
+    const isMobileOrTablet = (screenType === screenTypes.smallType || screenType === screenTypes.mediumType);
+    const isDesktop = screenType === screenTypes.largeType;
+
+    return {screenType, isMobile, isTablet, isMobileOrTablet, isDesktop}
 }
+

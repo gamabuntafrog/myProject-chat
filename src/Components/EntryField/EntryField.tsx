@@ -1,4 +1,4 @@
-import React, {Dispatch, FC, SetStateAction, useContext, useEffect, useState} from "react";
+import React, {Dispatch, FC, memo, SetStateAction, useContext, useEffect, useState} from "react";
 import shortid from 'shortid';
 import {useParams} from "react-router-dom";
 import {arrayUnion, doc, setDoc, updateDoc} from "firebase/firestore";
@@ -50,7 +50,7 @@ type EntryFieldPT = {
     setShowMedia: Dispatch<SetStateAction<boolean>>,
 }
 
-const EntryField: FC<EntryFieldPT> = ({
+const EntryField: FC<EntryFieldPT> = memo(({
     users,
     chatId,
     isReplying,
@@ -73,8 +73,7 @@ const EntryField: FC<EntryFieldPT> = ({
     const [open, setOpen] = useState(false);
 
 
-    const type = useGetTypeOfScreen()
-    const isMobile = type === screenTypes.smallType
+    const {isMobile} = useGetTypeOfScreen()
 
     useEffect(() => {
         setIsReplying(false)
@@ -341,7 +340,7 @@ const EntryField: FC<EntryFieldPT> = ({
                     <Box sx={{display: 'flex', justifyContent: 'center'}}>
                         <Button
                             variant='outlined'
-                            sx={{padding: 0, mr: 0.5, borderRadius: type === screenTypes.largeType ? '4px' : '50px', minWidth: '40px'}}
+                            sx={{padding: 0, mr: 0.5, minWidth: '40px'}}
                             onClick={() => setShowMedia(true)}
                         >
                             <InsertEmoticonIcon/>
@@ -362,7 +361,7 @@ const EntryField: FC<EntryFieldPT> = ({
                             }}
                             inputRef={inputRef}
                         />
-                        <Button variant='outlined' sx={{padding: 0, ml: 0.5, borderRadius: type === screenTypes.largeType ? '4px' : '50px', minWidth: '40px'}}>
+                        <Button variant='outlined' sx={{padding: 0, ml: 0.5, minWidth: '40px'}}>
                             <FormLabel sx={{color: 'inherit', height: '100%', width: '100%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}} htmlFor='fileInput'>
                                 <AttachFileIcon/>
                             </FormLabel>
@@ -377,7 +376,7 @@ const EntryField: FC<EntryFieldPT> = ({
                                 })
                             }
                         }}/>
-                        <Button sx={{ml: 0.5, borderRadius: type === screenTypes.largeType ? '4px' : '50px', minWidth: '30px'}} variant="outlined" onClick={submitPost}>
+                        <Button sx={{ml: 0.5, minWidth: '30px'}} variant="outlined" onClick={submitPost}>
                             <SendIcon/>
                         </Button>
                     </Box>
@@ -403,7 +402,7 @@ const EntryField: FC<EntryFieldPT> = ({
     )
 
 
-}
+})
 
 
 export default EntryField;

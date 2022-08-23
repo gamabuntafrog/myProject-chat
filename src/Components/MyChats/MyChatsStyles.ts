@@ -1,26 +1,23 @@
 export const myChatsSection = (mediumOfSmallType: boolean, isChatListOpen: boolean, color: string | undefined): any => {
 
     if (mediumOfSmallType) {
-        if (isChatListOpen) {
             return {
                 position: 'absolute',
                 width: '100%',
                 zIndex: 1000,
                 backgroundColor: color || '#121212',
-                overflowY: 'auto',
+                overflowY: 'hidden',
                 minHeight: '100%',
+                // minHeight: '0%',
                 pt: 3,
+                // transition: 'min-height: 100%; 2s'
+            }
 
-            }
-        } else {
-            return {
-                display: 'none'
-            }
-        }
+
     } else {
         return {
             position: 'relative',
-            width: '20%',
+            minWidth: '20%',
             zIndex: 1000,
             backgroundColor: color || '#121212',
             overflowY: 'auto',

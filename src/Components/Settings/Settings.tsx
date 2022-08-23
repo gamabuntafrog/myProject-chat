@@ -70,10 +70,8 @@ const Settings: FC = () => {
 
     const [backgroundRef, setBackgroundRef] = useState<null | string>(user?.messagesBackground || null);
 
-    const type = useGetTypeOfScreen()
-    const isMobileScreen = type === screenTypes.smallType
-    const isMobileOrMediumScreen = (type === screenTypes.smallType || type === screenTypes.mediumType)
-    const isMobile = type === screenTypes.smallType
+    const {isMobile, isMobileOrTablet} = useGetTypeOfScreen()
+
 
     const messagesArray = [
         {
@@ -202,7 +200,7 @@ const Settings: FC = () => {
         <Box sx={{
             pt: 15,
             pb: 3,
-            width: isMobileScreen ? '90%' : '60%',
+            width: isMobile ? '90%' : '60%',
             minHeight: '80%',
             mx: 'auto',
             display: 'flex',
@@ -256,7 +254,7 @@ const Settings: FC = () => {
                     console.log(e.target.value)
                     changeBorderRadius(e.target.value)
                 }} fullWidth value={userStyles.messagesBorderRadius} componentsProps={{input: {max: '50'}}} sx={{mb: 2}} type='range'/>
-                <List sx={messagesList(isMobileOrMediumScreen, userStyles.backgroundImage, userStyles.backgroundColor)}>
+                <List sx={messagesList(isMobileOrTablet, userStyles.backgroundImage, userStyles.backgroundColor)}>
 
                 {messages && messages.map((message: messageType | replyMessageType | startMessageType, i: number) => {
                     const createdAtFormatted = format(message.createdAt, 'HH mm').split(' ').join(':')

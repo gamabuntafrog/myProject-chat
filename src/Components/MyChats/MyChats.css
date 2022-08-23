@@ -1,3 +1,42 @@
+.section-enter-active {
+  animation: show-chats-list 0.3s ease;
+}
 
+@keyframes show-chats-list {
+  from {
+    min-height: 0;
+    height: 0;
+  }
 
+  to {
+    min-height: 100%;
+    height: 100%;
+  }
+}
 
+.section-enter-done {
+}
+
+.section-exit-active {
+  animation: hide-chats-list 0.3s ease;
+}
+
+@keyframes hide-chats-list {
+  from {
+    min-height: 100%;
+    height: 100%;
+  }
+
+  to {
+    min-height: 0%;
+    height: 0%;
+  }
+
+  100% {
+    display: none !important;
+  }
+}
+
+.section-exit-done {
+  display: none;
+}

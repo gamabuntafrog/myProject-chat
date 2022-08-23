@@ -38,7 +38,7 @@ const Me: FC = () => {
     console.log(newUserInfo)
     const [color, setColor] = useState('');
 
-    const type = useGetTypeOfScreen()
+    const {screenType} = useGetTypeOfScreen()
 
     const storage = getStorage()
 
@@ -103,7 +103,7 @@ const Me: FC = () => {
             {/*@ts-ignore*/}
             <Avatar sx={avatar} src={previewAvatar ? previewAvatar : user.photoURL} alt="avatar"/>
             {isClicked ?
-                <FormControl onSubmit={changeInfo} fullWidth sx={form(type)} >
+                <FormControl onSubmit={changeInfo} fullWidth sx={form(screenType)} >
                     <TextField variant={'standard'} value={newUserInfo.nickname} onChange={(e) => setNewUserInfo(prev => {
                         return {...prev, nickname: e.target.value}
                     })} placeholder={'Никнейм'} sx={formInput(color)}/>

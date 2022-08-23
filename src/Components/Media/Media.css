@@ -1,0 +1,81 @@
+/*.section {*/
+/*    display: none;*/
+/*}*/
+
+@media screen and (max-width: 1280px) {
+  .media-section-enter-active {
+    animation: show-chats-list 0.3s ease;
+  }
+
+  @keyframes show-chats-list {
+    from {
+      /*bottom: -100%;*/
+      transform: translateY(100%);
+    }
+
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .media-section-enter-done {
+    transform: translateY(0);
+  }
+
+  .media-section-exit-active {
+    animation: hide-chats-list 0.3s ease;
+  }
+
+  @keyframes hide-chats-list {
+    from {
+      transform: translateY(0);
+    }
+
+    to {
+      transform: translateY(100%);
+    }
+  }
+
+  .media-section-exit-done {
+    transform: translateY(100%);
+  }
+}
+
+@media screen and (min-width: 1280px) {
+  .media-section-enter-active {
+    animation: show-chats-list 0.3s ease;
+  }
+
+  @keyframes show-chats-list {
+    from {
+      /*bottom: -100%;*/
+      transform: translateX(100%);
+    }
+
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  .media-section-enter-done {
+    transform: translateX(0);
+  }
+
+  .media-section-exit-active {
+    animation: hide-chats-list 0.3s ease;
+  }
+
+  @keyframes hide-chats-list {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  .media-section-exit-done {
+    transform: translateX(100%);
+  }
+}

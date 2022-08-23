@@ -1,4 +1,4 @@
-import React, {FC, useContext, useEffect, useState,} from "react";
+import React, {FC, memo, useContext, useEffect, useState,} from "react";
 import {Context} from "../..";
 import {doc, setDoc} from "firebase/firestore";
 import {
@@ -68,7 +68,7 @@ type MessagesPropTypes = {
 
 }
 
-const Messages: FC<MessagesPropTypes> = ({
+const Messages: FC<MessagesPropTypes> = memo(({
     chatId,
     messages,
     subscribedUsers,
@@ -91,9 +91,13 @@ const Messages: FC<MessagesPropTypes> = ({
     const [changingMessageId, setChangingMessageId] = useState('');
     const [replyMessages, setReplyMessages] = useState<any>(null);
 
-    const type = useGetTypeOfScreen()
-    const isMobileOrMediumScreen = (type === screenTypes.smallType || type === screenTypes.mediumType)
-    const isMobile = type === screenTypes.smallType
+    const {screenType, isMobile, isMobileOrTablet} = useGetTypeOfScreen()
+
+    useEffect(() => {
+        console.log('pererender')
+
+
+    }, [showRepliedMessage]);
 
     const history = useHistory()
 
@@ -161,7 +165,7 @@ const Messages: FC<MessagesPropTypes> = ({
                 openContextMenu()
                 break
             case 'click':
-                if (type === screenTypes.smallType || type === screenTypes.mediumType) {
+                if (isMobileOrTablet) {
                     openContextMenu()
                 }
                 break
@@ -262,7 +266,7 @@ const Messages: FC<MessagesPropTypes> = ({
               modalInfo={userModalInfo}
               setIsUserModalOpen={setIsUserModalOpen}
             />}
-        <List ref={listRef} sx={messagesList(isMobileOrMediumScreen, userStyles?.backgroundImage, userStyles?.backgroundColor)}>
+        <List ref={listRef} sx={messagesList(isMobileOrTablet, userStyles?.backgroundImage, userStyles?.backgroundColor)}>
             {subscribedUsers && replyMessages && messages?.map((message: messagesType, i: number) => {
                 const createdAtFormatted = format(message.createdAt, 'HH mm').split(' ').join(':')
 
@@ -607,7 +611,7 @@ const Messages: FC<MessagesPropTypes> = ({
         </>
     )
 
-}
+})
 
 
 export default Messages;

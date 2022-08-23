@@ -1,5 +1,5 @@
 import {collection, doc, getDoc, orderBy, query, setDoc,} from 'firebase/firestore';
-import React, {FC, useContext, useEffect, useRef, useState} from 'react';
+import React, {FC, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {NavLink, useParams} from 'react-router-dom';
 import {Context} from '../..';
 import {Box, Button, ImageList, ImageListItem, TextField, Typography} from "@mui/material";
@@ -27,6 +27,7 @@ import shortid from "shortid";
 // @ts-ignore
 import {debounce} from 'lodash-es'
 import Media from "../Media";
+import {CSSTransition} from "react-transition-group";
 
 
 export type emojiType = {
@@ -76,11 +77,7 @@ const Chat: FC = () => {
     const [chosenEmoji, setChosenEmoji] = useState<null | emojiType>(null);
 
     const [messagesWhichOnProgress, setMessagesWhichOnProgress] = useState<null | messagesWhichOnProgressType[]>(null);
-
-    const type = useGetTypeOfScreen()
-    const mediumOrSmallType = (type === screenTypes.mediumType || type === screenTypes.smallType);
-    const smallType = type === screenTypes.smallType
-    const mediumType = type === screenTypes.mediumType
+    const {screenType, isMobile, isMobileOrTablet} = useGetTypeOfScreen()
 
     const chatRef = doc(firestore, 'chats',  `${id}`)
     const [chatData] = useDocumentData<any>(chatRef)
@@ -105,7 +102,7 @@ const Chat: FC = () => {
                 setIsLoading(false)
             }
         }
-    }, [chatData, id, messagesCollection]);
+    }, [messagesCollection]);
 
     useEffect(() => {
         if (chatData) {
@@ -143,12 +140,14 @@ const Chat: FC = () => {
     const [showGifs, setShowGifs] = useState<boolean>(false);
 
 
-    const onEmojiClick = (_: any, emojiObject: emojiType) => {
-        setChosenEmoji(emojiObject);
-    };
+    const onEmojiClick = useCallback(
+        (_: any, emojiObject: emojiType) => {
+            setChosenEmoji(emojiObject);
+        }, []
+    );
+
 
     const getUsers = async (subscribedUsersList: {userId: string, isAdmin: boolean}[]) => {
-        // console.log(subscribedUsersList)
 
         const fetchedUsers = subscribedUsersList.map( async ({userId, isAdmin}) => {
             const document = await getDoc(doc(firestore, 'users',`${userId}`))
@@ -170,52 +169,56 @@ const Chat: FC = () => {
         return usersData
     }
 
-
-
-    const showRepliedMessage = (repliedMessage: replyMessageType | messageType, actionType: showRepliedMessageActionTypes) => {
-        let indexOfReplyerMessage
-        if (actionType === showRepliedMessageActionTypes.showRepliedMessage && repliedMessage.messageType === messagesExemplar.replyMessage) {
-            indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
-                return repliedMessage!.replyer.messageId === message.messageId
-            })
-        } else {
-            indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
-                return repliedMessage.messageId === message.messageId
-            })
-        }
-
-        if (indexOfReplyerMessage && indexOfReplyerMessage >= 0) {
-            const child = listRef.current!.children[indexOfReplyerMessage]
-
-            child.scrollIntoView({block: 'center', behavior: "smooth"})
-
-            const focusMessage = () => {
-                if (isInViewport(child)) {
-                    child.classList.add('focus')
-
-                    setTimeout(() => {
-                        child.classList.remove('focus')
-                        listRef.current!.removeEventListener('scroll', focusMessage)
-                    }, 1500)
-                }
+    const showRepliedMessage = useCallback(
+        (repliedMessage: replyMessageType | messageType, actionType: showRepliedMessageActionTypes) => {
+            let indexOfReplyerMessage
+            if (actionType === showRepliedMessageActionTypes.showRepliedMessage && repliedMessage.messageType === messagesExemplar.replyMessage) {
+                indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
+                    return repliedMessage!.replyer.messageId === message.messageId
+                })
+            } else {
+                indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
+                    return repliedMessage.messageId === message.messageId
+                })
             }
-            focusMessage()
-            listRef.current!.addEventListener('scroll', focusMessage)
-        }
-        function isInViewport(element: Element) {
-            const rect = element.getBoundingClientRect();
-            return (
-                rect.top >= 0 &&
-                rect.left >= 0 &&
-                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-            );
-        }
-    }
 
-    const focusOnInput = () => {
+            if (indexOfReplyerMessage && indexOfReplyerMessage >= 0) {
+                const child = listRef.current!.children[indexOfReplyerMessage]
+
+                child.scrollIntoView({block: 'center', behavior: "smooth"})
+
+                const focusMessage = () => {
+                    if (isInViewport(child)) {
+                        child.classList.add('focus')
+
+                        setTimeout(() => {
+                            child.classList.remove('focus')
+                            listRef.current!.removeEventListener('scroll', focusMessage)
+                        }, 1500)
+                    }
+                }
+                focusMessage()
+                listRef.current!.addEventListener('scroll', focusMessage)
+            }
+            function isInViewport(element: Element) {
+                const rect = element.getBoundingClientRect();
+                return (
+                    rect.top >= 0 &&
+                    rect.left >= 0 &&
+                    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+                );
+            }
+        },
+        [listRef?.current],
+    );
+
+
+
+    const focusOnInput = useCallback(() => {
         inputRef?.current!.focus()
-    }
+    }, [])
+
     const {isChatInfoOpen, handleChatInfoIsOpen} = useContext(ChatInfoContext)!
 
     const [limitOfGifs, setLimitOfGifs] = useState(10);
@@ -224,27 +227,30 @@ const Chat: FC = () => {
         updateQuery(searchGifInputValue, 10, updateQueryActionTypes.makeNewQuery)
     }, []);
 
-    const submitGifMessage = async (gif: gifType) => {
-        const newMessageId = `${user?.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
+    const submitGifMessage = useCallback(
+        async (gif: gifType) => {
+            const newMessageId = `${user?.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
 
-        if (smallType) {
-            setShowMedia(false)
-        }
+            if (isMobile) {
+                setShowMedia(false)
+            }
 
-        console.log(gif)
+            console.log(gif)
 
-        const message = {
-            messageType: messagesExemplar.gifMessage,
-            userId: user?.userId,
-            message: 'GIF',
-            createdAt: Date.now(),
-            messageId: newMessageId,
-            chatId: id,
-            gifInfo: gif
-        }
+            const message = {
+                messageType: messagesExemplar.gifMessage,
+                userId: user?.userId,
+                message: 'GIF',
+                createdAt: Date.now(),
+                messageId: newMessageId,
+                chatId: id,
+                gifInfo: gif
+            }
 
-        await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), message)
-    }
+            await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), message)
+        }, [],
+    );
+
 
     const [searchGifInputValue, setSearchGifInputValue] = useState<string>('');
 
@@ -275,16 +281,16 @@ const Chat: FC = () => {
     const [showMedia, setShowMedia] = useState(false);
 
     if (isLoading) return (
-        <Box sx={chatSection(type)}>
+        <Box sx={chatSection(screenType)}>
             <Loader/>
         </Box>
     )
 
     if (id && users && messages) {
         return (
-                <Box sx={chatSection(type)}>
+                <Box sx={chatSection(screenType)}>
                     <MyChats id={id} handleIsChatListOpen={handleIsChatListOpen} isChatListOpen={isChatListOpen} />
-                    <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage ,  userStyles.backgroundColor, false, showMedia)}>
+                    <Box className='chat-container' sx={chatContainer(isMobileOrTablet, userStyles.backgroundImage ,  userStyles.backgroundColor)}>
                         {isChatInfoOpen &&
                             <ChatInfo
                                 chatData={chatData}
@@ -318,43 +324,42 @@ const Chat: FC = () => {
                             setShowMedia={setShowMedia}
                         />
                     </Box>
-                    {showMedia &&
-                        <Media
-                            showGifs={showGifs}
-                            setShowGifs={setShowGifs}
-                            searchGifInputValue={searchGifInputValue}
-                            setSearchGifInputValue={setSearchGifInputValue}
-                            setLimitOfGifs={setLimitOfGifs}
-                            debouncedUpdateQuery={debouncedUpdateQuery}
-                            gifs={gifs}
-                            onEmojiClick={onEmojiClick}
-                            userStyles={userStyles}
-                            limitOfGifs={limitOfGifs}
-                            submitGifMessage={submitGifMessage}
-                            setShowMedia={setShowMedia}
-                        />
-                    }
+                    <Media
+                        showGifs={showGifs}
+                        setShowGifs={setShowGifs}
+                        searchGifInputValue={searchGifInputValue}
+                        setSearchGifInputValue={setSearchGifInputValue}
+                        setLimitOfGifs={setLimitOfGifs}
+                        debouncedUpdateQuery={debouncedUpdateQuery}
+                        gifs={gifs}
+                        onEmojiClick={onEmojiClick}
+                        userStyles={userStyles}
+                        limitOfGifs={limitOfGifs}
+                        submitGifMessage={submitGifMessage}
+                        setShowMedia={setShowMedia}
+                        showMedia={showMedia}
+                    />
                 </Box>
 
         );
     } else if (!id) {
         return (
-            <Box sx={chatSection(type)}>
+            <Box sx={chatSection(screenType)}>
                 <MyChats id={id} handleIsChatListOpen={handleIsChatListOpen} isChatListOpen={isChatListOpen} />
-                <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage, userStyles.backgroundColor, true, showMedia)}/>
+                <Box sx={chatContainer(isMobileOrTablet, userStyles.backgroundImage, userStyles.backgroundColor,)}/>
             </Box>
         )
     } else {
         return (
-            <Box sx={chatSection(type)}>
+            <Box sx={chatSection(screenType)}>
                 <MyChats handleIsChatListOpen={handleIsChatListOpen} isChatListOpen={isChatListOpen} />
-                <Box sx={chatContainer(mediumOrSmallType, userStyles.backgroundImage, userStyles.backgroundColor, true, showMedia)}>
+                <Box sx={chatContainer(isMobileOrTablet, userStyles.backgroundImage, userStyles.backgroundColor)}>
                     <Box sx={{maxWidth: '75%', mx: 'auto', ...justifyColumnCenter}}>
                         <Typography
                             sx={{mt: '20%'}}
                             variant={'h3'}>Чата по id: {id} не существует
                         </Typography>
-                        {type !== screenTypes.largeType &&
+                        {screenType !== screenTypes.largeType &&
                             <Button sx={{mt: 10}} size='large' variant={'contained'} onClick={() => handleIsChatListOpen(isChatListOpen)}>
                                 Ваши чаты
                             </Button>
