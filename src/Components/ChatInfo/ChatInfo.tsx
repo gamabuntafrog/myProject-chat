@@ -1,15 +1,28 @@
 import React, {FC, memo, useContext, useEffect, useState} from "react"
-import {Avatar, Box, Button, ImageList, ImageListItem, List, ListItem, TextField, Typography} from "@mui/material";
+import {
+    Avatar,
+    Box,
+    Button,
+    IconButton,
+    ImageList,
+    ImageListItem,
+    List,
+    ListItem,
+    TextField,
+    Typography
+} from "@mui/material";
 import Modal from "../Modal";
 import {NavLink, useHistory} from "react-router-dom";
-import {arrayRemove, collection, deleteDoc, doc, query, setDoc, updateDoc, where} from "firebase/firestore";
+import {arrayRemove, collection, deleteDoc, doc, orderBy, query, setDoc, updateDoc, where} from "firebase/firestore";
 import {Context} from "../../index";
 import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import {ChatInfoContext} from "../../App";
-import {messagesExemplar, messageType, replyMessageType} from "../../types/messages";
+import {gifMessageType, messagesExemplar, messageType, replyMessageType} from "../../types/messages";
 import {useCollectionData} from "react-firebase-hooks/firestore";
-import {showRepliedMessageActionTypes} from "../Chat/Chat";
+import {gifType, showRepliedMessageActionTypes} from "../Chat/Chat";
 import {chatType} from "../../types/chatType";
+import StarOutlineIcon from "@mui/icons-material/StarOutline";
+import CloseIcon from "@mui/icons-material/Close";
 
 type ChatInfoPT = {
     chatData: chatType
@@ -31,12 +44,19 @@ const ChatInfo: FC<ChatInfoPT> = memo(({
     const messagesRef = collection(firestore, 'chats',  `${chatId}`, 'messages') // , orderBy('createdAt')
     const [messagesCollection] = useCollectionData<any>(query(messagesRef, where('images', '!=', null)))
 
+    const gifsRef = collection(firestore, 'chats',  `${chatId}`, 'messages') // , orderBy('createdAt')
+    const [gifsCollection] = useCollectionData<any>(query(gifsRef, orderBy('gifInfo')))
+
     const [usersArray, setUsersArray] = useState<any | null>(null);
     const [userModalInfo, setUserModalInfo] = useState<null | any>(null);
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [isMeAdmin, setIsMeAdmin] = useState<boolean>(false);
     const [isChangingChatInfo, setIsChangingChatInfo] = useState(false);
     const [newChatInfo, setNewChatInfo] = useState({chatName, chatImage, chatDescription});
+
+    const [messagesWithImages, setMessagesWithImages] = useState<null | (messageType | replyMessageType)[]>(null);
+    const [imagesAmount, setImagesAmount] = useState(0);
+    const [messagesWithGifs, setMessagesWithGifs] = useState<null | gifMessageType[]>(null);
 
     const {isMobile} = useGetTypeOfScreen()
     const history = useHistory()
@@ -47,6 +67,17 @@ const ChatInfo: FC<ChatInfoPT> = memo(({
             setUsersArray(Object.entries(users))
         }
     }, [users]);
+
+    useEffect(() => {
+        if (gifsCollection) {
+            const gifs = gifsCollection.sort((a: any, b: any) => {
+                return b.createdAt - a.createdAt
+            })
+            setMessagesWithGifs(gifs)
+        }
+
+    }, [gifsCollection]);
+
 
     useEffect(() => {
         if (messagesCollection) {
@@ -63,7 +94,7 @@ const ChatInfo: FC<ChatInfoPT> = memo(({
                     }
                 }
             }, []).sort((a: any, b: any) => {
-                return a.createdAt - b.createdAt
+                return b.createdAt - a.createdAt
             })
             setImagesAmount(imagesAmount)
             setMessagesWithImages(messagesWithImages)
@@ -121,9 +152,7 @@ const ChatInfo: FC<ChatInfoPT> = memo(({
     }
 
     const isUserAdmin = (me && users[me.userId].isAdmin)
-    // console.log(isChatInfoOpen)
-    const [messagesWithImages, setMessagesWithImages] = useState<null | (messageType | replyMessageType)[]>(null);
-    const [imagesAmount, setImagesAmount] = useState(0);
+
 
     const seeAMessage = (message: replyMessageType | messageType) => {
         handleChatInfoIsOpen(isChatInfoOpen)
@@ -179,7 +208,7 @@ const ChatInfo: FC<ChatInfoPT> = memo(({
                         {messagesWithImages && messagesWithImages.length > 0 &&
                             <Box sx={{my: 2}}>
                                 <Typography sx={{mb: 1}} variant='h5'>Картинки ({imagesAmount}):</Typography>
-                                <ImageList sx={isMobile ? { width: '100%', height: '400px', overflowY: 'auto' } : {px: 1, height: '400px', overflowY: 'auto'}} cols={isMobile ? 2 : 4} >
+                                <ImageList sx={isMobile ? { width: '100%', maxHeight: '400px', overflowY: 'auto' } : {px: 1, maxHeight: '400px', overflowY: 'auto'}} cols={isMobile ? 2 : 4} >
                                   {messagesWithImages.map((message: messageType | replyMessageType, i: number) => {
                                       const {images} = message
 
@@ -204,7 +233,26 @@ const ChatInfo: FC<ChatInfoPT> = memo(({
                                 </ImageList>
                             </Box>
                         }
+                        {messagesWithGifs && messagesWithGifs.length > 0 &&
+                            <Box sx={{my: 2}}>
+	                            <Typography sx={{mb: 1}} variant='h5'>Gifs ({messagesWithGifs.length}):</Typography>
+	                            <ImageList
+                                  sx={isMobile ? { width: '100%', maxHeight: '400px', overflowY: 'auto' } : {px: 1, maxHeight: '400px', overflowY: 'auto'}}
+                                  cols={isMobile ? 2 : 4}
+                                  gap={6}
+                                >
+                                  {messagesWithGifs.map((message) => {
+                                      const {gifInfo: gif} = message
+                                      return (
+                                          <ImageListItem sx={{overflow: 'hidden', borderRadius: 1, cursor: 'pointer'}} key={message.messageId}>
+                                              <img src={gif.media_formats.nanogif.url}/>
 
+                                          </ImageListItem>
+                                      )
+                                  })}
+	                            </ImageList>
+                            </Box>
+                        }
                         <Typography variant='h5'>Пользователи ({usersArray?.length}):</Typography>
                         <List sx={{width: '90%', mx: 'auto'}}>
                           {usersArray?.map((el: any, i: number) => {
@@ -224,11 +272,7 @@ const ChatInfo: FC<ChatInfoPT> = memo(({
                               )
                           })}
                         </List>
-                        <Box sx={{
-                            width: '100%',
-                            pr: isMobile ? 0 : 2
-                        }}>
-                        </Box>
+
                     </Box>
             </Modal>
             {isUserModalOpen &&

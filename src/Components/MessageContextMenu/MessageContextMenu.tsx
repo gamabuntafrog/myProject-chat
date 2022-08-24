@@ -135,13 +135,13 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
 	                    <Button startIcon={<ContentCopyIcon/>} onClick={() => copyText(modalInfo.message?.message)}>
 		                    Копировать текст
 	                    </Button>
-                        {modalInfo.isMe &&
-                            // @ts-ignore
-                            <Button color={'error'}  onClick={() => onDelete({messageId: modalInfo.message.messageId, images: modalInfo.message.images})} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
-			                    <Typography>Удалить</Typography>
-		                    </Button>
-                        }
                     </>
+                }
+                {modalInfo.isMe &&
+                // @ts-ignore
+                    <Button color={'error'}  onClick={() => onDelete({messageId: modalInfo.message.messageId, images: modalInfo.message.images})} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
+                        <Typography>Удалить</Typography>
+                    </Button>
                 }
         </Box>
     )

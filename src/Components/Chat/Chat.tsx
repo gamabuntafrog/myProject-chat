@@ -73,7 +73,9 @@ const Chat: FC = () => {
     const [replyMessageInfo, setReplyMessageInfo] = useState(null);
     const [isReplying, setIsReplying] = useState(false);
     const [isChatChanging, setIsChatChanging] = useState(false);
-
+    const [showGifs, setShowGifs] = useState<boolean>(false);
+    const {isChatInfoOpen, handleChatInfoIsOpen} = useContext(ChatInfoContext)!
+    const [showMedia, setShowMedia] = useState(false);
     const [chosenEmoji, setChosenEmoji] = useState<null | emojiType>(null);
 
     const [messagesWhichOnProgress, setMessagesWhichOnProgress] = useState<null | messagesWhichOnProgressType[]>(null);
@@ -136,8 +138,6 @@ const Chat: FC = () => {
     }, [id]);
 
 
-    const [gifs, setGifs] = useState<null | gifType[]>(null);
-    const [showGifs, setShowGifs] = useState<boolean>(false);
 
 
     const onEmojiClick = useCallback(
@@ -219,66 +219,7 @@ const Chat: FC = () => {
         inputRef?.current!.focus()
     }, [])
 
-    const {isChatInfoOpen, handleChatInfoIsOpen} = useContext(ChatInfoContext)!
 
-    const [limitOfGifs, setLimitOfGifs] = useState(10);
-
-    useEffect(() => {
-        updateQuery(searchGifInputValue, 10, updateQueryActionTypes.makeNewQuery)
-    }, []);
-
-    const submitGifMessage = useCallback(
-        async (gif: gifType) => {
-            const newMessageId = `${user?.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
-
-            if (isMobile) {
-                setShowMedia(false)
-            }
-
-            console.log(gif)
-
-            const message = {
-                messageType: messagesExemplar.gifMessage,
-                userId: user?.userId,
-                message: 'GIF',
-                createdAt: Date.now(),
-                messageId: newMessageId,
-                chatId: id,
-                gifInfo: gif
-            }
-
-            await setDoc(doc(firestore, 'chats', `${id}`, 'messages', `${newMessageId}`), message)
-        }, [],
-    );
-
-
-    const [searchGifInputValue, setSearchGifInputValue] = useState<string>('');
-
-
-
-    const updateQuery = (searchGifInputValue: string, limitOfGifs: number, actionType: updateQueryActionTypes) => {
-
-        if (actionType === updateQueryActionTypes.makeNewQuery) {
-            limitOfGifs = 10
-            setLimitOfGifs(10)
-        }
-
-        const fetchGifs = async () => {
-            await fetch(`https://tenor.googleapis.com/v2/search?q=${searchGifInputValue || 'hello'}&key=AIzaSyBNi2GDdp3ksixybEfxpNQM-Y0cs-fI8Ds&client_key=my_test_app&limit=${limitOfGifs}`)
-                .then(data => data.json())
-                .then(data => {
-                    console.log(data)
-                    setGifs(data.results)
-                })
-
-        }
-        fetchGifs()
-
-
-    }
-
-    const debouncedUpdateQuery = React.useCallback(debounce(updateQuery, 300), []);
-    const [showMedia, setShowMedia] = useState(false);
 
     if (isLoading) return (
         <Box sx={chatSection(screenType)}>
@@ -327,17 +268,11 @@ const Chat: FC = () => {
                     <Media
                         showGifs={showGifs}
                         setShowGifs={setShowGifs}
-                        searchGifInputValue={searchGifInputValue}
-                        setSearchGifInputValue={setSearchGifInputValue}
-                        setLimitOfGifs={setLimitOfGifs}
-                        debouncedUpdateQuery={debouncedUpdateQuery}
-                        gifs={gifs}
                         onEmojiClick={onEmojiClick}
                         userStyles={userStyles}
-                        limitOfGifs={limitOfGifs}
-                        submitGifMessage={submitGifMessage}
                         setShowMedia={setShowMedia}
                         showMedia={showMedia}
+                        chatId={chatData?.chatId}
                     />
                 </Box>
 

@@ -78,4 +78,12 @@
   .media-section-exit-done {
     transform: translateX(100%);
   }
+
+  .media__list-item-buttons {
+    display: none !important;
+  }
+
+  .media__list-item:hover .media__list-item-buttons {
+    display: flex !important;
+  }
 }

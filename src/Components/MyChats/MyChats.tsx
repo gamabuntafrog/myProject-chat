@@ -154,7 +154,7 @@ const MyChats: FC<MyChatsPT> = memo(({isChatListOpen, handleIsChatListOpen, id})
                                                     |
                                                 </Typography>
                                                 <Typography variant={'body2'} sx={{ml: 0.5, wordBreak: 'normal'}}>
-                                                    {createdAtFormatted}
+                                                    {changedAtFormatted || createdAtFormatted}
                                                 </Typography>
                                             </Box>
                                         </Box>

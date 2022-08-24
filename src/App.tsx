@@ -82,8 +82,8 @@ const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
             const localStorageUserInfo = localStorage.getItem(user.userId)
             if (!localStorageUserInfo) {
                 const startedStyles: userStylesType = {
-                    backgroundColor: '#606060',
-                    secondBackgroundColor: '#121212',
+                    backgroundColor: '#404FBF',
+                    secondBackgroundColor: '#191919',
                     theme: 'dark',
                     messagesBorderRadius: '10',
                     backgroundImage: '',

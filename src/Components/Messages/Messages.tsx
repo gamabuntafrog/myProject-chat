@@ -102,7 +102,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
     const history = useHistory()
 
     useEffect(() => {
-        console.log(messages)
+        // console.log(messages)
         if (listRef.current) {
             scrollToBottom()
         }
