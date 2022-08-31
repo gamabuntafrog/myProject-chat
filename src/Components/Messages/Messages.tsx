@@ -1,10 +1,20 @@
-import React, {FC, memo, useContext, useEffect, useState,} from "react";
+import React, {
+    FC,
+    memo,
+    MutableRefObject,
+    useCallback,
+    useContext,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react";
 import {Context} from "../..";
-import {doc, setDoc} from "firebase/firestore";
+import {arrayUnion, doc, setDoc, updateDoc} from "firebase/firestore";
 import {
     Avatar,
     Box,
-    Button,
+    Button, debounce,
     IconButton,
     ImageList,
     ImageListItem,
@@ -65,6 +75,7 @@ type MessagesPropTypes = {
     chatInfo: chatType | undefined,
     focusOnInput: () => void,
     messagesWhichOnProgress: null | messagesWhichOnProgressType[],
+    chatReactRef:  MutableRefObject<HTMLDivElement | null>
 
 }
 
@@ -80,33 +91,48 @@ const Messages: FC<MessagesPropTypes> = memo(({
     chatInfo,
     focusOnInput,
     messagesWhichOnProgress,
+    chatReactRef
 }) => {
 
     const {user: me, firestore} = useContext(Context)!
-    const [userModalInfo, setUserModalInfo] = useState<null | any>(null);
+
+    const [userModalInfo, setUserModalInfo] = useState<null | any | user>(null);
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
     const [contextMenuInfo, setContextMenuInfo] = useState<any>(null);
     const [messageInputValue, setMessageInputValue] = useState('');
     const [changingMessageId, setChangingMessageId] = useState('');
     const [replyMessages, setReplyMessages] = useState<any>(null);
+    const [isFirstRender, setIsFirstRender] = useState(true);
+
+    const lastMessage = useRef<null | HTMLLIElement>(null);
 
     const {screenType, isMobile, isMobileOrTablet} = useGetTypeOfScreen()
 
     useEffect(() => {
-        console.log('pererender')
+        if (listRef.current) {
+            const lastChildOfMessages = listRef.current.children[messages?.length - 1];
+            if (isInViewport(lastChildOfMessages)) {
+                scrollToBottom()
+            }
+        }
+    }, [messages?.length, listRef.current])
 
-
-    }, [showRepliedMessage]);
-
-    const history = useHistory()
+    useLayoutEffect(() => {
+        if (lastMessage.current) {
+            if (isFirstRender) {
+                lastMessage.current!.scrollIntoView()
+                setIsFirstRender(false)
+            }
+        }
+    }, [lastMessage.current]);
 
     useEffect(() => {
-        // console.log(messages)
-        if (listRef.current) {
-            scrollToBottom()
+        return () => {
+            setIsFirstRender(true)
         }
-    }, [messages, replyMessages, listRef])
+    }, [chatId]);
+
 
     const scrollToBottom = () => {
         listRef.current!.scrollTo({top: listRef.current!.scrollHeight})
@@ -117,21 +143,48 @@ const Messages: FC<MessagesPropTypes> = memo(({
     const [indexOfOpenedImage, setIndexOfOpenedImage] = useState(0);
 
     useEffect(() => {
-        if (isUserModalOpen) {
-            listRef?.current?.addEventListener('click', () => {
+        const clickOnChatWhenUserModalIsOpen = (e: MouseEvent) => {
+            // @ts-ignore
+            const isUserModalClick = e.path.filter((el: any) => {
+                if (el.classList) {
+                    return el.classList.contains('userModalInfo')
+                }
+            }).length > 0
+
+            if (isUserModalClick) {
+                return
+            } else {
                 setIsUserModalOpen(false)
-            })
-        }
-        if (isContextMenuOpen) {
-            listRef?.current?.addEventListener('click', () => {
-                setIsContextMenuOpen(false)
-            })
+            }
         }
 
-        return listRef?.current?.removeEventListener('click', () => {
-            setIsUserModalOpen(false)
-            setIsContextMenuOpen(false)
-        })
+        if (isUserModalOpen) {
+            chatReactRef?.current?.addEventListener('click', clickOnChatWhenUserModalIsOpen)
+        }
+
+        const clickOnChatWhenContextMenuIsOpen = (e: MouseEvent) => {
+            // @ts-ignore
+            const isContextMenuClick = e.path.filter((el: any) => {
+                if (el.classList) {
+                    return el.classList.contains('contextMenu')
+                }
+            }).length > 0
+
+            if (isContextMenuClick) {
+                return
+            } else {
+                setIsContextMenuOpen(false)
+            }
+        }
+
+        if (isContextMenuOpen) {
+            chatReactRef?.current?.addEventListener('click', clickOnChatWhenContextMenuIsOpen)
+        }
+
+        return () => {
+            chatReactRef?.current?.removeEventListener('click', clickOnChatWhenUserModalIsOpen)
+            chatReactRef?.current?.removeEventListener('click', clickOnChatWhenContextMenuIsOpen)
+        }
     }, [isUserModalOpen, isContextMenuOpen]);
 
     useEffect(() => {
@@ -206,11 +259,6 @@ const Messages: FC<MessagesPropTypes> = memo(({
     }
     const {userStyles} = useContext(ThemeContext)!
 
-
-
-
-
-
     const secondLastMessage = messages?.slice(messages?.length - 2, messages?.length - 1)
 
     const replyOnMessage = (message: messageType | replyMessageType | gifMessageType) => {
@@ -218,6 +266,63 @@ const Messages: FC<MessagesPropTypes> = memo(({
         setReplyMessageInfo(message)
         focusOnInput()
     }
+
+    function isInViewport(element: Element) {
+        if (!element) {
+            return false
+        }
+
+        const rect = element.getBoundingClientRect();
+
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+    }
+
+    const sendIHaveSeenMessage = async (message: messageType | replyMessageType | gifMessageType) => {
+        await updateDoc(doc(firestore, 'chats', chatId, 'messages', message.messageId), {
+            seen: arrayUnion(me!.userId)
+        })
+    }
+
+    const onListScroll = (e: React.UIEvent<HTMLUListElement>) => {
+        let firstContact = false
+        let lastContact = false
+
+        for (let i = messages?.length; i >= 0; i--) {
+            const messageElement = listRef.current!.children[i]
+            const messageObj = messages[i]
+
+            if (messageElement && isInViewport(messageElement) && messageObj) {
+                // console.log(`element ${i} in viewport`)
+                firstContact = true
+                if ('seen' in messageObj) {
+                    const isUserHasSeenLastMessage = messageObj.seen.find((userId) => userId === me?.userId)
+                    if (!isUserHasSeenLastMessage) {
+                        sendIHaveSeenMessage(messageObj)
+                    }
+                } else {
+                    if (messageObj.messageType !== messagesExemplar.startMessage) {
+                        sendIHaveSeenMessage(messageObj)
+                    }
+                }
+            } else {
+                if (firstContact) lastContact = true
+            }
+
+            if (lastContact) break
+
+        }
+    }
+
+    const onDebouncedListScroll = useCallback(
+        debounce(onListScroll, 300),
+        [messages],
+    );
+
 
     if (!messages && !subscribedUsers && !me) {
         return <List sx={{minHeight: '100vh'}}>
@@ -261,12 +366,19 @@ const Messages: FC<MessagesPropTypes> = memo(({
               secondLastMessage={secondLastMessage}
               setMessageInputValue={setMessageInputValue}
               focusOnInput={focusOnInput}
+              subscribedUsers={subscribedUsers}
+              setUserModalInfo={setUserModalInfo}
+              setIsUserModalOpen={setIsUserModalOpen}
             />}
             {isUserModalOpen && <UserModalInfo
               modalInfo={userModalInfo}
               setIsUserModalOpen={setIsUserModalOpen}
             />}
-        <List ref={listRef} sx={messagesList(isMobileOrTablet, userStyles?.backgroundImage, userStyles?.backgroundColor)}>
+        <List
+            ref={listRef}
+            sx={messagesList(isMobileOrTablet, userStyles?.backgroundImage, userStyles?.backgroundColor)}
+            onScrollCapture={onDebouncedListScroll}
+        >
             {subscribedUsers && replyMessages && messages?.map((message: messagesType, i: number) => {
                 const createdAtFormatted = format(message.createdAt, 'HH mm').split(' ').join(':')
 
@@ -287,7 +399,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
                 const subscribedUser = subscribedUsers[userId]
                 const isMessageBeforeIsMine = messages[i - 1]?.userId === message.userId
                 const isMessageAfterThisMine = messages[i + 1]?.userId === message.userId
-
+                const isLastMessage = (messages.length - 1) === i
 
                 if (message.messageType === messagesExemplar.gifMessage) {
 
@@ -317,7 +429,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
                                         setGalleryImages([{original: message.gifInfo.media_formats.gif.url, thumbnail: message.gifInfo.media_formats.gif.url}])
                                         setIsGalleryOpen(true)
                                     }}>
-                                        <img style={{borderRadius: `${userStyles.messagesBorderRadius}px`, cursor: 'pointer', minWidth: isMobile ? '100px' : '200px', maxWidth: isMobile ? '100%' : '300px'}} src={message.gifInfo.media_formats.mediumgif.url}/>
+                                        <img style={{borderRadius: `${userStyles.messagesBorderRadius}px`, cursor: 'pointer', height: '300px'}} src={message.gifInfo.media_formats.mediumgif.url}/>
                                     </Box>
                                     <Typography sx={dateMessage}>
                                         {createdAtFormatted}
@@ -344,6 +456,8 @@ const Messages: FC<MessagesPropTypes> = memo(({
                                 sx={{padding: 0, }}
                                 key={messageId}
                                 onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
+                                className={'messageItem'}
+
                             >
                                 <Box
                                     className={'messageWrapper'}
@@ -352,7 +466,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
                                     <Box onClick={(e) => showUserInfo(e, subscribedUser)} sx={avatarWrapper}>
                                         {!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}
                                     </Box>
-                                    <Box  className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}>
+                                    <Box className='message' sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}>
                                         {!isMessageChanging ?
                                             <>
                                                 <Box sx={userWrapper}>
@@ -394,8 +508,8 @@ const Messages: FC<MessagesPropTypes> = memo(({
                                                                     }))
                                                                     setIsGalleryOpen(true)
                                                                 }}
-                                                                key={url} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', maxHeight: '100%', cursor: 'pointer'}}>
-                                                                <img src={url}/>
+                                                                key={url} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, cursor: 'pointer'}}>
+                                                                <img style={{height: '300px'}} src={url}/>
                                                             </ImageListItem>
                                                         })}
                                                     </ImageList>
@@ -411,6 +525,28 @@ const Messages: FC<MessagesPropTypes> = memo(({
                                                     <Typography sx={dateMessage}>
                                                         {createdAtFormatted}
                                                     </Typography>
+                                                }
+                                                {isLastMessage &&
+		                                            <Box sx={{display: 'flex', overflow: 'hidden', position: 'absolute', bottom: '-25px', left: 0}}>
+                                                    {message.seen?.map((userId, i)=> {
+                                                        // console.log(i)
+                                                        if (i > 6) {
+                                                            return <div style={{display: 'none'}}/>
+                                                        }
+                                                        if (i > 5) {
+                                                            return <Box sx={{width: '20px', height: '20px', mx: 0.5}}>...</Box>
+                                                        }
+                                                        if (userId === me!.userId) {
+                                                            return <div style={{display: 'none'}}/>
+                                                        }
+                                                        if (userId === message.userId) {
+                                                            return <div style={{display: 'none'}}/>
+                                                        }
+                                                        return (
+                                                            <Avatar sx={{width: '20px', height: '20px', mx: 0.3}} src={subscribedUsers[userId]?.photoURL} alt='avatar'/>
+                                                        )
+                                                    })}
+		                                            </Box>
                                                 }
                                             </>
                                             :
@@ -455,6 +591,8 @@ const Messages: FC<MessagesPropTypes> = memo(({
                         sx={{padding: 0, }}
                         key={messageId}
                         onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
+                        className={'messageItem'}
+                        ref={isLastMessage ? lastMessage : null}
                     >
                         <Box
                             className={'messageWrapper'}
@@ -496,9 +634,11 @@ const Messages: FC<MessagesPropTypes> = memo(({
                                                 <ReplyIcon/>
                                             </IconButton>
                                         </Box>
+
                                         {message.images &&
                                             <ImageList sx={isMobile ? { width: '100%' } : {}} cols={isMobile ? 1 : message.images.length > 2 ? 3 : message.images.length} >
                                                 {message.images.map(({imageRef, url}, i) => {
+
                                                     return <ImageListItem
                                                         onClick={() => {
                                                             setIndexOfOpenedImage(i)
@@ -507,8 +647,8 @@ const Messages: FC<MessagesPropTypes> = memo(({
                                                             }))
                                                             setIsGalleryOpen(true)
                                                         }}
-                                                        key={url} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, maxWidth: '400px', maxHeight: '100%', cursor: 'pointer'}}>
-                                                        <img src={url}/>
+                                                        key={url} sx={{borderRadius: 2, overflow: 'hidden', mt: 1, mx: 0.5, cursor: 'pointer'}}>
+                                                        <img style={{height: '300px'}} src={url}/>
                                                     </ImageListItem>
                                                 })}
                                             </ImageList>
@@ -524,6 +664,27 @@ const Messages: FC<MessagesPropTypes> = memo(({
                                             <Typography sx={dateMessage}>
                                                 {createdAtFormatted}
                                             </Typography>
+                                        }
+                                        {isLastMessage &&
+		                                    <Box sx={{display: 'flex', overflow: 'hidden', position: 'absolute', bottom: '-25px', left: 0}}>
+                                                {message.seen?.map((userId, i)=> {
+                                                    if (i > 6) {
+                                                        return <div style={{display: 'none'}}/>
+                                                    }
+                                                    if (i > 5) {
+                                                        return <Box sx={{width: '20px', height: '20px', mx: 0.5}}>...</Box>
+                                                    }
+                                                    if (userId === me!.userId) {
+                                                        return <div style={{display: 'none'}}/>
+                                                    }
+                                                    if (userId === message.userId) {
+                                                        return <div style={{display: 'none'}}/>
+                                                    }
+                                                    return (
+                                                        <Avatar sx={{width: '20px', height: '20px', mx: 0.3}} src={subscribedUsers[userId]?.photoURL} alt='avatar'/>
+                                                    )
+                                                })}
+		                                    </Box>
                                         }
                                     </>
                                     :
@@ -567,6 +728,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
                         sx={{...messageListItem(isMobile), position: 'relative', py: 2}}
                         key={message.createdAt}
                         className={'messageItem'}
+
                     >
                         <Loader background='rgba(18, 18, 18, 0.5)'/>
                         <Box sx={avatarWrapper}>

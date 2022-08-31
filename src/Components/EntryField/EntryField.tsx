@@ -114,7 +114,8 @@ const EntryField: FC<EntryFieldPT> = memo(({
                 replyer: replyMessageInfo,
                 messageId: newMessageId,
                 chatId: id,
-                images: urls
+                images: urls,
+                seen: [user!.userId]
 
             })
             await setDoc(doc(firestore, 'chats', `${id}`), {
@@ -139,7 +140,8 @@ const EntryField: FC<EntryFieldPT> = memo(({
                 createdAt: Date.now(),
                 messageId: newMessageId,
                 chatId: id,
-                images: urls
+                images: urls,
+                seen: [user!.userId]
             })
             await setDoc(doc(firestore, 'chats', `${id}`), {
                 lastMessage: {
@@ -264,7 +266,7 @@ const EntryField: FC<EntryFieldPT> = memo(({
 
         reader.onload = () => {
             if (reader.readyState === 2) {
-                // console.log(reader.result)
+
                 setPreviewImages((prev: any) => {
                     if (prev === null) {
                         return [reader.result]

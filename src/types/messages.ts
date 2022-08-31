@@ -1,3 +1,5 @@
+import {user} from "./user";
+
 export enum messagesExemplar {
     startMessage,
     message,
@@ -13,7 +15,8 @@ export type startMessageType = {
     message: string,
     chatId: string,
     messageType: messagesExemplar.startMessage,
-    userId: string
+    userId: string,
+
 }
 
 export type messageType = {
@@ -24,6 +27,7 @@ export type messageType = {
     userId: string,
     messageType: messagesExemplar.message,
     images?: {url: string, imageRef: string}[],
+    seen: string[]
 }
 
 export type replyMessageType = {
@@ -35,7 +39,8 @@ export type replyMessageType = {
     isChanging?: boolean,
     messageType: messagesExemplar.replyMessage,
     replyer: messageType | replyMessageType,
-    images?: {url: string, imageRef: string}[]
+    images?: {url: string, imageRef: string}[],
+    seen: string[]
 
 }
 
@@ -47,7 +52,8 @@ export type gifMessageType = {
     userId: string,
     gifInfo: any,
     messageType: messagesExemplar.gifMessage,
-    replyer: messageType | replyMessageType | gifMessageType
+    replyer: messageType | replyMessageType | gifMessageType,
+    seen: string[]
 }
 
 export type messagesType = (messageType | startMessageType | replyMessageType | gifMessageType)

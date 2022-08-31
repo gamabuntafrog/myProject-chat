@@ -81,6 +81,7 @@ const MyChats: FC<MyChatsPT> = memo(({isChatListOpen, handleIsChatListOpen, id})
 
     useEffect(() => {
         if (!id) {
+            console.log(!id)
             handleIsChatListOpen(false) //!false = true
         }
 

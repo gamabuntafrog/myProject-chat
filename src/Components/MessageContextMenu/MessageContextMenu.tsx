@@ -1,5 +1,5 @@
-import React, {useState, useEffect, FC, useContext, memo} from "react"
-import {Box, Button, ListItem, Typography} from "@mui/material";
+import React, {useState, useEffect, FC, useContext, memo, Dispatch, SetStateAction} from "react"
+import {Avatar, Box, Button, ListItem, Typography} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import {deleteDoc, doc, setDoc, updateDoc} from "firebase/firestore";
 import {Context} from "../../index";
@@ -11,6 +11,8 @@ import {screenTypes, useGetTypeOfScreen} from "../../hooks/useGetTypeOfScreen";
 import {chatType} from "../../types/chatType";
 import {getStorage, ref, deleteObject} from 'firebase/storage'
 import {ThemeContext} from "../../App";
+import {user} from "../../types/user";
+import CloseIcon from "@mui/icons-material/Close";
 
 type MessageContextMenuPT = {
     modalInfo: {
@@ -19,17 +21,23 @@ type MessageContextMenuPT = {
         pageX: number,
         isMe: boolean,
     },
-    setIsReplying: React.Dispatch<React.SetStateAction<boolean>>,
+    setIsReplying: Dispatch<SetStateAction<boolean>>,
     setReplyMessageInfo: any,
     chatId: string,
-    setIsContextMenuOpen: React.Dispatch<React.SetStateAction<boolean>>,
+    setIsContextMenuOpen: Dispatch<SetStateAction<boolean>>,
     myId: string,
-    setChangingMessageId: React.Dispatch<React.SetStateAction<string>>,
-    setMessageInputValue: React.Dispatch<React.SetStateAction<string>>,
+    setChangingMessageId: Dispatch<SetStateAction<string>>,
+    setMessageInputValue: Dispatch<SetStateAction<string>>,
     chatInfo: chatType | undefined,
     secondLastMessage: messagesType[] | undefined,
     focusOnInput: () => void,
+    subscribedUsers: any,
+    setIsUserModalOpen: Dispatch<SetStateAction<boolean>>,
+    setUserModalInfo: Dispatch<SetStateAction<any>>,
 }
+
+//
+// setUserModalInfo
 const MessageContextMenu: FC<MessageContextMenuPT> =
     memo(({
         modalInfo,
@@ -41,8 +49,11 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
         setChangingMessageId,
         chatInfo,
         secondLastMessage,
-         setMessageInputValue,
-         focusOnInput,
+        setMessageInputValue,
+        focusOnInput,
+        subscribedUsers,
+        setIsUserModalOpen,
+        setUserModalInfo
     }) => {
 
     const {firestore, user} = useContext(Context)!;
@@ -51,6 +62,7 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
     const storage = getStorage()
 
     const {isMobile} = useGetTypeOfScreen()
+    const [isSeenListOpen, setIsSeenListOpen] = useState(false);
 
     const copyText = (text: string) => {
         const data = [new ClipboardItem({ "text/plain": new Blob([text], { type: "text/plain" }) })];
@@ -84,65 +96,111 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
         const isNotGifMessage = modalInfo.message.messageType !== messagesExemplar.gifMessage
 
     return (
-        <Box display='flex' textAlign='center' flexDirection='column' justifyContent='center'
-             position='fixed'
-             sx={isMobile ?
-                 {
-                     bottom: 0,
-                     left: 0,
-                     width: '100%',
-                     padding: '10px',
-                     backgroundColor: userStyles.secondBackgroundColor,
-                     zIndex: 101,
-                     borderRadius: '5px',
-                     wordBreak: 'normal'
-                 }
-                 :
-                 {
-                     top: modalInfo.pageY > staticTop ? staticTop : `${modalInfo.pageY + 10}px`,
-                     left: isMobile ? mobileStaticLeft : `${modalInfo.pageX + 10}px`,
-                     padding: '10px',
-                     backgroundColor: userStyles.secondBackgroundColor,
-                     zIndex: 101,
-                     borderRadius: '5px',
-                     wordBreak: 'normal'
-                 }
-             }>
-            <Button color={'error'} onClick={() => {
-                setIsContextMenuOpen(false)
-            }}>
-                Закрыть
-            </Button>
-            <Button onClick={() => {
-                setIsReplying(true)
-                setReplyMessageInfo(modalInfo.message)
-                setIsContextMenuOpen(false)
-                focusOnInput()
-            }} startIcon={<ReplyIcon/>}  >
-                <Typography>Ответить</Typography>
-            </Button>
+        <Box
+            className='contextMenu'
+            sx={isMobile ?
+            {
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                width: '100%',
+                padding: '10px',
+                backgroundColor: userStyles.secondBackgroundColor,
+                zIndex: 101,
+                borderRadius: '5px',
+                wordBreak: 'normal'
+            }
+            :
+            {
+                position: 'fixed',
+                top: modalInfo.pageY > staticTop ? staticTop : `${modalInfo.pageY + 10}px`,
+                left: isMobile ? mobileStaticLeft : `${modalInfo.pageX + 10}px`,
+                padding: '10px',
+                backgroundColor: userStyles.secondBackgroundColor,
+                zIndex: 101,
+                borderRadius: '5px',
+                wordBreak: 'normal',
+                display: 'flex'
+            }
+        }>
+            <Box display='flex' textAlign='center' flexDirection='column' justifyContent='center'
+                 >
+                <Button
+                    color={'error'}
+                    onClick={() => {
+                        setIsContextMenuOpen(false)
+                    }}
+                    startIcon={<CloseIcon/>}
+                >
+                    Закрыть
+                </Button>
+                <Button onClick={() => {
+                    setIsReplying(true)
+                    setReplyMessageInfo(modalInfo.message)
+                    setIsContextMenuOpen(false)
+                    focusOnInput()
+                }} startIcon={<ReplyIcon/>}  >
+                    <Typography>Ответить</Typography>
+                </Button>
                 {modalInfo.isMe && isNotGifMessage &&
-                    <>
-	                    <Button startIcon={<EditIcon/>} sx={{ my: 1}} onClick={() => {
-                          setChangingMessageId(modalInfo.message.messageId)
-                            // @ts-ignore
-                          setMessageInputValue(modalInfo.message.message)
-                          setIsContextMenuOpen(false)
-                        }}>
-		                    <Typography>Редактировать</Typography>
-	                    </Button>
-                        {/* @ts-ignore */}
-	                    <Button startIcon={<ContentCopyIcon/>} onClick={() => copyText(modalInfo.message?.message)}>
-		                    Копировать текст
-	                    </Button>
-                    </>
+				        <>
+					        <Button startIcon={<EditIcon/>} sx={{ my: 1}} onClick={() => {
+                      setChangingMessageId(modalInfo.message.messageId)
+                      // @ts-ignore
+                      setMessageInputValue(modalInfo.message.message)
+                      setIsContextMenuOpen(false)
+                  }}>
+						        <Typography>Редактировать</Typography>
+					        </Button>
+                    {/* @ts-ignore */}
+					        <Button startIcon={<ContentCopyIcon/>} onClick={() => copyText(modalInfo.message?.message)}>
+						        Копировать текст
+					        </Button>
+					        <Button onClick={() => {
+                      console.log(modalInfo.message?.seen)
+                      setIsSeenListOpen(true)
+                  }}>
+						        Посмотрели: {modalInfo.message?.seen?.length - 1}
+					        </Button>
+
+				        </>
                 }
                 {modalInfo.isMe &&
                 // @ts-ignore
-                    <Button color={'error'}  onClick={() => onDelete({messageId: modalInfo.message.messageId, images: modalInfo.message.images})} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
-                        <Typography>Удалить</Typography>
-                    </Button>
+				        <Button color={'error'}  onClick={() => onDelete({messageId: modalInfo.message.messageId, images: modalInfo.message.images})} startIcon={<DeleteIcon/>} sx={{minWidth: '30px'}}>
+					        <Typography>Удалить</Typography>
+				        </Button>
                 }
+            </Box>
+            {isSeenListOpen &&
+                <Box sx={{display: 'flex', flexDirection: 'column', maxHeight: '300px', overflowY: 'auto'}}>
+                    <Button sx={{ml: 'auto', width: '40px', minWidth: 'auto'}} onClick={() => setIsSeenListOpen(false)} color='error'>
+                        <CloseIcon/>
+                    </Button>
+                    {modalInfo.message?.seen?.map((userId) => {
+                        if (userId === myId) {
+                            return <div style={{display: 'none'}}/>
+                        }
+                        if (userId === modalInfo.message.userId) {
+                            return <div style={{display: 'none'}}/>
+                        }
+                        return (
+                            <Button
+                                sx={{display: 'flex', alignItems: 'center', cursor: 'pointer', padding: 1, color: subscribedUsers[userId]?.nicknameColor || userStyles.secondBackgroundColor}}
+                                onClick={(e) => {
+                                    const {pageX, pageY} = e
+
+                                    setIsUserModalOpen(true)
+                                    setUserModalInfo({user: subscribedUsers[userId], pageX, pageY})
+                                }}
+                            >
+                                <Avatar sx={{width: '30px', height: '30px', mr: 1}} src={subscribedUsers[userId]?.photoURL} alt='avatar'/>
+                                <Typography>{subscribedUsers[userId].nickname}</Typography>
+                            </Button>
+                        )
+                    })}
+                </Box>
+            }
         </Box>
     )
 })

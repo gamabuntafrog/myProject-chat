@@ -17,7 +17,9 @@ export const messagesList = (isMobileScreen: boolean, background: ArrayBuffer | 
 
 export const avatarWrapper = {
     mr: 1,
-    cursor: 'pointer'
+    cursor: 'pointer',
+    position: 'sticky',
+    bottom: 0
 }
 
 export const messageWrapper = (isMessageBeforeIsMine: boolean, isMessageAfterThisMine: boolean, isMobileType: boolean, borderRadius: string | number, backgroundColor: string, theme: 'light' | 'dark' | '') => {

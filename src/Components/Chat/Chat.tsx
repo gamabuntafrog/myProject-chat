@@ -90,6 +90,7 @@ const Chat: FC = () => {
     const usersRef = collection(firestore, 'chats',  `${id}`, 'users')
     const [subscribedUsersCollection] = useCollectionData<any>(usersRef)
 
+    const chatReactRef = useRef<null | HTMLDivElement>(null);
     const listRef = useRef<null | HTMLUListElement>(null);
 
     const {userStyles} = useContext(ThemeContext)!
@@ -229,7 +230,7 @@ const Chat: FC = () => {
 
     if (id && users && messages) {
         return (
-                <Box sx={chatSection(screenType)}>
+                <Box ref={chatReactRef} sx={chatSection(screenType)}>
                     <MyChats id={id} handleIsChatListOpen={handleIsChatListOpen} isChatListOpen={isChatListOpen} />
                     <Box className='chat-container' sx={chatContainer(isMobileOrTablet, userStyles.backgroundImage ,  userStyles.backgroundColor)}>
                         {isChatInfoOpen &&
@@ -251,6 +252,7 @@ const Chat: FC = () => {
                             chatInfo={chatData}
                             focusOnInput={focusOnInput}
                             messagesWhichOnProgress={messagesWhichOnProgress}
+                            chatReactRef={chatReactRef}
                         />
                         <EntryField
                             users={users}

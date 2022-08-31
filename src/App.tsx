@@ -53,12 +53,10 @@ const App: FC<AppPropTypes> = ({auth, app, firestore}) => {
 
     const [chatInfo, setChatInfo] = useState<chatType | null>(null);
     const [isChatInfoOpen, setIsChatInfoOpen] = useState(false);
-    const [isChatListOpen, setIsChatListOpen] = useState(true);
+    const [isChatListOpen, setIsChatListOpen] = useState(false);
 
     const location = useLocation()
     const isLocationIsChat = location.pathname.includes('chat/')
-    // console.log(isLocationIsChat)
-
 
 
     const darkTheme = createTheme({
