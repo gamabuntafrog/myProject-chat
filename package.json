@@ -79,5 +79,11 @@
   "lint-staged": {
     "*.js": "eslint --cache --fix",
     "*.{js,css,md}": "prettier --write"
+  },
+  "prettier": {
+    "tabWidth": 4,
+    "jsxBracketSameLine": false,
+    "bracketSameLine": false,
+    "useTabs": true
   }
 }

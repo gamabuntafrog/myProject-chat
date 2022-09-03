@@ -29,7 +29,8 @@ type MessageContextMenuPT = {
     setChangingMessageId: Dispatch<SetStateAction<string>>,
     setMessageInputValue: Dispatch<SetStateAction<string>>,
     chatInfo: chatType | undefined,
-    secondLastMessage: messagesType[] | undefined,
+    // secondLastMessage: messagesType[] | undefined,
+    secondLastMessage: any
     focusOnInput: () => void,
     subscribedUsers: any,
     setIsUserModalOpen: Dispatch<SetStateAction<boolean>>,

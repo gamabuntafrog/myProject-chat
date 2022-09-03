@@ -67,7 +67,7 @@ const Chat: FC = () => {
     const {firestore, user} = useContext(Context)!
     const {changeChatInfo} = useContext(ChatInfoContext)!
     const {handleIsChatListOpen, isChatListOpen} = useContext(ChatListContext)!
-    const [messages, setMessages] = useState<messagesType[] | null>(null);
+    const [messages, setMessages] = useState<[messagesType[]] | null>(null);
     const [users, setUsers] = useState<null | any>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [replyMessageInfo, setReplyMessageInfo] = useState(null);
@@ -99,7 +99,30 @@ const Chat: FC = () => {
     useEffect(() => {
         if (messagesCollection && chatData) {
             try {
-                setMessages(messagesCollection)
+                // console.log(messagesCollection)
+                const groupedMessages = messagesCollection.map((message, i) => {
+                    const nextMessages: messagesType[] = [message]
+
+                    const messageIndex = i
+
+                    if (messagesCollection[i - 1]?.userId === message.userId) return
+
+                    for (let i = messageIndex; i < messagesCollection.length; i++) {
+                        const currentMessage = messagesCollection[i]
+                        const prevMessage = messagesCollection[i - 1]
+                        const nextMessage = messagesCollection[i + 1]
+                        const isNextMessageMy = nextMessage?.userId === currentMessage.userId
+
+                        if (isNextMessageMy) nextMessages.push(nextMessage)
+                        if (!isNextMessageMy) break
+                    }
+
+                    return nextMessages
+                })
+                const filteredMessages = groupedMessages.filter((messages) => messages !== undefined)
+                console.log(filteredMessages)
+                // @ts-ignore
+                setMessages(filteredMessages)
             } catch (e) {
                 console.log(e)
                 setIsLoading(false)
@@ -172,19 +195,32 @@ const Chat: FC = () => {
 
     const showRepliedMessage = useCallback(
         (repliedMessage: replyMessageType | messageType, actionType: showRepliedMessageActionTypes) => {
-            let indexOfReplyerMessage
+            console.log(messages);
+            let indexOfMessagesGroup = -1
+            let indexOfReplyerMessage = -1
+
             if (actionType === showRepliedMessageActionTypes.showRepliedMessage && repliedMessage.messageType === messagesExemplar.replyMessage) {
-                indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
-                    return repliedMessage!.replyer.messageId === message.messageId
+                messages?.forEach((messages: messagesType[], i) => {
+                    const finding = messages.findIndex((message) => repliedMessage.replyer.messageId === message.messageId);
+                    if (finding >= 0) {
+                        indexOfReplyerMessage = finding
+                        indexOfMessagesGroup = i
+                    }
                 })
             } else {
-                indexOfReplyerMessage = messages?.findIndex((message: messagesType, i) => {
-                    return repliedMessage.messageId === message.messageId
+                messages?.forEach((messages: messagesType[], i) => {
+                    const finding = messages.findIndex((message) => repliedMessage.messageId === message.messageId);
+                    if (finding >= 0) {
+                        indexOfReplyerMessage = finding
+                        indexOfMessagesGroup = i
+                    }
                 })
             }
 
-            if (indexOfReplyerMessage && indexOfReplyerMessage >= 0) {
-                const child = listRef.current!.children[indexOfReplyerMessage]
+            if (indexOfMessagesGroup >= 0 && indexOfReplyerMessage >= 0) {
+                const group = listRef.current!.children[indexOfMessagesGroup]
+                const list = group.children[1]
+                const child = list.children[indexOfReplyerMessage]
 
                 child.scrollIntoView({block: 'center', behavior: "smooth"})
 
@@ -211,7 +247,7 @@ const Chat: FC = () => {
                 );
             }
         },
-        [listRef?.current],
+        [id, messages],
     );
 
 
@@ -243,7 +279,7 @@ const Chat: FC = () => {
                         <Messages
                             chatId={id}
                             subscribedUsers={users}
-                            messages={messages}
+                            messagesArray={messages}
                             setIsReplying={setIsReplying}
                             setReplyMessageInfo={setReplyMessageInfo}
                             isChatChanging={isChatChanging}

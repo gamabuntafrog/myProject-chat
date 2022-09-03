@@ -16,6 +16,7 @@ export const messagesList = (isMobileScreen: boolean, background: ArrayBuffer | 
 }
 
 export const avatarWrapper = {
+    mt: 1,
     mr: 1,
     cursor: 'pointer',
     position: 'sticky',
@@ -68,12 +69,13 @@ export const messageListItem = (isMobileType: boolean) => {
 
     return ({
         padding: 0,
-        width: 'auto',
+        width: '100%',
         pr: isMobileType ? 1 : 5,
         mt: 1,
         borderRadius: 3,
         display: 'inline-flex',
-        alignItems: 'end',
+        alignItems: 'flex-start',
+        flexDirection: 'column'
     })
 }
 
