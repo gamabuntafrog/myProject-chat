@@ -113,29 +113,32 @@ const Messages: FC<MessagesPropTypes> = memo(({
 	useEffect(() => setFlatedMessages(messagesArray.flatMap((msgs) => msgs)), [messagesArray]);
 
 
-	// useEffect(() => {
-	//     if (listRef.current) {
-	//         const lastChildOfMessages = listRef.current.children[messages?.length - 1];
-	//         if (isInViewport(lastChildOfMessages)) {
-	//             scrollToBottom()
-	//         }
-	//     }
-	// }, [messages?.length, listRef.current])
-	//
-	// useLayoutEffect(() => {
-	//     if (lastMessage.current) {
-	//         if (isFirstRender) {
-	//             lastMessage.current!.scrollIntoView()
-	//             setIsFirstRender(false)
-	//         }
-	//     }
-	// }, [lastMessage.current]);
-	//
-	// useEffect(() => {
-	//     return () => {
-	//         setIsFirstRender(true)
-	//     }
-	// }, [chatId]);
+	useEffect(() => {
+	    if (listRef.current) {
+	    	const lastGroup = listRef.current.children[messagesArray?.length - 1]
+			const list = lastGroup?.children[1]
+	        const lastChildOfMessages = list.children[list.children.length - 1];
+	        if (isInViewport(lastChildOfMessages)) {
+	            scrollToBottom()
+	        }
+			console.log(lastChildOfMessages);
+	    }
+	}, [messagesArray?.[messagesArray?.length - 1]?.length, listRef.current])
+
+	useLayoutEffect(() => {
+	    if (lastMessage.current) {
+	        if (isFirstRender) {
+	            lastMessage.current!.scrollIntoView()
+	            setIsFirstRender(false)
+	        }
+	    }
+	}, [lastMessage.current]);
+
+	useEffect(() => {
+	    return () => {
+	        setIsFirstRender(true)
+	    }
+	}, [chatId]);
 
 
 	const scrollToBottom = () => {
@@ -263,7 +266,17 @@ const Messages: FC<MessagesPropTypes> = memo(({
 	};
 	const { userStyles } = useContext(ThemeContext)!;
 
-	// const secondLastMessage = messages?.slice(messages?.length - 2, messages?.length - 1)
+	const getTwoLastMessage = useCallback(
+		(messagesArray: [messagesType[]]) => {
+			const lastGroup = messagesArray[messagesArray.length - 1];
+			const lastSecondMessage = lastGroup.slice(lastGroup.length - 2, lastGroup.length - 1);
+
+			return lastSecondMessage;
+		},
+		[messagesArray]
+	);
+
+	const secondLastMessage = getTwoLastMessage(messagesArray)
 
 	const replyOnMessage = (message: messageType | replyMessageType | gifMessageType) => {
 		setIsReplying(true);
@@ -382,8 +395,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
 				myId={me.userId}
 				setChangingMessageId={setChangingMessageId}
 				chatInfo={chatInfo}
-				secondLastMessage={{ messageId: "1" }}
-				// secondLastMessage={secondLastMessage}
+				secondLastMessage={secondLastMessage}
 				setMessageInputValue={setMessageInputValue}
 				focusOnInput={focusOnInput}
 				subscribedUsers={subscribedUsers}
@@ -412,11 +424,13 @@ const Messages: FC<MessagesPropTypes> = memo(({
 
 					const userId = messages[0].userId;
 					const subscribedUser = subscribedUsers[userId];
+					const isLastGroup = messagesArray.length - 1 === i;
 
 					return (
 						<ListItem
 							sx={{ padding: 0, display: "flex", alignItems: "flex-end" }}
 							key={messages[0].messageId + i}
+							className='messageItem'
 						>
 							<Box onClick={(e) => {
 								const { pageX, pageY } = e;
@@ -454,6 +468,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
 									const { messageId } = message;
 									const isMessageBeforeIsMine = messages[i - 1]?.userId === message.userId;
 									const isMessageAfterThisMine = messages[i + 1]?.userId === message.userId;
+									const isLastMessage = isLastGroup && ((messages.length - 1) === i);
 
 									if (message.messageType === messagesExemplar.gifMessage) {
 
@@ -486,7 +501,8 @@ const Messages: FC<MessagesPropTypes> = memo(({
 																style={{
 																	borderRadius: `${userStyles.messagesBorderRadius}px`,
 																	cursor: "pointer",
-																	height: "300px"
+																	height: "300px",
+																	maxWidth: '100%'
 																}}
 																src={message.gifInfo.media_formats.mediumgif.url}
 															/>
@@ -504,16 +520,49 @@ const Messages: FC<MessagesPropTypes> = memo(({
 															<ReplyIcon/>
 														</IconButton>
 													</Box>
-
+													{isLastMessage &&
+													<Box sx={{
+														display: "flex",
+														overflow: "hidden",
+														position: "absolute",
+														bottom: "-25px",
+														left: 0
+													}}>
+														{message.seen?.map((userId, i) => {
+															if (i > 6) {
+																return <div style={{ display: "none" }} key={i}/>;
+															}
+															if (i > 5) {
+																return <Box sx={{ width: "20px", height: "20px", mx: 0.5 }} key={i}>...</Box>;
+															}
+															if (userId === me!.userId) {
+																return <div style={{ display: "none" }} key={i}/>;
+															}
+															if (userId === message.userId) {
+																return <div style={{ display: "none" }} key={i}/>;
+															}
+															return (
+																<Avatar
+																	sx={{
+																		width: "20px",
+																		height: "20px",
+																		mx: 0.3
+																	}}
+																	src={subscribedUsers[userId]?.photoURL}
+																	alt='avatar'
+																	key={i}
+																/>
+															);
+														})}
+													</Box>
+													}
 												</Box>
 											</ListItem>
 										);
 									}
 
 									const { message: messageText } = message;
-									const isLastMessage = (messages.length - 1) === i;
 									const isMessageChanging = message.messageId === changingMessageId;
-
 
 									if (message.messageType === messagesExemplar.message) {
 
@@ -523,7 +572,6 @@ const Messages: FC<MessagesPropTypes> = memo(({
 												sx={{ padding: 0 }}
 												key={messageId}
 												onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-												// className={'messageItem'}
 												ref={isLastMessage ? lastMessage : null}
 											>
 												<Box
@@ -709,7 +757,6 @@ const Messages: FC<MessagesPropTypes> = memo(({
 												sx={{ padding: 0 }}
 												key={messageId}
 												onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-												// className={'messageItem'}
 												ref={isLastMessage ? lastMessage : null}
 
 											>

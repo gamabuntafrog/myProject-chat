@@ -61,12 +61,14 @@ const UserModalInfo: FC<UserModalInfoPT> = memo(({modalInfo, setIsUserModalOpen}
                 sx={{position: 'absolute', right: 5, top: 5}}>
                 <CloseIcon/>
             </IconButton>
-            <Box sx={{backgroundColor: modalInfo.user?.nicknameColor || 'black', width: isMobile ? '100%' : 240 , height: 200, mb: '-150px'}}/>
+            <Box sx={{backgroundColor: modalInfo.user?.nicknameColor || 'black', minWidth: isMobile ? '100%' : 240 , height: 200, mb: '-150px'}}/>
             <Avatar sx={{width: 200, height: 200, mx: 'auto', borderRadius: '10px 10px 10px 10px'}} src={`${modalInfo.user?.photoURL}`} alt="avatar"/>
-            <NavLink style={{color: 'white'}} to={`/user/${modalInfo.user?.userId}`}>
-                <Typography sx={{mt: 1}} variant={'h5'}>{modalInfo.user?.nickname}</Typography>
-            </NavLink>
-            <Typography  variant={'subtitle1'}>{modalInfo.user?.bio}</Typography>
+            <Box sx={{px: 1}}>
+                <NavLink style={{color: 'white'}} to={`/user/${modalInfo.user?.userId}`}>
+                    <Typography sx={{mt: 1}} variant={'h5'}>{modalInfo.user?.nickname}</Typography>
+                </NavLink>
+                <Typography  variant={'subtitle1'}>{modalInfo.user?.bio}</Typography>
+            </Box>
         </Box>
     )
 })
