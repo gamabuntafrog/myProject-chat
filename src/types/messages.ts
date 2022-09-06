@@ -27,36 +27,24 @@ export type messageType = {
     userId: string,
     messageType: messagesExemplar.message,
     images?: {url: string, imageRef: string}[],
-    seen: string[]
+    seen: { userId: string, date: number }[],
+    replyer: messageType ,
 }
 
-export type replyMessageType = {
-    messageId: string,
-    createdAt: number,
-    changedAt?: number
-    message: string,
-    userId: string,
-    isChanging?: boolean,
-    messageType: messagesExemplar.replyMessage,
-    replyer: messageType | replyMessageType,
-    images?: {url: string, imageRef: string}[],
-    seen: string[]
-
-}
 
 export type gifMessageType = {
     messageId: string,
     createdAt: number,
     changedAt?: number,
-    // message: 'GIF',
+    message: 'GIF',
     userId: string,
     gifInfo: any,
     messageType: messagesExemplar.gifMessage,
-    replyer: messageType | replyMessageType | gifMessageType,
-    seen: string[]
+    replyer: messageType | gifMessageType,
+    seen: { userId: string, date: number }[],
 }
 
-export type messagesType = (messageType | startMessageType | replyMessageType | gifMessageType)
+export type messagesType = (messageType | startMessageType | gifMessageType)
 
 export type messagesWhichOnProgressType = {
     messageId: string,
@@ -65,6 +53,6 @@ export type messagesWhichOnProgressType = {
     message: string,
     userId: string,
     messageType: messagesExemplar.replyMessage | messagesExemplar.message,
-    replyer?: messageType | replyMessageType,
+    replyer?: messageType ,
     images?: string[]
 }

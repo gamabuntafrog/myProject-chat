@@ -6,19 +6,20 @@ import { Context } from "../../index";
 import ReplyIcon from "@mui/icons-material/Reply";
 import EditIcon from "@mui/icons-material/Edit";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import { gifMessageType, messagesExemplar, messagesType, messageType, replyMessageType } from "../../types/messages";
+import { gifMessageType, messagesExemplar, messagesType, messageType } from "../../types/messages";
 import { screenTypes, useGetTypeOfScreen } from "../../hooks/useGetTypeOfScreen";
 import { chatType } from "../../types/chatType";
 import { getStorage, ref, deleteObject } from "firebase/storage";
 import { ThemeContext } from "../../App";
 import { user } from "../../types/user";
 import CloseIcon from "@mui/icons-material/Close";
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import { format } from "date-fns";
 
 
 type MessageContextMenuPT = {
 	modalInfo: {
-		message: messageType | replyMessageType | gifMessageType,
+		message: messageType | gifMessageType,
 		pageY: number,
 		pageX: number,
 		isMe: boolean,
@@ -92,10 +93,13 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
 			}
 		};
 
-		const staticTop = (window.innerHeight / 1.4);
+		const staticTop = modalInfo.isMe ? (window.innerHeight / 1.6) : (window.innerHeight / 1.2);
 		const mobileStaticLeft = (window.innerWidth / 2.4);
 
 		const isNotGifMessage = modalInfo.message.messageType !== messagesExemplar.gifMessage;
+
+		const seenInfoIfMyMessage = (modalInfo.isMe && modalInfo.message?.seen?.length - 1 > 0);
+		const seenInfoIfNotMyMessage = (!modalInfo.isMe && modalInfo.message?.seen?.length - 2 > 0);
 
 		return (
 			<Box
@@ -160,9 +164,16 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
 						</Button>
 					</>
 					}
+					{seenInfoIfNotMyMessage &&
+					<Button startIcon={<VisibilityIcon/>} onClick={() => setIsSeenListOpen(true)}>
+						Посмотрели: {modalInfo.message?.seen?.length - 2}
+					</Button>
+					}
+					{seenInfoIfMyMessage &&
 					<Button startIcon={<VisibilityIcon/>} onClick={() => setIsSeenListOpen(true)}>
 						Посмотрели: {modalInfo.message?.seen?.length - 1}
 					</Button>
+					}
 					{modalInfo.isMe &&
 					// @ts-ignore
 					<Button color={"error"} onClick={() => onDelete({ messageId: modalInfo.message.messageId, images: modalInfo.message.images })} startIcon={<DeleteIcon/>} sx={{ minWidth: "30px" }}>
@@ -175,27 +186,31 @@ const MessageContextMenu: FC<MessageContextMenuPT> =
 					<Button sx={{ ml: "auto", width: "40px", minWidth: "auto" }} onClick={() => setIsSeenListOpen(false)} color='error'>
 						<CloseIcon/>
 					</Button>
-					{modalInfo.message?.seen?.map((userId) => {
+					{modalInfo.message?.seen?.map(({ userId, date }) => {
 						if (userId === myId) {
 							return <div key={userId} style={{ display: "none" }}/>;
 						}
 						if (userId === modalInfo.message.userId) {
 							return <div key={userId} style={{ display: "none" }}/>;
 						}
-						return (
-							<Button
-								sx={{ display: "flex", alignItems: "center", cursor: "pointer", padding: 1, color: subscribedUsers[userId]?.nicknameColor || userStyles.secondBackgroundColor }}
-								onClick={(e) => {
-									const { pageX, pageY } = e;
+						const formattedDate = format(date, "HH mm").split(" ").join(":");
 
-									setIsUserModalOpen(true);
-									setUserModalInfo({ user: subscribedUsers[userId], pageX, pageY });
-								}}
-                                key={userId}
-							>
-								<Avatar sx={{ width: "30px", height: "30px", mr: 1 }} src={subscribedUsers[userId]?.photoURL} alt='avatar'/>
-								<Typography>{subscribedUsers[userId]?.nickname}</Typography>
-							</Button>
+						return (
+							<Box key={userId} sx={{ display: "flex", alignItems: "center" }}>
+								<Button
+									sx={{ display: "flex", alignItems: "center", cursor: "pointer", padding: 1, color: subscribedUsers[userId]?.nicknameColor || userStyles.secondBackgroundColor, textTransform: "none" }}
+									onClick={(e) => {
+										const { pageX, pageY } = e;
+
+										setIsUserModalOpen(true);
+										setUserModalInfo({ user: subscribedUsers[userId], pageX, pageY });
+									}}
+								>
+									<Avatar sx={{ width: "30px", height: "30px", mr: 1 }} src={subscribedUsers[userId]?.photoURL} alt='avatar'/>
+									<Typography>{subscribedUsers[userId]?.nickname}</Typography>
+								</Button>
+								<Typography sx={{ ml: 0.5, fontSize: "14px" }}>{formattedDate}</Typography>
+							</Box>
 						);
 					})}
 				</Box>

@@ -20,11 +20,11 @@ import SendIcon from "@mui/icons-material/Send";
 import "../../App.css";
 import ChatInfo from "../ChatInfo";
 import {
+	gifMessageType,
 	messagesExemplar,
 	messagesType,
 	messagesWhichOnProgressType,
 	messageType,
-	replyMessageType
 } from "../../types/messages";
 import CloseIcon from "@mui/icons-material/Close";
 import EllipsisText from "react-ellipsis-text";
@@ -41,9 +41,9 @@ type EntryFieldPT = {
 	chatId: string,
 	users: any,
 	isReplying: boolean,
-	setIsReplying: React.Dispatch<React.SetStateAction<boolean>>
-	replyMessageInfo: any,
-	showRepliedMessage: (message: messageType | replyMessageType, actionType: showRepliedMessageActionTypes) => void,
+	setIsReplying: Dispatch<SetStateAction<boolean>>
+	replyMessageInfo: null | (messageType | gifMessageType),
+	showRepliedMessage: (message: messageType | gifMessageType, actionType: showRepliedMessageActionTypes) => void,
 	emoji: emojiType | null,
 	inputRef: React.MutableRefObject<HTMLInputElement | null>,
 	setMessagesWhichOnProgress: React.Dispatch<React.SetStateAction<null | messagesWhichOnProgressType[]>>,
@@ -72,7 +72,6 @@ const EntryField: FC<EntryFieldPT> = memo(
 
 		const [message, setMessage] = useState("");
 		const [open, setOpen] = useState(false);
-
 
 		const { isMobile } = useGetTypeOfScreen();
 
@@ -105,27 +104,30 @@ const EntryField: FC<EntryFieldPT> = memo(
 
 		const sendMessagesWhenUrlsDone = async (urls: { url: string, imageRef: string }[] | null, message: string, newMessageId: string) => {
 			// const newMessageId = `${user!.userId}${shortid.generate()}${shortid.generate()}${Date.now()}`
+			const { userId } = user!;
+			const now = Date.now();
 
-			if (isReplying) {
+			if (isReplying && replyMessageInfo) {
+				const { userId, messageId } = replyMessageInfo;
+
 				const docRef = await setDoc(doc(firestore, "chats", `${id}`, "messages", `${newMessageId}`), {
-					messageType: messagesExemplar.replyMessage,
+					messageType: messagesExemplar.message,
 					userId: user!.userId,
 					message: message,
 					createdAt: Date.now(),
-					replyer: replyMessageInfo,
+					replyer: { userId, messageId },
 					messageId: newMessageId,
 					chatId: id,
 					images: urls,
-					seen: [user!.userId]
+					seen: [{ userId, date: now }]
 
 				});
 				await setDoc(doc(firestore, "chats", `${id}`), {
 					lastMessage: {
-						messageType: messagesExemplar.replyMessage,
+						messageType: messagesExemplar.message,
 						userId: user!.userId,
 						message: message,
 						createdAt: Date.now(),
-						replyer: replyMessageInfo,
 						messageId: newMessageId,
 						chatId: id,
 						images: urls
@@ -142,7 +144,7 @@ const EntryField: FC<EntryFieldPT> = memo(
 					messageId: newMessageId,
 					chatId: id,
 					images: urls,
-					seen: [user!.userId]
+					seen: [{ userId, date: now }]
 				});
 				await setDoc(doc(firestore, "chats", `${id}`), {
 					lastMessage: {
@@ -313,7 +315,7 @@ const EntryField: FC<EntryFieldPT> = memo(
 					borderTop: "1px solid #363636"
 				}}>
 					<Box>
-						{isReplying &&
+						{isReplying && replyMessageInfo &&
 						<Box sx={{ display: "flex", mb: 1, alignItems: "center", cursor: "pointer" }}>
 							<Box sx={{ display: "flex", alignItems: "center", width: "100%" }} onClick={() => showRepliedMessage(replyMessageInfo, showRepliedMessageActionTypes.showMessage)}>
 								<ReplyIcon sx={{ width: "30px", height: "30px", mr: 1 }}/>
@@ -321,6 +323,9 @@ const EntryField: FC<EntryFieldPT> = memo(
 									<Typography>{users[replyMessageInfo.userId].nickname}</Typography>
 									<Typography>
 										<EllipsisText text={replyMessageInfo.message} length={150}/>
+										{(replyMessageInfo.messageType === messagesExemplar.message && replyMessageInfo?.images && replyMessageInfo.images.length > 0) &&
+										<Typography>{replyMessageInfo.images.length} image{replyMessageInfo.images.length > 1 && 's'}</Typography>
+										}
 									</Typography>
 								</Box>
 							</Box>

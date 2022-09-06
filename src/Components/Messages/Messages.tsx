@@ -1,60 +1,19 @@
-import React, {
-	FC,
-	memo,
-	MutableRefObject,
-	useCallback,
-	useContext,
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState
-} from "react";
+import React, { FC, memo, MutableRefObject, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Context } from "../..";
 import { arrayUnion, doc, setDoc, updateDoc } from "firebase/firestore";
-import {
-	Avatar,
-	Box,
-	Button, debounce,
-	IconButton,
-	ImageList,
-	ImageListItem,
-	List,
-	ListItem,
-	TextField,
-	Typography
-} from "@mui/material";
+import { Avatar, Box, Button, debounce, IconButton, ImageList, ImageListItem, List, ListItem, TextField, Typography } from "@mui/material";
 import Loader from "../Loader";
 import UserModalInfo from "../UserModalInfo";
-import {
-	gifMessageType,
-	messagesExemplar,
-	messagesType,
-	messagesWhichOnProgressType,
-	messageType,
-	replyMessageType
-} from "../../types/messages";
+import { gifMessageType, messagesExemplar, messagesType, messagesWhichOnProgressType, messageType } from "../../types/messages";
 import MessageContextMenu from "../MessageContextMenu";
 import EllipsisText from "react-ellipsis-text";
 import DoneIcon from "@mui/icons-material/Done";
 import CloseIcon from "@mui/icons-material/Close";
 import { user } from "../../types/user";
-import {
-	activeUsername,
-	avatarWrapper,
-	dateMessage,
-	messageContainer,
-	messageLeftLine,
-	messageListItem,
-	messagesList,
-	messageStyles,
-	messageWrapper,
-	userRole,
-	userWrapper
-} from "./MessagesStyles";
-import { screenTypes, useGetTypeOfScreen } from "../../hooks/useGetTypeOfScreen";
+import { activeUsername, avatarWrapper, dateMessage, messageContainer, messageLeftLine, messageListItem, messagesList, messageStyles, messageWrapper, userRole, userWrapper } from "./MessagesStyles";
+import { useGetTypeOfScreen } from "../../hooks/useGetTypeOfScreen";
 import "./Messages.css";
 import ReplyIcon from "@mui/icons-material/Reply";
-import { useHistory } from "react-router-dom";
 import { chatType } from "../../types/chatType";
 import { format } from "date-fns";
 import { ThemeContext } from "../../App";
@@ -70,7 +29,7 @@ type MessagesPropTypes = {
 	setIsReplying: React.Dispatch<React.SetStateAction<boolean>>
 	setReplyMessageInfo: React.Dispatch<React.SetStateAction<any>>,
 	isChatChanging: boolean,
-	showRepliedMessage: (message: replyMessageType | messageType, actionType: showRepliedMessageActionTypes) => void,
+	showRepliedMessage: (message: (messageType | gifMessageType), actionType: showRepliedMessageActionTypes) => void,
 	listRef: React.MutableRefObject<HTMLUListElement | null>,
 	chatInfo: chatType | undefined,
 	focusOnInput: () => void,
@@ -116,12 +75,13 @@ const Messages: FC<MessagesPropTypes> = memo(({
 	useEffect(() => {
 	    if (listRef.current) {
 	    	const lastGroup = listRef.current.children[messagesArray?.length - 1]
-			const list = lastGroup?.children[1]
-	        const lastChildOfMessages = list.children[list.children.length - 1];
-	        if (isInViewport(lastChildOfMessages)) {
-	            scrollToBottom()
-	        }
-			console.log(lastChildOfMessages);
+			if (lastGroup) {
+				const list = lastGroup.children[1]
+				const lastChildOfMessages = list.children[list.children.length - 1];
+				if (isInViewport(lastChildOfMessages)) {
+					scrollToBottom()
+				}
+			}
 	    }
 	}, [messagesArray?.[messagesArray?.length - 1]?.length, listRef.current])
 
@@ -278,7 +238,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
 
 	const secondLastMessage = getTwoLastMessage(messagesArray)
 
-	const replyOnMessage = (message: messageType | replyMessageType | gifMessageType) => {
+	const replyOnMessage = (message: messageType | gifMessageType) => {
 		setIsReplying(true);
 		setReplyMessageInfo(message);
 		focusOnInput();
@@ -299,9 +259,11 @@ const Messages: FC<MessagesPropTypes> = memo(({
 		);
 	}
 
-	const sendIHaveSeenMessage = async (message: messageType | replyMessageType | gifMessageType) => {
+	const sendIHaveSeenMessage = async (message: messageType | gifMessageType) => {
+		const {userId} = me!
+		const now = Date.now()
 		await updateDoc(doc(firestore, "chats", chatId, "messages", message.messageId), {
-			seen: arrayUnion(me!.userId)
+			seen: arrayUnion({'userId': userId, 'date': now})
 		});
 	};
 
@@ -324,7 +286,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
 					// console.log(`group ${groupIndex} element ${childIndex} in viewport`, messageElement)
 					firstContact = true;
 					if ("seen" in messageObj) {
-						const isUserHasSeenLastMessage = messageObj.seen.find((userId) => userId === me?.userId);
+						const isUserHasSeenLastMessage = messageObj.seen.find(({ userId }) => userId === me?.userId);
 						if (!isUserHasSeenLastMessage) {
 							sendIHaveSeenMessage(messageObj);
 						}
@@ -412,17 +374,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
 				onScrollCapture={onDebouncedListScroll}
 			>
 				{subscribedUsers && replyMessages && messagesArray?.map((messages: messagesType[], i: number) => {
-					// const createdAtFormatted = format(message.createdAt, 'HH mm').split(' ').join(':')
-					//
-
-					//
-					// const changedAtFormatted = message?.changedAt ? format(message.changedAt, 'HH mm').split(' ').join(':') : null
-					//
-					// const {userId, messageId, messageType} = message
-					// const subscribedUser = subscribedUsers[userId]
-
-
-					const userId = messages[0].userId;
+					const { userId } = messages[0];
 					const subscribedUser = subscribedUsers[userId];
 					const isLastGroup = messagesArray.length - 1 === i;
 
@@ -441,7 +393,6 @@ const Messages: FC<MessagesPropTypes> = memo(({
 								setIsContextMenuOpen(false);
 							}} sx={avatarWrapper}>
 								<Avatar sx={{ width: 50, height: 50 }} src={subscribedUser?.photoURL} alt="avatar"/>
-								{/*{!isMessageAfterThisMine ? <Avatar sx={{width: 50, height: 50}} src={subscribedUser?.photoURL} alt="avatar"/> : <Box sx={{width: 50}}/>}*/}
 							</Box>
 							<List
 								sx={{ padding: 0, width: "100%" }}
@@ -470,6 +421,9 @@ const Messages: FC<MessagesPropTypes> = memo(({
 									const isMessageAfterThisMine = messages[i + 1]?.userId === message.userId;
 									const isLastMessage = isLastGroup && ((messages.length - 1) === i);
 
+									const subscribedReplyerUser = subscribedUsers[message?.replyer?.userId] || null;
+									const replyMessage: messageType | gifMessageType | null = replyMessages[message?.replyer?.messageId] || null;
+
 									if (message.messageType === messagesExemplar.gifMessage) {
 
 
@@ -487,6 +441,35 @@ const Messages: FC<MessagesPropTypes> = memo(({
 														className='message'
 														sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}
 													>
+														{message.replyer &&
+														<Box sx={{...messageContainer, mb: 1}}>
+															<Box sx={messageLeftLine}/>
+															<Box
+																onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)}
+																sx={{ cursor: "pointer" }}
+															>
+																<Typography
+																	sx={{
+																		color: `${subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || "" : subscribedReplyerUser?.nicknameColor || ""} !important`,
+																		cursor: "pointer"
+																	}}
+																>
+																	{subscribedReplyerUser?.nickname}
+																</Typography>
+																{replyMessage ?
+																	<EllipsisText
+																		sx={messageStyles}
+																		text={replyMessage.message}
+																		length={30}
+																	/>
+																	:
+																	<Typography color='error' sx={{}}>Сообщение
+																		удалено
+																	</Typography>
+																}
+															</Box>
+														</Box>
+														}
 														<Box
 															sx={{ padding: 0 }}
 															onClick={() => {
@@ -499,7 +482,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
 														>
 															<img
 																style={{
-																	borderRadius: `${userStyles.messagesBorderRadius}px`,
+																	borderRadius: message.replyer ? `0 ${userStyles.messagesBorderRadius}px ${userStyles.messagesBorderRadius}px ${userStyles.messagesBorderRadius}px` : `${userStyles.messagesBorderRadius}px`,
 																	cursor: "pointer",
 																	height: "300px",
 																	maxWidth: '100%'
@@ -528,7 +511,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
 														bottom: "-25px",
 														left: 0
 													}}>
-														{message.seen?.map((userId, i) => {
+														{message.seen?.map(({ userId, date }, i) => {
 															if (i > 6) {
 																return <div style={{ display: "none" }} key={i}/>;
 															}
@@ -564,193 +547,12 @@ const Messages: FC<MessagesPropTypes> = memo(({
 									const { message: messageText } = message;
 									const isMessageChanging = message.messageId === changingMessageId;
 
+
+
 									if (message.messageType === messagesExemplar.message) {
 
-
-										return (
-											<ListItem
-												sx={{ padding: 0 }}
-												key={messageId}
-												onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-												ref={isLastMessage ? lastMessage : null}
-											>
-												<Box
-													className={"messageWrapper"}
-													sx={messageListItem(isMobile)}
-												>
-													<Box className='message'
-														 sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}
-													>
-														{!isMessageChanging ?
-															<>
-																<Box sx={{ alignItems: "center", display: "flex" }}>
-																	{!isMessageBeforeIsMine &&
-																	<>
-																		<Typography
-																			onClick={(e) => {
-																				const { pageX, pageY } = e;
-																				if (subscribedUser) {
-																					setIsUserModalOpen(true);
-																					setUserModalInfo({
-																						user: subscribedUser,
-																						pageX,
-																						pageY
-																					});
-																				}
-																			}}
-																			sx={{
-																				color: subscribedUser ? subscribedUser?.nicknameColor : "",
-																				cursor: "pointer",
-																				display: "inline-block",
-																				wordBreak: "break-all"
-																			}}
-																			variant={"subtitle1"}
-																		>
-																			{subscribedUser?.nickname || userId}
-																		</Typography>
-																		{subscribedUser?.isAdmin &&
-																		<Typography
-																			variant={"subtitle1"}
-																			sx={{
-																				display: "inline-block",
-																				ml: 1,
-																				fontSize: "12px",
-																				cursor: "default"
-																			}}
-																		>
-																			Админ
-																		</Typography>
-																		}
-																	</>
-																	}
-																	<IconButton
-																		className='miniContextmenu'
-																		onClick={() => replyOnMessage(message)}
-																		sx={{ color: subscribedUser?.nicknameColor || "" }}
-																	>
-																		<ReplyIcon/>
-																	</IconButton>
-																</Box>
-
-																{message.images &&
-																<ImageList
-																	sx={isMobile ? { width: "100%" } : {}}
-																	cols={isMobile ? 1 : message.images.length > 2 ? 3 : message.images.length}
-																>
-																	{message.images.map(({ imageRef, url }, i) => {
-
-																		return <ImageListItem
-																			onClick={() => {
-																				setIndexOfOpenedImage(i);
-																				setGalleryImages(message.images!.map(({ url }) => {
-																					return {
-																						original: url,
-																						thumbnail: url
-																					};
-																				}));
-																				setIsGalleryOpen(true);
-																			}}
-																			key={i}
-																			sx={{
-																				borderRadius: 2,
-																				overflow: "hidden",
-																				mt: 1,
-																				mx: 0.5,
-																				cursor: "pointer"
-																			}}>
-																			<img style={{ height: "300px" }} src={url}/>
-																		</ImageListItem>;
-																	})}
-																</ImageList>
-																}
-																<Typography sx={messageStyles} variant={"body1"}>
-																	{message.message}
-																</Typography>
-																{changedAtFormatted ?
-																	<Typography sx={dateMessage}>
-																		изменено в {changedAtFormatted}
-																	</Typography>
-																	:
-																	<Typography sx={dateMessage}>
-																		{createdAtFormatted}
-																	</Typography>
-																}
-																{isLastMessage &&
-																<Box sx={{
-																	display: "flex",
-																	overflow: "hidden",
-																	position: "absolute",
-																	bottom: "-25px",
-																	left: 0
-																}}>
-																	{message.seen?.map((userId, i) => {
-																		if (i > 6) {
-																			return <div style={{ display: "none" }} key={i}/>;
-																		}
-																		if (i > 5) {
-																			return <Box sx={{ width: "20px", height: "20px", mx: 0.5 }} key={i}>...</Box>;
-																		}
-																		if (userId === me!.userId) {
-																			return <div style={{ display: "none" }} key={i}/>;
-																		}
-																		if (userId === message.userId) {
-																			return <div style={{ display: "none" }} key={i}/>;
-																		}
-																		return (
-																			<Avatar
-																				sx={{
-																					width: "20px",
-																					height: "20px",
-																					mx: 0.3
-																				}}
-																				src={subscribedUsers[userId]?.photoURL}
-																				alt='avatar'
-																				key={i}
-																			/>
-																		);
-																	})}
-																</Box>
-																}
-															</>
-															:
-															<Box>
-																<TextField
-																	fullWidth sx={{ div: { px: 1, mb: 1 } }}
-																	variant={"standard"}
-																	onChange={(e) => setMessageInputValue(e.target.value)}
-																	multiline defaultValue={message.message}
-																/>
-																<Button
-																	sx={{ mx: 1 }}
-																	color={"success"}
-																	onClick={() => {
-																		changeMessage(message);
-																	}}
-																>
-																	<DoneIcon/>
-																</Button>
-																<Button
-																	color={"error"}
-																	onClick={() => {
-																		setChangingMessageId("");
-																		setMessageInputValue("");
-																	}}
-																>
-																	<CloseIcon/>
-																</Button>
-
-															</Box>
-														}
-													</Box>
-												</Box>
-											</ListItem>
-										);
-									}
-
-
-									if (message.messageType === messagesExemplar.replyMessage) {
-										const subscribedReplyerUser = subscribedUsers[message.replyer.userId];
-										const replyMessage: replyMessageType = replyMessages[message.replyer.messageId];
+										const subscribedReplyerUser = subscribedUsers[message?.replyer?.userId] || null;
+										const replyMessage: messageType | gifMessageType | null = replyMessages[message?.replyer?.messageId] || null;
 
 										return (
 											<ListItem
@@ -797,33 +599,35 @@ const Messages: FC<MessagesPropTypes> = memo(({
 																		<ReplyIcon/>
 																	</IconButton>
 																</Box>
-																<Box sx={messageContainer}>
-																	<Box sx={messageLeftLine}/>
-																	<Box
-																		onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)}
-																		sx={{ cursor: "pointer" }}
-																	>
-																		<Typography
-																			sx={{
-																				color: `${subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || "" : subscribedReplyerUser?.nicknameColor || ""} !important`,
-																				cursor: "pointer"
-																			}}
+																{message.replyer &&
+																	<Box sx={messageContainer}>
+																		<Box sx={messageLeftLine}/>
+																		<Box
+																			onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)}
+																			sx={{ cursor: "pointer" }}
 																		>
-																			{subscribedReplyerUser?.nickname}
-																		</Typography>
-																		{replyMessage ?
-																			<EllipsisText
-																				sx={messageStyles}
-																				text={replyMessage.message}
-																				length={30}
-																			/>
-																			:
-																			<Typography color='error' sx={{}}>Сообщение
-																				удалено
+																			<Typography
+																				sx={{
+																					color: `${subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || "" : subscribedReplyerUser?.nicknameColor || ""} !important`,
+																					cursor: "pointer"
+																				}}
+																			>
+																				{subscribedReplyerUser?.nickname}
 																			</Typography>
-																		}
+																			{replyMessage ?
+																				<EllipsisText
+																					sx={messageStyles}
+																					text={replyMessage.message}
+																					length={30}
+																				/>
+																				:
+																				<Typography color='error' sx={{}}>Сообщение
+																					удалено
+																				</Typography>
+																			}
+																		</Box>
 																	</Box>
-																</Box>
+																}
 																{message.images &&
 																<ImageList
 																	sx={isMobile ? { width: "100%" } : {}}
@@ -875,7 +679,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
 																	bottom: "-25px",
 																	left: 0
 																}}>
-																	{message.seen?.map((userId, i) => {
+																	{message.seen?.map(({ userId, date }, i) => {
 																		if (i > 6) {
 																			return <div style={{ display: "none" }} key={i}/>;
 																		}
@@ -914,25 +718,67 @@ const Messages: FC<MessagesPropTypes> = memo(({
 																		cursor: "pointer"
 																	}}
 																>
-																	<Box sx={messageLeftLine}/>
-																	<Box>
-																		<Typography sx={{
-																			color: subscribedReplyerUser?.userId === me?.userId ? me!.nicknameColor : "",
-																			wordBreak: "break-all"
-																		}}>
-																			{subscribedReplyerUser?.nickname}
-																		</Typography>
-																		<Typography
-																			color={replyMessage?.message ? "" : "error"}
+																	{message.replyer &&
+																	<Box sx={messageContainer}>
+																		<Box sx={messageLeftLine}/>
+																		<Box
+																			onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)}
+																			sx={{ cursor: "pointer" }}
 																		>
-																			<EllipsisText
-																				sx={{ wordBreak: "break-all" }}
-																				text={replyMessage?.message || "Сообщение удалено"}
-																				length={30}
-																			/>
-																		</Typography>
+																			<Typography
+																				sx={{
+																					color: `${subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || "" : subscribedReplyerUser?.nicknameColor || ""} !important`,
+																					cursor: "pointer"
+																				}}
+																			>
+																				{subscribedReplyerUser?.nickname}
+																			</Typography>
+																			{replyMessage ?
+																				<EllipsisText
+																					sx={messageStyles}
+																					text={replyMessage.message}
+																					length={30}
+																				/>
+																				:
+																				<Typography color='error' sx={{}}>Сообщение
+																					удалено
+																				</Typography>
+																			}
+																		</Box>
 																	</Box>
+																	}
 																</Box>
+																{message.images &&
+																<ImageList
+																	sx={isMobile ? { width: "100%" } : {}}
+																	cols={isMobile ? 1 : message.images.length > 2 ? 3 : message.images.length}
+																>
+																	{message.images.map(({ imageRef, url }, i) => {
+																		return <ImageListItem
+																			onClick={() => {
+																				setIndexOfOpenedImage(i);
+																				setGalleryImages(message.images!.map(({ url }) => {
+																					return {
+																						original: url,
+																						thumbnail: url
+																					};
+																				}));
+																				setIsGalleryOpen(true);
+																			}}
+																			key={url}
+																			sx={{
+																				borderRadius: 2,
+																				overflow: "hidden",
+																				mt: 1,
+																				mx: 0.5,
+																				cursor: "pointer"
+																			}}
+																		>
+																			<img style={{ height: "300px" }} src={url}/>
+																		</ImageListItem>;
+																	})}
+																</ImageList>
+																}
 																<TextField
 																	fullWidth
 																	sx={{ div: { px: 1, mb: 1 } }}

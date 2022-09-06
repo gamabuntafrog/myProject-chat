@@ -12,7 +12,6 @@ import {
     messagesType,
     messagesWhichOnProgressType,
     messageType,
-    replyMessageType
 } from '../../types/messages';
 import MyChats from "../MyChats";
 import './Chat.css';
@@ -70,7 +69,7 @@ const Chat: FC = () => {
     const [messages, setMessages] = useState<[messagesType[]] | null>(null);
     const [users, setUsers] = useState<null | any>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [replyMessageInfo, setReplyMessageInfo] = useState(null);
+    const [replyMessageInfo, setReplyMessageInfo] = useState<null | (messageType | gifMessageType)>(null);
     const [isReplying, setIsReplying] = useState(false);
     const [isChatChanging, setIsChatChanging] = useState(false);
     const [showGifs, setShowGifs] = useState<boolean>(false);
@@ -194,19 +193,21 @@ const Chat: FC = () => {
     }
 
     const showRepliedMessage = useCallback(
-        (repliedMessage: replyMessageType | messageType, actionType: showRepliedMessageActionTypes) => {
-            console.log(messages);
+        (repliedMessage: messageType | gifMessageType, actionType: showRepliedMessageActionTypes) => {
+            console.log(messages, repliedMessage);
             let indexOfMessagesGroup = -1
             let indexOfReplyerMessage = -1
 
-            if (actionType === showRepliedMessageActionTypes.showRepliedMessage && repliedMessage.messageType === messagesExemplar.replyMessage) {
-                messages?.forEach((messages: messagesType[], i) => {
-                    const finding = messages.findIndex((message) => repliedMessage.replyer.messageId === message.messageId);
-                    if (finding >= 0) {
-                        indexOfReplyerMessage = finding
-                        indexOfMessagesGroup = i
-                    }
-                })
+            if (actionType === showRepliedMessageActionTypes.showRepliedMessage) {
+                if (repliedMessage.replyer) {
+                    messages?.forEach((messages: messagesType[], i) => {
+                        const finding = messages.findIndex((message) => repliedMessage.replyer.messageId === message.messageId);
+                        if (finding >= 0) {
+                            indexOfReplyerMessage = finding
+                            indexOfMessagesGroup = i
+                        }
+                    })
+                }
             } else {
                 messages?.forEach((messages: messagesType[], i) => {
                     const finding = messages.findIndex((message) => repliedMessage.messageId === message.messageId);
@@ -311,6 +312,9 @@ const Chat: FC = () => {
                         setShowMedia={setShowMedia}
                         showMedia={showMedia}
                         chatId={chatData?.chatId}
+                        isReplying={isReplying}
+                        setIsReplying={setIsReplying}
+                        replyMessageInfo={replyMessageInfo}
                     />
                 </Box>
 
