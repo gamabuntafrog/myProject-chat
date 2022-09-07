@@ -1,4 +1,4 @@
-import React, { FC, memo, MutableRefObject, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { Dispatch, FC, memo, MutableRefObject, SetStateAction, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Context } from "../..";
 import { arrayUnion, doc, setDoc, updateDoc } from "firebase/firestore";
 import { Avatar, Box, Button, debounce, IconButton, ImageList, ImageListItem, List, ListItem, TextField, Typography } from "@mui/material";
@@ -10,7 +10,7 @@ import EllipsisText from "react-ellipsis-text";
 import DoneIcon from "@mui/icons-material/Done";
 import CloseIcon from "@mui/icons-material/Close";
 import { user } from "../../types/user";
-import { activeUsername, avatarWrapper, dateMessage, messageContainer, messageLeftLine, messageListItem, messagesList, messageStyles, messageWrapper, userRole, userWrapper } from "./MessagesStyles";
+import { activeUsername, avatarWrapper, dateMessage, itemGroupWrapper, messageContainer, messageLeftLine, messageListItem, messagesGroupList, messagesList, messageStyles, messageWrapper, userRole, userWrapper } from "./MessagesStyles";
 import { useGetTypeOfScreen } from "../../hooks/useGetTypeOfScreen";
 import "./Messages.css";
 import ReplyIcon from "@mui/icons-material/Reply";
@@ -20,14 +20,17 @@ import { ThemeContext } from "../../App";
 import Modal from "../Modal";
 import ImageGallery from "react-image-gallery";
 import { showRepliedMessageActionTypes } from "../Chat/Chat";
+import WhoSeenTheMessage from "./WhoSeenTheMessage/WhoSeenTheMessage";
+import GifMessage from "./GifMessage";
+import Message from "./Message";
 
 
 type MessagesPropTypes = {
 	chatId: string,
 	messagesArray: [messagesType[]],
 	subscribedUsers: any,
-	setIsReplying: React.Dispatch<React.SetStateAction<boolean>>
-	setReplyMessageInfo: React.Dispatch<React.SetStateAction<any>>,
+	setIsReplying: Dispatch<SetStateAction<boolean>>
+	setReplyMessageInfo: Dispatch<SetStateAction<null | (messageType | gifMessageType)>>,
 	isChatChanging: boolean,
 	showRepliedMessage: (message: (messageType | gifMessageType), actionType: showRepliedMessageActionTypes) => void,
 	listRef: React.MutableRefObject<HTMLUListElement | null>,
@@ -38,20 +41,22 @@ type MessagesPropTypes = {
 
 }
 
-const Messages: FC<MessagesPropTypes> = memo(({
-												  chatId,
-												  messagesArray,
-												  subscribedUsers,
-												  setReplyMessageInfo,
-												  setIsReplying,
-												  isChatChanging,
-												  showRepliedMessage,
-												  listRef,
-												  chatInfo,
-												  focusOnInput,
-												  messagesWhichOnProgress,
-												  chatReactRef
-											  }) => {
+const Messages: FC<MessagesPropTypes> = memo((
+	{
+		chatId,
+		messagesArray,
+		subscribedUsers,
+		setReplyMessageInfo,
+		setIsReplying,
+		isChatChanging,
+		showRepliedMessage,
+		listRef,
+		chatInfo,
+		focusOnInput,
+		messagesWhichOnProgress,
+		chatReactRef
+	}
+) => {
 
 	const { user: me, firestore } = useContext(Context)!;
 
@@ -63,41 +68,38 @@ const Messages: FC<MessagesPropTypes> = memo(({
 	const [changingMessageId, setChangingMessageId] = useState("");
 	const [replyMessages, setReplyMessages] = useState<any>(null);
 	const [isFirstRender, setIsFirstRender] = useState(true);
-	const [flatedMessages, setFlatedMessages] = useState<messagesType[]>([]);
 
 	const lastMessage = useRef<null | HTMLLIElement>(null);
 
 	const { screenType, isMobile, isMobileOrTablet } = useGetTypeOfScreen();
 
-	useEffect(() => setFlatedMessages(messagesArray.flatMap((msgs) => msgs)), [messagesArray]);
-
 
 	useEffect(() => {
-	    if (listRef.current) {
-	    	const lastGroup = listRef.current.children[messagesArray?.length - 1]
+		if (listRef.current) {
+			const lastGroup = listRef.current.children[messagesArray?.length - 1];
 			if (lastGroup) {
-				const list = lastGroup.children[1]
+				const list = lastGroup.children[1];
 				const lastChildOfMessages = list.children[list.children.length - 1];
 				if (isInViewport(lastChildOfMessages)) {
-					scrollToBottom()
+					scrollToBottom();
 				}
 			}
-	    }
-	}, [messagesArray?.[messagesArray?.length - 1]?.length, listRef.current])
+		}
+	}, [messagesArray?.[messagesArray?.length - 1]?.length, listRef.current]);
 
 	useLayoutEffect(() => {
-	    if (lastMessage.current) {
-	        if (isFirstRender) {
-	            lastMessage.current!.scrollIntoView()
-	            setIsFirstRender(false)
-	        }
-	    }
+		if (lastMessage.current) {
+			if (isFirstRender) {
+				lastMessage.current!.scrollIntoView();
+				setIsFirstRender(false);
+			}
+		}
 	}, [lastMessage.current]);
 
 	useEffect(() => {
-	    return () => {
-	        setIsFirstRender(true)
-	    }
+		return () => {
+			setIsFirstRender(true);
+		};
 	}, [chatId]);
 
 
@@ -236,7 +238,7 @@ const Messages: FC<MessagesPropTypes> = memo(({
 		[messagesArray]
 	);
 
-	const secondLastMessage = getTwoLastMessage(messagesArray)
+	const secondLastMessage = getTwoLastMessage(messagesArray);
 
 	const replyOnMessage = (message: messageType | gifMessageType) => {
 		setIsReplying(true);
@@ -260,10 +262,10 @@ const Messages: FC<MessagesPropTypes> = memo(({
 	}
 
 	const sendIHaveSeenMessage = async (message: messageType | gifMessageType) => {
-		const {userId} = me!
-		const now = Date.now()
+		const { userId } = me!;
+		const now = Date.now();
 		await updateDoc(doc(firestore, "chats", chatId, "messages", message.messageId), {
-			seen: arrayUnion({'userId': userId, 'date': now})
+			seen: arrayUnion({ "userId": userId, "date": now })
 		});
 	};
 
@@ -310,6 +312,14 @@ const Messages: FC<MessagesPropTypes> = memo(({
 		[messagesArray]
 	);
 
+	const onAvatarClick = ({ event, subscribedUser }: { event: React.MouseEvent<HTMLDivElement>, subscribedUser: user }) => {
+		const { pageX, pageY } = event;
+		if (subscribedUser) {
+			setIsUserModalOpen(true);
+			setUserModalInfo({ user: subscribedUser, pageX, pageY });
+		}
+		setIsContextMenuOpen(false);
+	};
 
 	if (!messagesArray && !subscribedUsers && !me) {
 		return <List sx={{ minHeight: "100vh" }}>
@@ -370,446 +380,338 @@ const Messages: FC<MessagesPropTypes> = memo(({
 			/>}
 			<List
 				ref={listRef}
-				sx={messagesList(isMobileOrTablet, userStyles?.backgroundImage, userStyles?.backgroundColor)}
+				sx={messagesGroupList()}
 				onScrollCapture={onDebouncedListScroll}
 			>
 				{subscribedUsers && replyMessages && messagesArray?.map((messages: messagesType[], i: number) => {
 					const { userId } = messages[0];
 					const subscribedUser = subscribedUsers[userId];
 					const isLastGroup = messagesArray.length - 1 === i;
+					const firstMessageInGroup = messages[0];
+					const { messageId } = firstMessageInGroup;
 
 					return (
 						<ListItem
-							sx={{ padding: 0, display: "flex", alignItems: "flex-end" }}
-							key={messages[0].messageId + i}
+							sx={itemGroupWrapper}
+							key={messageId}
 							className='messageItem'
 						>
-							<Box onClick={(e) => {
-								const { pageX, pageY } = e;
-								if (subscribedUser) {
-									setIsUserModalOpen(true);
-									setUserModalInfo({ user: subscribedUser, pageX, pageY });
-								}
-								setIsContextMenuOpen(false);
-							}} sx={avatarWrapper}>
-								<Avatar sx={{ width: 50, height: 50 }} src={subscribedUser?.photoURL} alt="avatar"/>
+							<Box onClick={(event) => onAvatarClick({ event, subscribedUser })} sx={avatarWrapper}>
+								<Avatar sx={{ width: 50, height: 50 }} src={subscribedUser?.photoURL} alt={`avatar of ${subscribedUser?.nickname}`}/>
 							</Box>
 							<List
-								sx={{ padding: 0, width: "100%" }}
+								sx={messagesList}
 							>
 								{messages.map((message, i) => {
-									const createdAtFormatted = format(message.createdAt, "HH mm").split(" ").join(":");
+									const { createdAt, messageType, messageId, message: messageText } = message;
 
-									if (message.messageType === messagesExemplar.startMessage) {
+									const formattedCreatedAt = format(createdAt, "HH mm").split(" ").join(":");
+
+									if (messageType === messagesExemplar.startMessage) {
 										return (
 											<ListItem
 												sx={{ justifyContent: "center", alignItems: "baseline" }}
-												key={message.createdAt}
+												key={createdAt}
 											>
-												<Typography variant={"subtitle1"}>{message.message}</Typography>
+												<Typography variant="subtitle1">{messageText}</Typography>
 												<Typography sx={{ fontSize: "12px", ml: 1 }}>
-													{createdAtFormatted}
+													{formattedCreatedAt}
 												</Typography>
 											</ListItem>
 										);
 									}
 
+									const { replyer } = message;
+									const messagesLength = messages.length - 1;
 									const changedAtFormatted = message?.changedAt ? format(message.changedAt, "HH mm").split(" ").join(":") : null;
 
-									const { messageId } = message;
 									const isMessageBeforeIsMine = messages[i - 1]?.userId === message.userId;
 									const isMessageAfterThisMine = messages[i + 1]?.userId === message.userId;
-									const isLastMessage = isLastGroup && ((messages.length - 1) === i);
+									const isLastMessage = isLastGroup && (messagesLength === i);
 
-									const subscribedReplyerUser = subscribedUsers[message?.replyer?.userId] || null;
-									const replyMessage: messageType | gifMessageType | null = replyMessages[message?.replyer?.messageId] || null;
+									const subscribedReplyerUser = subscribedUsers[replyer?.userId] || null;
+									const replyMessage: messageType | gifMessageType | null = replyMessages[replyer?.messageId] || null;
 
-									if (message.messageType === messagesExemplar.gifMessage) {
-
-
+									if (messageType === messagesExemplar.gifMessage) {
 										return (
-											<ListItem
-												sx={{ padding: 0 }}
+											<GifMessage
 												key={messageId}
-												onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-											>
-												<Box
-													className={"messageWrapper"}
-													sx={messageListItem(isMobile)}
-												>
-													<Box
-														className='message'
-														sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}
-													>
-														{message.replyer &&
-														<Box sx={{...messageContainer, mb: 1}}>
-															<Box sx={messageLeftLine}/>
-															<Box
-																onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)}
-																sx={{ cursor: "pointer" }}
-															>
-																<Typography
-																	sx={{
-																		color: `${subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || "" : subscribedReplyerUser?.nicknameColor || ""} !important`,
-																		cursor: "pointer"
-																	}}
-																>
-																	{subscribedReplyerUser?.nickname}
-																</Typography>
-																{replyMessage ?
-																	<EllipsisText
-																		sx={messageStyles}
-																		text={replyMessage.message}
-																		length={30}
-																	/>
-																	:
-																	<Typography color='error' sx={{}}>Сообщение
-																		удалено
-																	</Typography>
-																}
-															</Box>
-														</Box>
-														}
-														<Box
-															sx={{ padding: 0 }}
-															onClick={() => {
-																setGalleryImages([{
-																	original: message.gifInfo.media_formats.gif.url,
-																	thumbnail: message.gifInfo.media_formats.gif.url
-																}]);
-																setIsGalleryOpen(true);
-															}}
-														>
-															<img
-																style={{
-																	borderRadius: message.replyer ? `0 ${userStyles.messagesBorderRadius}px ${userStyles.messagesBorderRadius}px ${userStyles.messagesBorderRadius}px` : `${userStyles.messagesBorderRadius}px`,
-																	cursor: "pointer",
-																	height: "300px",
-																	maxWidth: '100%'
-																}}
-																src={message.gifInfo.media_formats.mediumgif.url}
-															/>
-														</Box>
-														<Typography sx={dateMessage}>
-															{createdAtFormatted}
-														</Typography>
-														<IconButton
-															className='miniContextmenu'
-															onClick={() => {
-																replyOnMessage(message);
-															}}
-															sx={{ color: subscribedUser?.nicknameColor || "" }}
-														>
-															<ReplyIcon/>
-														</IconButton>
-													</Box>
-													{isLastMessage &&
-													<Box sx={{
-														display: "flex",
-														overflow: "hidden",
-														position: "absolute",
-														bottom: "-25px",
-														left: 0
-													}}>
-														{message.seen?.map(({ userId, date }, i) => {
-															if (i > 6) {
-																return <div style={{ display: "none" }} key={i}/>;
-															}
-															if (i > 5) {
-																return <Box sx={{ width: "20px", height: "20px", mx: 0.5 }} key={i}>...</Box>;
-															}
-															if (userId === me!.userId) {
-																return <div style={{ display: "none" }} key={i}/>;
-															}
-															if (userId === message.userId) {
-																return <div style={{ display: "none" }} key={i}/>;
-															}
-															return (
-																<Avatar
-																	sx={{
-																		width: "20px",
-																		height: "20px",
-																		mx: 0.3
-																	}}
-																	src={subscribedUsers[userId]?.photoURL}
-																	alt='avatar'
-																	key={i}
-																/>
-															);
-														})}
-													</Box>
-													}
-												</Box>
-											</ListItem>
+												message={message}
+												onOpenContextMenu={onOpenContextMenu}
+												isLastMessage={isLastMessage}
+												lastMessage={lastMessage}
+												subscribedUser={subscribedUser}
+												isMobile={isMobile}
+												isMessageBeforeIsMine={isMessageBeforeIsMine}
+												isMessageAfterThisMine={isMessageAfterThisMine}
+												userStyles={userStyles}
+												showRepliedMessage={showRepliedMessage}
+												currentUser={me!}
+												subscribedReplyerUser={subscribedReplyerUser}
+												subscribedUsers={subscribedUsers}
+												replyMessage={replyMessage}
+												setGalleryImages={setGalleryImages}
+												setIsGalleryOpen={setIsGalleryOpen}
+												replyOnMessage={replyOnMessage}
+											/>
 										);
 									}
 
-									const { message: messageText } = message;
+
 									const isMessageChanging = message.messageId === changingMessageId;
 
 
-
-									if (message.messageType === messagesExemplar.message) {
-
-										const subscribedReplyerUser = subscribedUsers[message?.replyer?.userId] || null;
-										const replyMessage: messageType | gifMessageType | null = replyMessages[message?.replyer?.messageId] || null;
+									if (messageType === messagesExemplar.message) {
 
 										return (
-											<ListItem
-												sx={{ padding: 0 }}
+											<Message
 												key={messageId}
-												onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
-												ref={isLastMessage ? lastMessage : null}
-
-											>
-												<Box
-													className={"messageWrapper"}
-													sx={messageListItem(isMobile)}
-												>
-													<Box
-														className='message'
-														sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}
-													>
-														{!isMessageChanging ?
-															<>
-																<Box sx={userWrapper}>
-																	{!isMessageBeforeIsMine &&
-																	<>
-																		<Typography
-																			onClick={(e) => showUserInfo(e, subscribedUser)}
-																			sx={activeUsername(subscribedUser ? subscribedUser?.nicknameColor : "")}
-																			variant='subtitle1'
-																		>
-																			{subscribedUser?.nickname || userId}
-																		</Typography>
-																		{subscribedUser?.isAdmin &&
-																		<Typography variant='subtitle1' sx={userRole}>
-																			Админ
-																		</Typography>
-																		}
-																	</>
-																	}
-																	<IconButton
-																		className='miniContextmenu'
-																		onClick={() => {
-																			replyOnMessage(message);
-																		}}
-																		sx={{ color: subscribedUser?.nicknameColor || "" }}
-																	>
-																		<ReplyIcon/>
-																	</IconButton>
-																</Box>
-																{message.replyer &&
-																	<Box sx={messageContainer}>
-																		<Box sx={messageLeftLine}/>
-																		<Box
-																			onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)}
-																			sx={{ cursor: "pointer" }}
-																		>
-																			<Typography
-																				sx={{
-																					color: `${subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || "" : subscribedReplyerUser?.nicknameColor || ""} !important`,
-																					cursor: "pointer"
-																				}}
-																			>
-																				{subscribedReplyerUser?.nickname}
-																			</Typography>
-																			{replyMessage ?
-																				<EllipsisText
-																					sx={messageStyles}
-																					text={replyMessage.message}
-																					length={30}
-																				/>
-																				:
-																				<Typography color='error' sx={{}}>Сообщение
-																					удалено
-																				</Typography>
-																			}
-																		</Box>
-																	</Box>
-																}
-																{message.images &&
-																<ImageList
-																	sx={isMobile ? { width: "100%" } : {}}
-																	cols={isMobile ? 1 : message.images.length > 2 ? 3 : message.images.length}
-																>
-																	{message.images.map(({ imageRef, url }, i) => {
-																		return <ImageListItem
-																			onClick={() => {
-																				setIndexOfOpenedImage(i);
-																				setGalleryImages(message.images!.map(({ url }) => {
-																					return {
-																						original: url,
-																						thumbnail: url
-																					};
-																				}));
-																				setIsGalleryOpen(true);
-																			}}
-																			key={url}
-																			sx={{
-																				borderRadius: 2,
-																				overflow: "hidden",
-																				mt: 1,
-																				mx: 0.5,
-																				cursor: "pointer"
-																			}}
-																		>
-																			<img style={{ height: "300px" }} src={url}/>
-																		</ImageListItem>;
-																	})}
-																</ImageList>
-																}
-																<Typography sx={messageStyles}>
-																	{message.message}
-																</Typography>
-																{changedAtFormatted ?
-																	<Typography sx={dateMessage}>
-																		изменено в {changedAtFormatted}
-																	</Typography>
-																	:
-																	<Typography sx={dateMessage}>
-																		{createdAtFormatted}
-																	</Typography>
-																}
-																{isLastMessage &&
-																<Box sx={{
-																	display: "flex",
-																	overflow: "hidden",
-																	position: "absolute",
-																	bottom: "-25px",
-																	left: 0
-																}}>
-																	{message.seen?.map(({ userId, date }, i) => {
-																		if (i > 6) {
-																			return <div style={{ display: "none" }} key={i}/>;
-																		}
-																		if (i > 5) {
-																			return <Box sx={{ width: "20px", height: "20px", mx: 0.5 }} key={i}>...</Box>;
-																		}
-																		if (userId === me!.userId) {
-																			return <div style={{ display: "none" }} key={i}/>;
-																		}
-																		if (userId === message.userId) {
-																			return <div style={{ display: "none" }} key={i}/>;
-																		}
-																		return (
-																			<Avatar
-																				sx={{
-																					width: "20px",
-																					height: "20px",
-																					mx: 0.3
-																				}}
-																				src={subscribedUsers[userId]?.photoURL}
-																				alt='avatar'
-																				key={i}
-																			/>
-																		);
-																	})}
-																</Box>
-																}
-															</>
-															:
-															<Box>
-																<Box
-																	onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)}
-																	sx={{
-																		display: "flex",
-																		wordBreak: "break-all",
-																		cursor: "pointer"
-																	}}
-																>
-																	{message.replyer &&
-																	<Box sx={messageContainer}>
-																		<Box sx={messageLeftLine}/>
-																		<Box
-																			onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)}
-																			sx={{ cursor: "pointer" }}
-																		>
-																			<Typography
-																				sx={{
-																					color: `${subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || "" : subscribedReplyerUser?.nicknameColor || ""} !important`,
-																					cursor: "pointer"
-																				}}
-																			>
-																				{subscribedReplyerUser?.nickname}
-																			</Typography>
-																			{replyMessage ?
-																				<EllipsisText
-																					sx={messageStyles}
-																					text={replyMessage.message}
-																					length={30}
-																				/>
-																				:
-																				<Typography color='error' sx={{}}>Сообщение
-																					удалено
-																				</Typography>
-																			}
-																		</Box>
-																	</Box>
-																	}
-																</Box>
-																{message.images &&
-																<ImageList
-																	sx={isMobile ? { width: "100%" } : {}}
-																	cols={isMobile ? 1 : message.images.length > 2 ? 3 : message.images.length}
-																>
-																	{message.images.map(({ imageRef, url }, i) => {
-																		return <ImageListItem
-																			onClick={() => {
-																				setIndexOfOpenedImage(i);
-																				setGalleryImages(message.images!.map(({ url }) => {
-																					return {
-																						original: url,
-																						thumbnail: url
-																					};
-																				}));
-																				setIsGalleryOpen(true);
-																			}}
-																			key={url}
-																			sx={{
-																				borderRadius: 2,
-																				overflow: "hidden",
-																				mt: 1,
-																				mx: 0.5,
-																				cursor: "pointer"
-																			}}
-																		>
-																			<img style={{ height: "300px" }} src={url}/>
-																		</ImageListItem>;
-																	})}
-																</ImageList>
-																}
-																<TextField
-																	fullWidth
-																	sx={{ div: { px: 1, mb: 1 } }}
-																	variant={"standard"}
-																	onChange={(e) => setMessageInputValue(e.target.value)}
-																	multiline defaultValue={message.message}
-																/>
-																<Button
-																	sx={{ mx: 1 }}
-																	color={"success"}
-																	onClick={() => {
-																		changeMessage(message);
-																	}}>
-																	<DoneIcon/>
-																</Button>
-																<Button
-																	color={"error"}
-																	onClick={() => {
-																		setChangingMessageId("");
-																		setMessageInputValue("");
-																	}}
-																>
-																	<CloseIcon/>
-																</Button>
-
-															</Box>
-														}
-													</Box>
-												</Box>
-											</ListItem>
+												message={message}
+												onOpenContextMenu={onOpenContextMenu}
+												isLastMessage={isLastMessage}
+												lastMessage={lastMessage}
+												subscribedUser={subscribedUser}
+												isMobile={isMobile}
+												isMessageBeforeIsMine={isMessageBeforeIsMine}
+												isMessageAfterThisMine={isMessageAfterThisMine}
+												userStyles={userStyles}
+												showRepliedMessage={showRepliedMessage}
+												currentUser={me!}
+												subscribedReplyerUser={subscribedReplyerUser}
+												subscribedUsers={subscribedUsers}
+												replyMessage={replyMessage}
+												setGalleryImages={setGalleryImages}
+												setIsGalleryOpen={setIsGalleryOpen}
+												replyOnMessage={replyOnMessage}
+												showUserInfo={showUserInfo}
+												setIndexOfOpenedImage={setIndexOfOpenedImage}
+											/>
 										);
+										// const subscribedReplyerUser = subscribedUsers[message?.replyer?.userId] || null;
+										// const replyMessage: messageType | gifMessageType | null = replyMessages[message?.replyer?.messageId] || null;
+
+										// return (
+										// 	<ListItem
+										// 		sx={{ padding: 0 }}
+										// 		key={messageId}
+										// 		onContextMenu={(e) => onOpenContextMenu(e, message, subscribedUser)}
+										// 		ref={isLastMessage ? lastMessage : null}
+										// 	>
+										// 		<Box
+										// 			className={"messageWrapper"}
+										// 			sx={messageListItem(isMobile)}
+										// 		>
+										// 			<Box
+										// 				className='message'
+										// 				sx={messageWrapper(isMessageBeforeIsMine, isMessageAfterThisMine, isMobile, userStyles?.messagesBorderRadius, userStyles.secondBackgroundColor, userStyles.theme)}
+										// 			>
+										// 				{!isMessageChanging ?
+										// 					<>
+										// 						<Box sx={userWrapper}>
+										// 							{!isMessageBeforeIsMine &&
+										// 							<>
+										// 								<Typography
+										// 									onClick={(e) => showUserInfo(e, subscribedUser)}
+										// 									sx={activeUsername(subscribedUser ? subscribedUser?.nicknameColor : "")}
+										// 									variant='subtitle1'
+										// 								>
+										// 									{subscribedUser?.nickname || userId}
+										// 								</Typography>
+										// 								{subscribedUser?.isAdmin &&
+										// 								<Typography variant='subtitle1' sx={userRole}>
+										// 									Админ
+										// 								</Typography>
+										// 								}
+										// 							</>
+										// 							}
+										// 							<IconButton
+										// 								className='miniContextmenu'
+										// 								onClick={() => {
+										// 									replyOnMessage(message);
+										// 								}}
+										// 								sx={{ color: subscribedUser?.nicknameColor || "" }}
+										// 							>
+										// 								<ReplyIcon/>
+										// 							</IconButton>
+										// 						</Box>
+										// 						{message.replyer &&
+										// 						<Box sx={messageContainer}>
+										// 							<Box sx={messageLeftLine}/>
+										// 							<Box
+										// 								onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)}
+										// 								sx={{ cursor: "pointer" }}
+										// 							>
+										// 								<Typography
+										// 									sx={{
+										// 										color: `${subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || "" : subscribedReplyerUser?.nicknameColor || ""} !important`,
+										// 										cursor: "pointer"
+										// 									}}
+										// 								>
+										// 									{subscribedReplyerUser?.nickname}
+										// 								</Typography>
+										// 								{replyMessage ?
+										// 									<EllipsisText
+										// 										sx={messageStyles}
+										// 										text={replyMessage.message}
+										// 										length={30}
+										// 									/>
+										// 									:
+										// 									<Typography color='error' sx={{}}>Сообщение
+										// 										удалено
+										// 									</Typography>
+										// 								}
+										// 							</Box>
+										// 						</Box>
+										// 						}
+										// 						{message.images &&
+										// 						<ImageList
+										// 							sx={isMobile ? { width: "100%" } : {}}
+										// 							cols={isMobile ? 1 : message.images.length > 2 ? 3 : message.images.length}
+										// 						>
+										// 							{message.images.map(({ imageRef, url }, i) => {
+										// 								return <ImageListItem
+										// 									onClick={() => {
+										// 										setIndexOfOpenedImage(i);
+										// 										setGalleryImages(message.images!.map(({ url }) => {
+										// 											return {
+										// 												original: url,
+										// 												thumbnail: url
+										// 											};
+										// 										}));
+										// 										setIsGalleryOpen(true);
+										// 									}}
+										// 									key={url}
+										// 									sx={{
+										// 										borderRadius: 2,
+										// 										overflow: "hidden",
+										// 										mt: 1,
+										// 										mx: 0.5,
+										// 										cursor: "pointer"
+										// 									}}
+										// 								>
+										// 									<img style={{ height: "300px" }} src={url}/>
+										// 								</ImageListItem>;
+										// 							})}
+										// 						</ImageList>
+										// 						}
+										// 						<Typography sx={messageStyles}>
+										// 							{message.message}
+										// 						</Typography>
+										// 						{changedAtFormatted ?
+										// 							<Typography sx={dateMessage}>
+										// 								изменено в {changedAtFormatted}
+										// 							</Typography>
+										// 							:
+										// 							<Typography sx={dateMessage}>
+										// 								{formattedCreatedAt}
+										// 							</Typography>
+										// 						}
+										// 						{isLastMessage &&
+										// 						<WhoSeenTheMessage message={message} currentUserId={me!.userId} subscribedUsers={subscribedUsers}/>
+										// 						}
+										// 					</>
+										// 					:
+										// 					<Box>
+										// 						<Box
+										// 							onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)}
+										// 							sx={{
+										// 								display: "flex",
+										// 								wordBreak: "break-all",
+										// 								cursor: "pointer"
+										// 							}}
+										// 						>
+										// 							{message.replyer &&
+										// 							<Box sx={messageContainer}>
+										// 								<Box sx={messageLeftLine}/>
+										// 								<Box
+										// 									onClick={() => showRepliedMessage(message, showRepliedMessageActionTypes.showRepliedMessage)}
+										// 									sx={{ cursor: "pointer" }}
+										// 								>
+										// 									<Typography
+										// 										sx={{
+										// 											color: `${subscribedReplyerUser?.userId === me?.userId ? me?.nicknameColor || "" : subscribedReplyerUser?.nicknameColor || ""} !important`,
+										// 											cursor: "pointer"
+										// 										}}
+										// 									>
+										// 										{subscribedReplyerUser?.nickname}
+										// 									</Typography>
+										// 									{replyMessage ?
+										// 										<EllipsisText
+										// 											sx={messageStyles}
+										// 											text={replyMessage.message}
+										// 											length={30}
+										// 										/>
+										// 										:
+										// 										<Typography color='error' sx={{}}>Сообщение
+										// 											удалено
+										// 										</Typography>
+										// 									}
+										// 								</Box>
+										// 							</Box>
+										// 							}
+										// 						</Box>
+										// 						{message.images &&
+										// 						<ImageList
+										// 							sx={isMobile ? { width: "100%" } : {}}
+										// 							cols={isMobile ? 1 : message.images.length > 2 ? 3 : message.images.length}
+										// 						>
+										// 							{message.images.map(({ imageRef, url }, i) => {
+										// 								return <ImageListItem
+										// 									onClick={() => {
+										// 										setIndexOfOpenedImage(i);
+										// 										setGalleryImages(message.images!.map(({ url }) => {
+										// 											return {
+										// 												original: url,
+										// 												thumbnail: url
+										// 											};
+										// 										}));
+										// 										setIsGalleryOpen(true);
+										// 									}}
+										// 									key={url}
+										// 									sx={{
+										// 										borderRadius: 2,
+										// 										overflow: "hidden",
+										// 										mt: 1,
+										// 										mx: 0.5,
+										// 										cursor: "pointer"
+										// 									}}
+										// 								>
+										// 									<img style={{ height: "300px" }} src={url}/>
+										// 								</ImageListItem>;
+										// 							})}
+										// 						</ImageList>
+										// 						}
+										// 						<TextField
+										// 							fullWidth
+										// 							sx={{ div: { px: 1, mb: 1 } }}
+										// 							variant={"standard"}
+										// 							onChange={(e) => setMessageInputValue(e.target.value)}
+										// 							multiline defaultValue={message.message}
+										// 						/>
+										// 						<Button
+										// 							sx={{ mx: 1 }}
+										// 							color={"success"}
+										// 							onClick={() => {
+										// 								changeMessage(message);
+										// 							}}>
+										// 							<DoneIcon/>
+										// 						</Button>
+										// 						<Button
+										// 							color={"error"}
+										// 							onClick={() => {
+										// 								setChangingMessageId("");
+										// 								setMessageInputValue("");
+										// 							}}
+										// 						>
+										// 							<CloseIcon/>
+										// 						</Button>
+										//
+										// 					</Box>
+										// 				}
+										// 			</Box>
+										// 		</Box>
+										// 	</ListItem>
+										// );
 									}
 
 

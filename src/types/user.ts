@@ -9,4 +9,5 @@ export type user = {
     createdAt: number,
     phoneNumber: string | null,
     email: string,
+    isAdmin: boolean
 }

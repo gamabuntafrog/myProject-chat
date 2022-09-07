@@ -86,6 +86,7 @@ const Media: FC<MediaPT> = memo(({
 			gifInfo: gif,
 			replyer: (isReplying && replyMessageInfo) ? {userId, messageId} : null
 		};
+		setIsReplying(false)
 
 		await addRecentlyGif(gif);
 
